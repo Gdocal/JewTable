@@ -116,25 +116,25 @@
 }
 
 .thContent {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  min-width: 0;
-}
-
-.thContent > span:first-child {
+  display: block;
+  position: relative;
+  padding-right: 60px; /* Reserve space for icons on the right */
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
-  flex: 1;
+  white-space: nowrap;
 }
 
 .headerIcons {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
+  background: inherit;
+  padding-left: 4px;
 }
 
 .sortable {
@@ -201,6 +201,12 @@
 .th:first-child,
 .td:first-child {
   padding-right: 4px !important;
+}
+
+/* Second column (after checkbox) - reduce left padding to remove gap */
+.th:nth-child(2),
+.td:nth-child(2) {
+  padding-left: 4px !important;
 }
 
 /* Drag handle column - minimal padding (Phase 6) */
