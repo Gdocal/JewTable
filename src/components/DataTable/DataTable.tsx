@@ -220,6 +220,12 @@ export function DataTable<TData extends RowData>({
   };
 
   const handleCopyRow = (rowId: string) => {
+    // Exit edit mode and blur to prevent auto-scroll
+    setEditingCell(null);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     const rowToCopy = displayData.find((row) => row.id === rowId);
     if (!rowToCopy) return;
 
@@ -284,6 +290,12 @@ export function DataTable<TData extends RowData>({
   };
 
   const handleDeleteRow = (rowId: string) => {
+    // Exit edit mode and blur to prevent auto-scroll
+    setEditingCell(null);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     setDeletedRows((prev) => new Set(prev).add(rowId));
 
     // Remove from new rows set if it was a new row
@@ -308,11 +320,6 @@ export function DataTable<TData extends RowData>({
       newMap.delete(rowId);
       return newMap;
     });
-
-    // Exit edit mode if this row was being edited
-    if (editingCell?.rowId === rowId) {
-      setEditingCell(null);
-    }
 
     console.log(`Deleted row: ${rowId}`);
   };
