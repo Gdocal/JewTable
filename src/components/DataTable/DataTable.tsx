@@ -93,6 +93,8 @@ export function DataTable<TData extends RowData>({
   const [deletedRows, setDeletedRows] = useState<Set<string>>(new Set());
   // Track insertion position for new rows (rowId -> insertAfterRowId)
   const [rowInsertions, setRowInsertions] = useState<Map<string, string | null>>(new Map());
+  // Track rows that should show the "just added" animation
+  const [animatingRows, setAnimatingRows] = useState<Set<string>>(new Set());
 
   // Create column names map for filter chips
   const columnNames = useMemo(() => {
@@ -189,6 +191,16 @@ export function DataTable<TData extends RowData>({
       return newMap;
     });
 
+    // Trigger animation for this row
+    setAnimatingRows((prev) => new Set(prev).add(tempId));
+    setTimeout(() => {
+      setAnimatingRows((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(tempId);
+        return newSet;
+      });
+    }, 2000); // Match animation duration
+
     // Enter edit mode for first editable column
     const firstEditableColumn = columns.find((col) => (col as any).editable !== false);
     if (firstEditableColumn) {
@@ -215,9 +227,25 @@ export function DataTable<TData extends RowData>({
     // Mark as new row
     setNewRows((prev) => new Set(prev).add(tempId));
 
-    // Track that this row should be inserted after the copied row
+    // Update insertion tracking: new copy goes directly after original row,
+    // and any existing copies that were after original now go after new copy
     setRowInsertions((prev) => {
       const newMap = new Map(prev);
+
+      // Find any existing rows that should be inserted after the target row
+      const rowsToMoveDown: string[] = [];
+      newMap.forEach((insertAfter, existingRowId) => {
+        if (insertAfter === rowId) {
+          rowsToMoveDown.push(existingRowId);
+        }
+      });
+
+      // Move those rows to be inserted after the new copy instead
+      rowsToMoveDown.forEach((existingRowId) => {
+        newMap.set(existingRowId, tempId);
+      });
+
+      // New copy goes directly after the original row
       newMap.set(tempId, rowId);
       return newMap;
     });
@@ -228,6 +256,16 @@ export function DataTable<TData extends RowData>({
       newMap.set(tempId, copiedRow);
       return newMap;
     });
+
+    // Trigger animation for this row
+    setAnimatingRows((prev) => new Set(prev).add(tempId));
+    setTimeout(() => {
+      setAnimatingRows((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(tempId);
+        return newSet;
+      });
+    }, 2000); // Match animation duration
 
     console.log(`Copied row ${rowId} to ${tempId}, will insert after ${rowId}`);
   };
@@ -405,8 +443,27 @@ export function DataTable<TData extends RowData>({
     getFilteredRowModel: getFilteredRowModel(),
   });
 
+  // Handle clicks on non-interactive areas to save edits
+  const handleContainerClick = (e: React.MouseEvent) => {
+    // If clicking on the container itself (not a child element like input/button),
+    // blur any focused element to trigger save
+    const target = e.target as HTMLElement;
+    if (
+      target === e.currentTarget ||
+      target.classList.contains(styles.tableContainer) ||
+      target.classList.contains(styles.table) ||
+      target.classList.contains(styles.tbody) ||
+      target.classList.contains(styles.thead)
+    ) {
+      // Blur the currently focused element
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    }
+  };
+
   return (
-    <div className={`${styles.tableContainer} ${className || ''}`}>
+    <div className={`${styles.tableContainer} ${className || ''}`} onClick={handleContainerClick}>
       {/* Global search - Phase 3 */}
       <GlobalSearch
         value={globalFilter}
@@ -475,11 +532,11 @@ export function DataTable<TData extends RowData>({
         </thead>
         <tbody className={styles.tbody}>
           {table.getRowModel().rows.map((row) => {
-            const isNewRow = newRows.has(row.original.id);
+            const shouldAnimate = animatingRows.has(row.original.id);
             return (
               <tr
                 key={row.id}
-                className={`${styles.row} ${isNewRow ? styles.newRow : ''}`}
+                className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
               >
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className={styles.td}>
