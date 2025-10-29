@@ -50,6 +50,7 @@ function App() {
   const {
     data: traditionalData,
     isLoading: isLoadingTraditional,
+    isFetching: isFetchingTraditional,
     isError: isErrorTraditional,
     error: errorTraditional,
   } = useData<Employee>({
@@ -158,6 +159,7 @@ function App() {
             onPaginationChange={handlePaginationChange}
             // Common props
             isLoading={isLoading}
+            isFetching={paginationType === 'traditional' ? isFetchingTraditional : false}
             enableRowReordering={false}
             enableVirtualization={true}
             rowHeight={53}

@@ -48,6 +48,7 @@ export interface DataTableProps<TData extends RowData = RowData> {
 
   // Loading state
   isLoading?: boolean;
+  isFetching?: boolean; // For showing overlay during pagination
 
   // CRUD callbacks
   onRowUpdate?: (rowId: string, data: Partial<TData>) => Promise<void>;

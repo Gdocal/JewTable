@@ -3,7 +3,7 @@
  * Phase 8.3: Traditional pagination (non-infinite)
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { fetchData, FetchDataOptions, FetchDataResponse } from '../utils/api';
 import type { RowData } from '../components/DataTable/types/table.types';
 
@@ -21,5 +21,6 @@ export function useData<TData extends RowData>(
     queryKey: [resource, fetchOptions],
     queryFn: () => fetchData<TData>(resource, fetchOptions),
     enabled,
+    placeholderData: keepPreviousData, // Keep previous data while loading new page
   });
 }

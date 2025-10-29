@@ -98,6 +98,7 @@ export function DataTable<TData extends RowData>({
   totalRows,
   pageCount,
   isLoading = false,
+  isFetching = false,
   onPaginationChange,
   enableSorting = true,
   enableInlineEditing = true,
@@ -775,6 +776,9 @@ export function DataTable<TData extends RowData>({
   // Determine if table is read-only (no editing and no row creation)
   const isReadOnly = !enableInlineEditing && !enableRowCreation;
 
+  // Show overlay during pagination fetch (not initial load)
+  const showLoadingOverlay = useManualPagination && isFetching && !isLoading;
+
   return (
     <div className={`${styles.tableContainer} ${className || ''}`} onClick={handleContainerClick}>
       {/* Table toolbar - Phase 5 (Improved UX) */}
@@ -799,7 +803,7 @@ export function DataTable<TData extends RowData>({
       />
 
       {enableVirtualization ? (
-        <div ref={scrollContainerRef} className={styles.virtualizationContainer}>
+        <div ref={scrollContainerRef} className={`${styles.virtualizationContainer} ${showLoadingOverlay ? styles.loadingOverlay : ''}`}>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -1029,15 +1033,16 @@ export function DataTable<TData extends RowData>({
       </DndContext>
         </div>
       ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onDragCancel={() => setActiveId(null)}
-          modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-        >
-          <table className={styles.table}>
+        <div className={showLoadingOverlay ? styles.loadingOverlay : ''}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDragCancel={() => setActiveId(null)}
+            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+          >
+            <table className={styles.table}>
           <thead ref={theadRef} className={styles.thead}>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className={styles.headerRow}>
@@ -1196,6 +1201,7 @@ export function DataTable<TData extends RowData>({
           })() : null}
         </DragOverlay>
       </DndContext>
+        </div>
       )}
 
       {/* Empty state - Phase 5 (Improved UX) */}
