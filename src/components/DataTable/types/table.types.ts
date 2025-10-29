@@ -11,6 +11,11 @@ export enum TableMode {
   SERVER = 'server', // Server-side pagination, filtering, sorting
 }
 
+export enum PaginationType {
+  INFINITE = 'infinite',     // Infinite scroll (loads and appends)
+  TRADITIONAL = 'traditional', // Page-based (Previous/Next buttons)
+}
+
 export interface RowData {
   id: string;
   [key: string]: unknown;
@@ -27,12 +32,21 @@ export interface DataTableProps<TData extends RowData = RowData> {
 
   // Mode
   mode?: TableMode;
+  paginationType?: PaginationType; // Only for SERVER mode
 
   // Server-side callbacks (for SERVER mode)
   onFetchData?: (params: FetchDataParams) => Promise<FetchDataResponse<TData>>;
+
+  // Infinite pagination props
   onFetchNextPage?: () => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
+
+  // Traditional pagination props
+  totalRows?: number; // Total rows on server
+  pageCount?: number; // Total pages
+
+  // Loading state
   isLoading?: boolean;
 
   // CRUD callbacks
@@ -44,6 +58,7 @@ export interface DataTableProps<TData extends RowData = RowData> {
   // State callbacks
   onFilterChange?: (filters: FilterState) => void;
   onSortChange?: (sorting: SortingState) => void;
+  onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
 
   // User preferences
   userId?: string; // For saving user-specific preferences

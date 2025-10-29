@@ -123,7 +123,8 @@ function buildQueryString(params: Record<string, any>): string {
 }
 
 /**
- * Parse pagination params for json-server
+ * Parse pagination params for json-server 1.0
+ * json-server 1.0 uses _start and _end instead of _page and _limit
  */
 export interface PaginationParams {
   page?: number;
@@ -132,9 +133,11 @@ export interface PaginationParams {
 
 function parsePaginationParams(params: PaginationParams): Record<string, any> {
   const { page = 1, pageSize = 100 } = params;
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
   return {
-    _page: page,
-    _limit: pageSize,
+    _start: start,
+    _end: end,
   };
 }
 

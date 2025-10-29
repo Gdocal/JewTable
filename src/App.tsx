@@ -4,15 +4,23 @@
  */
 
 import { useMemo, useState } from 'react';
-import { DataTable, TableMode } from './components/DataTable';
+import { DataTable, TableMode, PaginationType } from './components/DataTable';
 import { employeeColumns, generateLargeDataset } from './data/sampleData';
 import { useInfiniteData } from './hooks/useInfiniteData';
+import { useData } from './hooks/useData';
 import type { Employee } from './data/sampleData';
 import styles from './App.module.css';
 
 function App() {
   // Mode toggle - Phase 8.2: Switch between client and server mode
   const [mode, setMode] = useState<'client' | 'server'>('server'); // Start with server mode
+
+  // Pagination type toggle - Phase 8.3: Switch between infinite and traditional
+  const [paginationType, setPaginationType] = useState<'infinite' | 'traditional'>('traditional'); // Start with traditional
+
+  // Pagination state for traditional mode
+  const [page, setPage] = useState(1);
+  const pageSize = 100;
 
   // Generate large dataset for client mode testing (Phase 7)
   const largeDataset = useMemo(() => generateLargeDataset(5000), []);
@@ -23,26 +31,56 @@ function App() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    isLoading,
-    isError,
-    error,
+    isLoading: isLoadingInfinite,
+    isError: isErrorInfinite,
+    error: errorInfinite,
   } = useInfiniteData<Employee>({
     resource: 'employees',
     pageSize: 100,
-    enabled: mode === 'server', // Only enabled in server mode
+    enabled: mode === 'server' && paginationType === 'infinite',
   });
 
   // Flatten infinite query pages into single array
-  const serverData = useMemo(() => {
+  const infiniteServerData = useMemo(() => {
     if (!infiniteData) return [];
     return infiniteData.pages.flatMap((page) => page.data);
   }, [infiniteData]);
 
-  // Select data based on mode
-  const tableData = mode === 'server' ? serverData : largeDataset;
+  // Phase 8.3: Traditional pagination query
+  const {
+    data: traditionalData,
+    isLoading: isLoadingTraditional,
+    isError: isErrorTraditional,
+    error: errorTraditional,
+  } = useData<Employee>({
+    resource: 'employees',
+    page,
+    pageSize,
+    enabled: mode === 'server' && paginationType === 'traditional',
+  });
+
+  // Extract traditional pagination data
+  const traditionalServerData = traditionalData?.data ?? [];
+  const totalRows = traditionalData?.total ?? 0;
+  const totalPages = Math.ceil(totalRows / pageSize);
+
+  // Select data based on mode and pagination type
+  const tableData = mode === 'server'
+    ? (paginationType === 'infinite' ? infiniteServerData : traditionalServerData)
+    : largeDataset;
+
+  // Select loading state
+  const isLoading = mode === 'server'
+    ? (paginationType === 'infinite' ? isLoadingInfinite : isLoadingTraditional)
+    : false;
 
   const handleRowReorder = (newOrder: string[]) => {
     console.log('Row order changed:', newOrder);
+  };
+
+  const handlePaginationChange = (pagination: { pageIndex: number; pageSize: number }) => {
+    // Update page state when pagination changes (pageIndex is 0-based, page is 1-based)
+    setPage(pagination.pageIndex + 1);
   };
 
   return (
@@ -55,27 +93,51 @@ function App() {
       <main className={styles.main}>
         <div className={styles.tableCard}>
           <div className={styles.tableHeader}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
               <h2>Employee Directory - Server Integration Test</h2>
-              <button
-                onClick={() => setMode(mode === 'client' ? 'server' : 'client')}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '4px',
-                  border: '1px solid #dee2e6',
-                  background: 'white',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                }}
-              >
-                Switch to {mode === 'client' ? 'Server' : 'Client'} Mode
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setMode(mode === 'client' ? 'server' : 'client')}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    border: '1px solid #dee2e6',
+                    background: 'white',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                  }}
+                >
+                  {mode === 'client' ? '🌐 Server' : '💾 Client'} Mode
+                </button>
+                {mode === 'server' && (
+                  <button
+                    onClick={() => setPaginationType(paginationType === 'infinite' ? 'traditional' : 'infinite')}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '4px',
+                      border: '1px solid #0d6efd',
+                      background: '#0d6efd',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                    }}
+                  >
+                    {paginationType === 'infinite' ? '📄 Traditional' : '∞ Infinite'} Scroll
+                  </button>
+                )}
+              </div>
             </div>
             <p className={styles.subtitle}>
-              {mode === 'server'
-                ? `Server Mode • Loaded ${serverData.length} rows • Infinite scroll enabled • ${hasNextPage ? 'More available' : 'All loaded'}`
-                : `Client Mode • ${largeDataset.length.toLocaleString()} rows • All data in memory`
+              {mode === 'server' && paginationType === 'infinite' &&
+                `Server Mode • Infinite Scroll • Loaded ${infiniteServerData.length} rows • ${hasNextPage ? 'More available' : 'All loaded'}`
+              }
+              {mode === 'server' && paginationType === 'traditional' &&
+                `Server Mode • Traditional Pagination • Showing ${traditionalServerData.length} of ${totalRows} rows • Page ${page}/${totalPages}`
+              }
+              {mode === 'client' &&
+                `Client Mode • ${largeDataset.length.toLocaleString()} rows • All data in memory`
               }
             </p>
           </div>
@@ -85,9 +147,16 @@ function App() {
             columns={employeeColumns}
             data={tableData}
             mode={mode as TableMode}
+            paginationType={paginationType as PaginationType}
+            // Infinite pagination props
             onFetchNextPage={fetchNextPage}
             hasNextPage={hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
+            // Traditional pagination props
+            totalRows={totalRows}
+            pageCount={totalPages}
+            onPaginationChange={handlePaginationChange}
+            // Common props
             isLoading={isLoading}
             enableRowReordering={false}
             enableVirtualization={true}
@@ -183,8 +252,11 @@ function App() {
             <li>✅ API client with retry logic</li>
             <li>✅ TanStack Query integration</li>
             <li>✅ Infinite scroll with useInfiniteQuery</li>
-            <li>✅ Server mode with automatic pagination</li>
+            <li>✅ Traditional pagination with Previous/Next</li>
+            <li>✅ Manual pagination with TanStack Table</li>
+            <li>✅ Page number buttons (1, 2, 3...)</li>
             <li>✅ Client/Server mode toggle</li>
+            <li>✅ Infinite/Traditional pagination toggle</li>
             <li>✅ Loading indicators</li>
             <li>⏳ Server-side sorting/filtering (future)</li>
           </ul>

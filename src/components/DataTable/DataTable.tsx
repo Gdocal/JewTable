@@ -38,7 +38,7 @@ import {
   restrictToVerticalAxis,
   restrictToParentElement,
 } from '@dnd-kit/modifiers';
-import { DataTableProps, RowData, TableMode } from './types/table.types';
+import { DataTableProps, RowData, TableMode, PaginationType } from './types/table.types';
 import { CellRenderer } from './cells/CellRenderer';
 import { SortIndicator } from './components/SortIndicator';
 import { GlobalSearch } from './components/GlobalSearch';
@@ -50,6 +50,7 @@ import { EmptyState } from './components/EmptyState/EmptyState';
 import { RowActions } from './components/RowActions/RowActions';
 import { DraggableRow } from './components/DraggableRow/DraggableRow';
 import { DragHandleCell } from './components/DragHandleCell/DragHandleCell';
+import { PaginationControls } from './components/PaginationControls/PaginationControls';
 import {
   applyTextFilter,
   applyNumberFilter,
@@ -90,10 +91,14 @@ export function DataTable<TData extends RowData>({
   data = [],
   className,
   mode = 'client' as const,
+  paginationType = PaginationType.INFINITE,
   onFetchNextPage,
   hasNextPage,
   isFetchingNextPage,
+  totalRows,
+  pageCount,
   isLoading = false,
+  onPaginationChange,
   enableSorting = true,
   enableInlineEditing = true,
   enableRowCreation = true,
@@ -122,6 +127,12 @@ export function DataTable<TData extends RowData>({
 
   // Column filters state (Phase 3)
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  // Pagination state (Phase 8.3 - Traditional pagination)
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 100,
+  });
 
   // Edit state (Phase 4) - track which cell is being edited
   const [editingCell, setEditingCell] = useState<{ rowId: string; columnId: string } | null>(null);
@@ -675,6 +686,9 @@ export function DataTable<TData extends RowData>({
     return userColumns;
   }, [columns, enableSorting, editingCell, enableInlineEditing, enableRowCreation, enableRowCopy, enableRowInsertion, enableRowDeletion, enableRowReordering, newRows]);
 
+  // Determine if using manual pagination (Phase 8.3)
+  const useManualPagination = mode === TableMode.SERVER && paginationType === PaginationType.TRADITIONAL;
+
   // Initialize TanStack Table
   const table = useReactTable({
     data: displayData,
@@ -683,13 +697,22 @@ export function DataTable<TData extends RowData>({
       sorting,
       globalFilter,
       columnFilters,
+      ...(useManualPagination ? { pagination } : {}),
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
+    ...(useManualPagination ? { onPaginationChange: setPagination } : {}),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    // Manual pagination for server mode with traditional pagination
+    ...(useManualPagination
+      ? {
+          manualPagination: true,
+          pageCount: pageCount ?? Math.ceil((totalRows ?? 0) / pagination.pageSize),
+        }
+      : {}),
   });
 
   // Virtualization setup (Phase 7)
@@ -701,9 +724,16 @@ export function DataTable<TData extends RowData>({
     enabled: enableVirtualization,
   });
 
-  // Infinite scroll detection (Phase 8.2 - Server mode)
+  // Pagination change callback (Phase 8.3 - Traditional pagination)
   useEffect(() => {
-    if (mode !== 'server' || !enableVirtualization || !onFetchNextPage) return;
+    if (!useManualPagination || !onPaginationChange) return;
+    onPaginationChange(pagination);
+  }, [pagination, useManualPagination, onPaginationChange]);
+
+  // Infinite scroll detection (Phase 8.2 - Server mode with infinite pagination)
+  useEffect(() => {
+    if (mode !== TableMode.SERVER || paginationType !== PaginationType.INFINITE) return;
+    if (!enableVirtualization || !onFetchNextPage) return;
     if (!hasNextPage || isFetchingNextPage) return;
 
     const scrollElement = scrollContainerRef.current;
@@ -721,7 +751,7 @@ export function DataTable<TData extends RowData>({
 
     scrollElement.addEventListener('scroll', handleScroll);
     return () => scrollElement.removeEventListener('scroll', handleScroll);
-  }, [mode, enableVirtualization, onFetchNextPage, hasNextPage, isFetchingNextPage]);
+  }, [mode, paginationType, enableVirtualization, onFetchNextPage, hasNextPage, isFetchingNextPage]);
 
   // Handle clicks on non-interactive areas to save edits
   const handleContainerClick = (e: React.MouseEvent) => {
@@ -1177,12 +1207,17 @@ export function DataTable<TData extends RowData>({
         />
       )}
 
-      {/* Loading indicator - Phase 8 (Server mode) */}
-      {mode === TableMode.SERVER && (isLoading || isFetchingNextPage) && (
+      {/* Loading indicator - Phase 8 (Server mode with infinite scroll) */}
+      {mode === TableMode.SERVER && paginationType === PaginationType.INFINITE && (isLoading || isFetchingNextPage) && (
         <div className={styles.loadingIndicator}>
           <div className={styles.spinner} />
           <span>{isLoading ? 'Loading data...' : 'Loading more...'}</span>
         </div>
+      )}
+
+      {/* Pagination controls - Phase 8.3 (Traditional pagination) */}
+      {mode === TableMode.SERVER && paginationType === PaginationType.TRADITIONAL && (
+        <PaginationControls table={table} isLoading={isLoading} />
       )}
 
       {/* Table footer - Phase 5 (Simplified) */}
