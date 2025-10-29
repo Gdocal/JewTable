@@ -26,7 +26,7 @@
 .main {
   flex: 1;
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
 }
@@ -47,6 +47,50 @@
 .card h3 {
   margin-top: 0;
   color: #667eea;
+}
+
+.tableCard {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.tableHeader {
+  margin-bottom: 1.5rem;
+}
+
+.tableHeader h2 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.infoCard {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.infoCard h3 {
+  margin-top: 0;
+  color: #667eea;
+}
+
+.infoCard ul {
+  line-height: 1.8;
+  color: #666;
+}
+
+.phaseNext {
+  margin-top: 2rem !important;
 }
 
 .card ul {

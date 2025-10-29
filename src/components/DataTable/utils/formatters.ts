@@ -5,6 +5,9 @@
 import { format, parseISO, isValid } from 'date-fns';
 import { DATE_FORMATS, NUMBER_FORMATS } from './constants';
 
+// Re-export constants for convenience
+export { DATE_FORMATS, NUMBER_FORMATS };
+
 /**
  * Format a number as currency
  */

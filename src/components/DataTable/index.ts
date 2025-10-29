@@ -2,8 +2,8 @@
  * Main export file for DataTable component
  */
 
-// Export the main component (will be created in Phase 1)
-// export { DataTable } from './DataTable';
+// Export the main component
+export { DataTable } from './DataTable';
 
 // Export types
 export * from './types';
