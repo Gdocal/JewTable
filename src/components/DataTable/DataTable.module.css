@@ -80,6 +80,28 @@
   border-bottom: none;
 }
 
+.newRow {
+  animation: highlightNewRow 2s ease-out;
+}
+
+@keyframes highlightNewRow {
+  0% {
+    background-color: #d4edda;
+    transform: scale(1.01);
+  }
+  50% {
+    background-color: #d4edda;
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+.newRow:hover {
+  background-color: #f8f9fa;
+}
+
 .td {
   padding: 12px 16px;
   color: #212529;

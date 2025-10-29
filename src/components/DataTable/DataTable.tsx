@@ -474,15 +474,21 @@ export function DataTable<TData extends RowData>({
           ))}
         </thead>
         <tbody className={styles.tbody}>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className={styles.row}>
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className={styles.td}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
+          {table.getRowModel().rows.map((row) => {
+            const isNewRow = newRows.has(row.original.id);
+            return (
+              <tr
+                key={row.id}
+                className={`${styles.row} ${isNewRow ? styles.newRow : ''}`}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className={styles.td}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 

@@ -115,10 +115,15 @@ export function EditableNumberCell({
     }
   }
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent text selection
+    onStartEdit();
+  };
+
   return (
     <div
       className={styles.viewContainer}
-      onMouseDown={onStartEdit}
+      onMouseDown={handleMouseDown}
       onDoubleClick={onStartEdit}
     >
       <span className={styles.value}>{formattedValue}</span>
