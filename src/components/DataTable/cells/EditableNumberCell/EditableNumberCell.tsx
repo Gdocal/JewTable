@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { NumberFormat, formatNumber } from '../../utils/formatters';
+import { formatNumber, formatCurrency, formatPercent } from '../../utils/formatters';
 import styles from './EditableNumberCell.module.css';
 
 interface EditableNumberCellProps {
@@ -13,7 +13,7 @@ interface EditableNumberCellProps {
   onCancel: () => void;
   isEditing: boolean;
   onStartEdit: () => void;
-  format?: NumberFormat;
+  format?: 'decimal' | 'currency' | 'percent';
   decimals?: number;
   currencySymbol?: string;
   error?: string;
@@ -25,9 +25,9 @@ export function EditableNumberCell({
   onCancel,
   isEditing,
   onStartEdit,
-  format,
-  decimals,
-  currencySymbol,
+  format = 'decimal',
+  decimals = 2,
+  currencySymbol = '$',
   error,
 }: EditableNumberCellProps) {
   const [tempValue, setTempValue] = useState(String(value ?? ''));
@@ -96,7 +96,24 @@ export function EditableNumberCell({
     );
   }
 
-  const formattedValue = formatNumber(value, format, decimals, currencySymbol);
+  // Format the value based on the format type
+  let formattedValue: string;
+  if (value == null || isNaN(value)) {
+    formattedValue = '—';
+  } else {
+    switch (format) {
+      case 'currency':
+        formattedValue = formatCurrency(value, decimals, currencySymbol);
+        break;
+      case 'percent':
+        formattedValue = formatPercent(value, decimals);
+        break;
+      case 'decimal':
+      default:
+        formattedValue = formatNumber(value, decimals);
+        break;
+    }
+  }
 
   return (
     <div
