@@ -628,9 +628,10 @@ export function DataTable<TData extends RowData>({
         id: '_drag',
         header: '',
         cell: (info) => <DragHandleCell rowId={info.row.original.id} />,
-        size: 40,
+        size: 32,
         enableSorting: false,
         enableColumnFilter: false,
+        meta: { isDragColumn: true },
       } as ColumnDef<TData>);
     }
 
@@ -742,12 +743,14 @@ export function DataTable<TData extends RowData>({
                   const cellType = columnDef?.cellType || CellType.TEXT;
                   const canFilter = header.column.getCanFilter();
 
+                  const isDragColumn = (header.column.columnDef.meta as any)?.isDragColumn;
+
                   return (
                     <th
                       key={header.id}
                       className={`${styles.th} ${
                         header.column.getCanSort() ? styles.sortable : ''
-                      } ${header.column.getIsSorted() ? styles.sorted : ''}`}
+                      } ${header.column.getIsSorted() ? styles.sorted : ''} ${isDragColumn ? styles.dragColumn : ''}`}
                       onClick={header.column.getToggleSortingHandler()}
                       style={{ cursor: header.column.getCanSort() ? 'pointer' : 'default' }}
                     >
@@ -799,11 +802,14 @@ export function DataTable<TData extends RowData>({
                     style={rowStyle}
                     isDragDisabled={!!sorting.length || !!columnFilters.length || !!globalFilter}
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className={styles.td}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
+                    {row.getVisibleCells().map((cell) => {
+                      const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
+                      return (
+                        <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''}`}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      );
+                    })}
                   </DraggableRow>
                 ) : (
                   <tr
@@ -811,11 +817,14 @@ export function DataTable<TData extends RowData>({
                     className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
                     style={rowStyle}
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className={styles.td}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
+                    {row.getVisibleCells().map((cell) => {
+                      const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
+                      return (
+                        <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''}`}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               })}
@@ -824,7 +833,12 @@ export function DataTable<TData extends RowData>({
         </table>
 
         {/* DragOverlay for smooth drag animations (Phase 6 - Fix snap-back) */}
-        <DragOverlay>
+        <DragOverlay
+          dropAnimation={{
+            duration: 200,
+            easing: 'ease',
+          }}
+        >
           {activeId ? (() => {
             const activeRow = table.getRowModel().rows.find((row) => row.original.id === activeId);
             if (!activeRow) return null;
@@ -834,18 +848,42 @@ export function DataTable<TData extends RowData>({
             const animationDuration = shouldAnimate ? `${2 + (animationOrder * 0.1)}s` : '2s';
             const rowStyle = shouldAnimate ? { '--animation-duration': animationDuration } as React.CSSProperties : undefined;
 
+            // Calculate total width for the overlay table
+            const totalWidth = activeRow.getVisibleCells().reduce((sum, cell) => {
+              const isDragCol = (cell.column.columnDef.meta as any)?.isDragColumn;
+              return sum + (isDragCol ? 32 : cell.column.getSize());
+            }, 0);
+
             return (
-              <table style={{ width: 'auto', tableLayout: 'fixed' }}>
-                <tbody>
-                  <tr className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`} style={rowStyle}>
-                    {activeRow.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className={styles.td} style={{ width: cell.column.getSize() }}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
+              <div className={styles.dragOverlay}>
+                <table style={{
+                  width: totalWidth ? `${totalWidth}px` : 'auto',
+                  tableLayout: 'fixed',
+                  minWidth: '500px'
+                }}>
+                  <tbody>
+                    <tr className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`} style={rowStyle}>
+                      {activeRow.getVisibleCells().map((cell) => {
+                        const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
+                        const cellWidth = isDragColumn ? 32 : cell.column.getSize();
+                        return (
+                          <td
+                            key={cell.id}
+                            className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''}`}
+                            style={{
+                              width: `${cellWidth}px`,
+                              minWidth: `${cellWidth}px`,
+                              maxWidth: `${cellWidth}px`,
+                            }}
+                          >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             );
           })() : null}
         </DragOverlay>

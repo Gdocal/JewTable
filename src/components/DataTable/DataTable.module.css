@@ -109,6 +109,39 @@
   vertical-align: middle;
 }
 
+/* Drag handle column - minimal padding (Phase 6) */
+.dragColumn {
+  padding: 4px !important;
+  width: 32px !important;
+  text-align: center;
+}
+
+/* DragOverlay styles (Phase 6) */
+.dragOverlay {
+  cursor: grabbing;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: white;
+  border-radius: 4px;
+  opacity: 0.95;
+}
+
+.dragOverlay table {
+  border-collapse: collapse;
+}
+
+.dragOverlay .row {
+  background: white;
+  border: 1px solid #dee2e6;
+}
+
+.dragOverlay .td {
+  border-right: 1px solid #e9ecef;
+}
+
+.dragOverlay .td:last-child {
+  border-right: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .th,
