@@ -91,6 +91,8 @@ export function DataTable<TData extends RowData>({
   // Row creation/deletion state (Phase 5)
   const [newRows, setNewRows] = useState<Set<string>>(new Set());
   const [deletedRows, setDeletedRows] = useState<Set<string>>(new Set());
+  // Track insertion position for new rows (rowId -> insertAfterRowId)
+  const [rowInsertions, setRowInsertions] = useState<Map<string, string | null>>(new Map());
 
   // Create column names map for filter chips
   const columnNames = useMemo(() => {
@@ -148,12 +150,30 @@ export function DataTable<TData extends RowData>({
     // Generate temporary ID
     const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Create empty row with default values
+    // Create empty row with default values based on cell type
     const newRow: Partial<TData> = {
       ...columns.reduce((acc, col) => {
         const key = (col as any).accessorKey || col.id;
         if (key && key !== 'id') {
-          acc[key] = '';
+          const cellType = (col as any).cellType || CellType.TEXT;
+          // Set appropriate default value based on cell type
+          switch (cellType) {
+            case CellType.NUMBER:
+              acc[key] = null;
+              break;
+            case CellType.DATE:
+            case CellType.DATE_RANGE:
+              acc[key] = null;
+              break;
+            case CellType.CHECKBOX:
+              acc[key] = false;
+              break;
+            case CellType.TEXT:
+            case CellType.SELECT:
+            default:
+              acc[key] = '';
+              break;
+          }
         }
         return acc;
       }, {} as any),
@@ -195,6 +215,13 @@ export function DataTable<TData extends RowData>({
     // Mark as new row
     setNewRows((prev) => new Set(prev).add(tempId));
 
+    // Track that this row should be inserted after the copied row
+    setRowInsertions((prev) => {
+      const newMap = new Map(prev);
+      newMap.set(tempId, rowId);
+      return newMap;
+    });
+
     // Add to modified data (will be picked up by displayData)
     setModifiedData((prev) => {
       const newMap = new Map(prev);
@@ -202,7 +229,7 @@ export function DataTable<TData extends RowData>({
       return newMap;
     });
 
-    console.log(`Copied row ${rowId} to ${tempId}`);
+    console.log(`Copied row ${rowId} to ${tempId}, will insert after ${rowId}`);
   };
 
   const handleDeleteRow = (rowId: string) => {
@@ -224,6 +251,13 @@ export function DataTable<TData extends RowData>({
       return newMap;
     });
 
+    // Clear insertion tracking for this row
+    setRowInsertions((prev) => {
+      const newMap = new Map(prev);
+      newMap.delete(rowId);
+      return newMap;
+    });
+
     // Exit edit mode if this row was being edited
     if (editingCell?.rowId === rowId) {
       setEditingCell(null);
@@ -237,20 +271,40 @@ export function DataTable<TData extends RowData>({
     // Start with original data (excluding deleted rows)
     const baseData = data.filter((row) => !deletedRows.has(row.id));
 
-    // Collect new rows from modifiedData
-    const newRowData: TData[] = [];
-    modifiedData.forEach((modifications, rowId) => {
-      if (newRows.has(rowId)) {
-        newRowData.push({ ...modifications, id: rowId } as TData);
+    // Build result by inserting new rows at correct positions
+    const result: TData[] = [];
+    const insertedNewRows = new Set<string>();
+
+    // Process base data and insert new rows after their target rows
+    baseData.forEach((row) => {
+      // Add the base row (with modifications if any)
+      const modifications = modifiedData.get(row.id);
+      result.push(modifications ? { ...row, ...modifications } : row);
+
+      // Check if any new rows should be inserted after this row
+      newRows.forEach((newRowId) => {
+        if (rowInsertions.get(newRowId) === row.id && !insertedNewRows.has(newRowId)) {
+          const newRowMods = modifiedData.get(newRowId);
+          if (newRowMods) {
+            result.push({ ...newRowMods, id: newRowId } as TData);
+            insertedNewRows.add(newRowId);
+          }
+        }
+      });
+    });
+
+    // Add any new rows that don't have an insertion position (e.g., from Add Row button)
+    newRows.forEach((newRowId) => {
+      if (!insertedNewRows.has(newRowId)) {
+        const newRowMods = modifiedData.get(newRowId);
+        if (newRowMods) {
+          result.push({ ...newRowMods, id: newRowId } as TData);
+        }
       }
     });
 
-    // Combine and apply modifications
-    return [...baseData, ...newRowData].map((row) => {
-      const modifications = modifiedData.get(row.id);
-      return modifications ? { ...row, ...modifications } : row;
-    });
-  }, [data, modifiedData, deletedRows, newRows]);
+    return result;
+  }, [data, modifiedData, deletedRows, newRows, rowInsertions]);
 
   // Memoize columns to prevent unnecessary re-renders
   const tableColumns = useMemo<ColumnDef<TData>[]>(() => {
