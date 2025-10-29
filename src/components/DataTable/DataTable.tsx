@@ -23,6 +23,8 @@ import { SortIndicator } from './components/SortIndicator';
 import { GlobalSearch } from './components/GlobalSearch';
 import { ColumnFilter } from './components/ColumnFilter';
 import { FilterChips } from './components/FilterChips';
+import { TableActions } from './components/TableActions/TableActions';
+import { RowActions } from './components/RowActions/RowActions';
 import {
   applyTextFilter,
   applyNumberFilter,
@@ -64,6 +66,7 @@ export function DataTable<TData extends RowData>({
   className,
   enableSorting = true,
   enableInlineEditing = true,
+  enableRowCreation = true,
 }: DataTableProps<TData>) {
   // Ref for table header (used for filter popover positioning)
   const theadRef = React.useRef<HTMLTableSectionElement>(null);
@@ -82,6 +85,10 @@ export function DataTable<TData extends RowData>({
 
   // Modified data state (Phase 4) - track unsaved changes
   const [modifiedData, setModifiedData] = useState<Map<string, Partial<TData>>>(new Map());
+
+  // Row creation/deletion state (Phase 5)
+  const [newRows, setNewRows] = useState<Set<string>>(new Set());
+  const [deletedRows, setDeletedRows] = useState<Set<string>>(new Set());
 
   // Create column names map for filter chips
   const columnNames = useMemo(() => {
@@ -134,17 +141,97 @@ export function DataTable<TData extends RowData>({
     console.log(`Saved: Row ${rowId}, Column ${columnId}, Value:`, newValue);
   };
 
-  // Get display data - merge original data with modifications
-  const displayData = useMemo(() => {
-    return data.map((row) => {
-      const modifications = modifiedData.get(row.id);
-      return modifications ? { ...row, ...modifications } : row;
+  // Row CRUD handlers (Phase 5)
+  const handleAddRow = () => {
+    // Generate temporary ID
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Create empty row with default values
+    const newRow: TData = {
+      id: tempId,
+      ...columns.reduce((acc, col) => {
+        const key = (col as any).accessorKey || col.id;
+        if (key) {
+          acc[key] = '';
+        }
+        return acc;
+      }, {} as any),
+    } as TData;
+
+    // Add to data and mark as new
+    data.push(newRow);
+    setNewRows((prev) => new Set(prev).add(tempId));
+
+    // Enter edit mode for first editable column
+    const firstEditableColumn = columns.find((col) => (col as any).editable !== false);
+    if (firstEditableColumn) {
+      const columnId = firstEditableColumn.id || (firstEditableColumn as any).accessorKey;
+      setEditingCell({ rowId: tempId, columnId });
+    }
+
+    console.log(`Added new row: ${tempId}`);
+  };
+
+  const handleCopyRow = (rowId: string) => {
+    const rowToCopy = displayData.find((row) => row.id === rowId);
+    if (!rowToCopy) return;
+
+    // Generate temporary ID
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Copy all data except ID
+    const copiedRow: TData = {
+      ...rowToCopy,
+      id: tempId,
+    };
+
+    // Add to data and mark as new
+    data.push(copiedRow);
+    setNewRows((prev) => new Set(prev).add(tempId));
+
+    console.log(`Copied row ${rowId} to ${tempId}`);
+  };
+
+  const handleDeleteRow = (rowId: string) => {
+    setDeletedRows((prev) => new Set(prev).add(rowId));
+
+    // Remove from new rows set if it was a new row
+    if (newRows.has(rowId)) {
+      setNewRows((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(rowId);
+        return newSet;
+      });
+    }
+
+    // Clear any modifications for this row
+    setModifiedData((prev) => {
+      const newMap = new Map(prev);
+      newMap.delete(rowId);
+      return newMap;
     });
-  }, [data, modifiedData]);
+
+    // Exit edit mode if this row was being edited
+    if (editingCell?.rowId === rowId) {
+      setEditingCell(null);
+    }
+
+    console.log(`Deleted row: ${rowId}`);
+  };
+
+  // Get display data - merge original data with modifications, filter out deleted
+  const displayData = useMemo(() => {
+    return data
+      .filter((row) => !deletedRows.has(row.id))
+      .map((row) => {
+        const modifications = modifiedData.get(row.id);
+        return modifications ? { ...row, ...modifications } : row;
+      });
+  }, [data, modifiedData, deletedRows]);
 
   // Memoize columns to prevent unnecessary re-renders
   const tableColumns = useMemo<ColumnDef<TData>[]>(() => {
-    return columns.map((col) => {
+    const userColumns = columns.map((col) => {
       const columnDef = col as any;
       const cellType = columnDef.cellType || CellType.TEXT;
 
@@ -199,7 +286,27 @@ export function DataTable<TData extends RowData>({
         },
       };
     });
-  }, [columns, enableSorting, editingCell, enableInlineEditing]);
+
+    // Add actions column if row creation is enabled
+    if (enableRowCreation) {
+      userColumns.push({
+        id: '_actions',
+        header: 'Actions',
+        cell: (info) => (
+          <RowActions
+            rowId={info.row.original.id}
+            onCopy={handleCopyRow}
+            onDelete={handleDeleteRow}
+            isNewRow={newRows.has(info.row.original.id)}
+          />
+        ),
+        enableSorting: false,
+        enableColumnFilter: false,
+      } as ColumnDef<TData>);
+    }
+
+    return userColumns;
+  }, [columns, enableSorting, editingCell, enableInlineEditing, enableRowCreation, newRows]);
 
   // Initialize TanStack Table
   const table = useReactTable({
@@ -220,6 +327,12 @@ export function DataTable<TData extends RowData>({
 
   return (
     <div className={`${styles.tableContainer} ${className || ''}`}>
+      {/* Table actions (Add Row) - Phase 5 */}
+      <TableActions
+        onAddRow={handleAddRow}
+        enableRowCreation={enableRowCreation}
+      />
+
       {/* Global search - Phase 3 */}
       <GlobalSearch
         value={globalFilter}

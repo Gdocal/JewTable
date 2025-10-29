@@ -1,6 +1,6 @@
 /**
  * Development App component
- * Phase 4: Inline Editing
+ * Phase 5: Row Creation
  */
 
 import { DataTable } from './components/DataTable';
@@ -12,7 +12,7 @@ function App() {
     <div className={styles.app}>
       <header className={styles.header}>
         <h1>JewTable Development</h1>
-        <p>Phase 4: Inline Editing</p>
+        <p>Phase 5: Row Creation</p>
       </header>
 
       <main className={styles.main}>
@@ -79,12 +79,22 @@ function App() {
             <li>✅ Visual feedback (hover, focus, errors)</li>
           </ul>
 
-          <h3 className={styles.phaseNext}>Coming in Phase 5</h3>
+          <h3 className={styles.phaseNext}>Phase 5 Features ✅</h3>
           <ul>
-            <li>⏳ Add new rows</li>
-            <li>⏳ Copy existing rows</li>
-            <li>⏳ Delete rows</li>
-            <li>⏳ Save/Discard row changes</li>
+            <li>✅ Add new rows with "Add Row" button</li>
+            <li>✅ Copy existing rows (⎘ icon)</li>
+            <li>✅ Delete rows with confirmation (🗑 icon)</li>
+            <li>✅ Temporary IDs for new rows (temp_xxx)</li>
+            <li>✅ Auto-enter edit mode on new row</li>
+            <li>✅ Changes tracked separately from original data</li>
+            <li>✅ Deleted rows removed from display</li>
+          </ul>
+
+          <h3 className={styles.phaseNext}>Coming in Phase 6</h3>
+          <ul>
+            <li>⏳ Drag & drop row reordering</li>
+            <li>⏳ Visual feedback during drag</li>
+            <li>⏳ Drop indicators</li>
           </ul>
         </div>
       </main>
