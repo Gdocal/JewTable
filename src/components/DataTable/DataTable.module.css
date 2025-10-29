@@ -54,44 +54,46 @@
 
 /* Virtualization container (Phase 7) */
 .virtualizationContainer {
-  max-height: 600px;
-  overflow: auto;
   border: 1px solid #dee2e6;
   border-radius: 4px;
-  display: block;
-  scrollbar-gutter: stable; /* Reserve space for scrollbar */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* When using traditional pagination, don't set max-height (no vertical scroll) */
 .virtualizationContainer.paginationMode {
-  max-height: none;
-  overflow-y: visible;
   overflow-x: auto;
 }
 
 .virtualizationContainer .table {
   display: table;
   width: 100%;
+  border-collapse: collapse;
+}
+
+.virtualizationContainer .thead {
+  display: table-header-group;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #f8f9fa;
 }
 
 .virtualizationContainer .tbody {
   display: block;
   position: relative;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.virtualizationContainer .thead,
+/* Make sure rows match the header width */
 .virtualizationContainer .thead tr,
 .virtualizationContainer .tbody tr {
   display: table;
   width: 100%;
   table-layout: fixed;
-}
-
-.virtualizationContainer .thead {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: white;
 }
 
 /* Header */
