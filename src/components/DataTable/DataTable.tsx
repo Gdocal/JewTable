@@ -313,22 +313,29 @@ export function DataTable<TData extends RowData>({
     const result: TData[] = [];
     const insertedNewRows = new Set<string>();
 
+    // Helper function to recursively insert new rows after a given row
+    const insertNewRowsAfter = (afterRowId: string) => {
+      newRows.forEach((newRowId) => {
+        if (rowInsertions.get(newRowId) === afterRowId && !insertedNewRows.has(newRowId)) {
+          const newRowMods = modifiedData.get(newRowId);
+          if (newRowMods) {
+            result.push({ ...newRowMods, id: newRowId } as TData);
+            insertedNewRows.add(newRowId);
+            // Recursively check if any rows should be inserted after THIS new row
+            insertNewRowsAfter(newRowId);
+          }
+        }
+      });
+    };
+
     // Process base data and insert new rows after their target rows
     baseData.forEach((row) => {
       // Add the base row (with modifications if any)
       const modifications = modifiedData.get(row.id);
       result.push(modifications ? { ...row, ...modifications } : row);
 
-      // Check if any new rows should be inserted after this row
-      newRows.forEach((newRowId) => {
-        if (rowInsertions.get(newRowId) === row.id && !insertedNewRows.has(newRowId)) {
-          const newRowMods = modifiedData.get(newRowId);
-          if (newRowMods) {
-            result.push({ ...newRowMods, id: newRowId } as TData);
-            insertedNewRows.add(newRowId);
-          }
-        }
-      });
+      // Recursively insert new rows after this row
+      insertNewRowsAfter(row.id);
     });
 
     // Add any new rows that don't have an insertion position (e.g., from Add Row button)
