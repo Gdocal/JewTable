@@ -22,6 +22,31 @@
   overflow: auto;
   border: 1px solid #dee2e6;
   border-radius: 4px;
+  display: block;
+}
+
+.virtualizationContainer .table {
+  display: table;
+  width: 100%;
+}
+
+.virtualizationContainer .tbody {
+  display: block;
+  position: relative;
+}
+
+.virtualizationContainer .thead,
+.virtualizationContainer .thead tr,
+.virtualizationContainer .tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.virtualizationContainer .thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 /* Header */
