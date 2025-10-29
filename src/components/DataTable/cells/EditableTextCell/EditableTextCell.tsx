@@ -84,15 +84,10 @@ export function EditableTextCell({
     );
   }
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent text selection
-    onStartEdit();
-  };
-
   return (
     <div
       className={styles.viewContainer}
-      onMouseDown={handleMouseDown}
+      onMouseDown={onStartEdit}
       onDoubleClick={onStartEdit}
     >
       <span className={styles.value}>{value ?? ''}</span>

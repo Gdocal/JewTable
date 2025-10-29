@@ -124,7 +124,15 @@ export function DataTable<TData extends RowData>({
 
   // Edit handlers (Phase 4)
   const handleStartEdit = (rowId: string, columnId: string) => {
-    setEditingCell({ rowId, columnId });
+    // Blur any currently focused element to trigger save before switching cells
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    // Small delay to allow blur/save to complete before starting new edit
+    setTimeout(() => {
+      setEditingCell({ rowId, columnId });
+    }, 0);
   };
 
   const handleCancelEdit = () => {
