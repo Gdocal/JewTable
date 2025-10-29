@@ -81,8 +81,9 @@ export function TextFilter({ value, onChange }: TextFilterProps) {
  */
 export function applyTextFilter(
   cellValue: any,
-  filterValue: TextFilterValue
+  filterValue: TextFilterValue | null | undefined
 ): boolean {
+  if (!filterValue) return true; // No filter applied
   if (!cellValue) return false;
 
   const str = String(cellValue).toLowerCase();

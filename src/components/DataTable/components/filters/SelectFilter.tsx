@@ -124,8 +124,10 @@ export function SelectFilter({ value, onChange, options }: SelectFilterProps) {
  */
 export function applySelectFilter(
   cellValue: any,
-  filterValue: SelectFilterValue
+  filterValue: SelectFilterValue | null | undefined
 ): boolean {
+  if (!filterValue) return true; // No filter applied
+
   const str = String(cellValue);
   return filterValue.selectedValues.includes(str);
 }

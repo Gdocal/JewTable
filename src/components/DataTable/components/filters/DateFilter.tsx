@@ -116,8 +116,10 @@ export function DateFilter({ value, onChange }: DateFilterProps) {
  */
 export function applyDateFilter(
   cellValue: any,
-  filterValue: DateFilterValue
+  filterValue: DateFilterValue | null | undefined
 ): boolean {
+  if (!filterValue) return true; // No filter applied
+
   let cellDate: Date;
 
   if (cellValue instanceof Date) {

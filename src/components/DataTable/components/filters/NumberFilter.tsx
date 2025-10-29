@@ -118,8 +118,10 @@ export function NumberFilter({ value, onChange }: NumberFilterProps) {
  */
 export function applyNumberFilter(
   cellValue: any,
-  filterValue: NumberFilterValue
+  filterValue: NumberFilterValue | null | undefined
 ): boolean {
+  if (!filterValue) return true; // No filter applied
+
   const num = parseFloat(cellValue);
   if (isNaN(num)) return false;
 
