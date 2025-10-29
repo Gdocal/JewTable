@@ -787,7 +787,8 @@ export function DataTable<TData extends RowData>({
     if (!enableVirtualization || !onFetchNextPage) return;
     if (!hasNextPage || isFetchingNextPage) return;
 
-    const scrollElement = scrollContainerRef.current;
+    // Infinite scroll uses tbody as scroll element (not container)
+    const scrollElement = tbodyRef.current;
     if (!scrollElement) return;
 
     const handleScroll = () => {
