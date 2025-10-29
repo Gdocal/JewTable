@@ -764,14 +764,16 @@ export function DataTable<TData extends RowData>({
   });
 
   // Virtualization setup (Phase 7 & 8.2)
-  // Server infinite scroll: virtualize with loaded data (scrollbar grows as data loads)
+  // Server infinite scroll: virtualize with TOTAL count (scrollbar shows full dataset)
   // Client infinite scroll: virtualize with all data in memory
   const isServerInfinite = mode === TableMode.SERVER && paginationType === PaginationType.INFINITE;
   const shouldUseVirtualization = enableVirtualization && !isTraditionalPagination;
 
-  // Always use loaded row count for virtualizer to prevent loading all data
-  // Scrollbar will grow naturally as more data loads (standard infinite scroll UX)
-  const virtualizerCount = table.getRowModel().rows.length;
+  // For server infinite scroll, use total count so scrollbar represents full dataset
+  // This allows users to see dataset size and jump to any position
+  const virtualizerCount = isServerInfinite && totalRows
+    ? totalRows
+    : table.getRowModel().rows.length;
 
   const rowVirtualizer = useVirtualizer({
     count: virtualizerCount,
@@ -788,22 +790,23 @@ export function DataTable<TData extends RowData>({
   }, [pagination, useManualPagination, onPaginationChange]);
 
   // Infinite scroll detection (Phase 8.2 - Server mode with infinite pagination)
-  // Check if we need to load more data based on visible virtual items
+  // Fetch next page when user scrolls into skeleton territory
   useEffect(() => {
     if (mode !== TableMode.SERVER || paginationType !== PaginationType.INFINITE) return;
     if (!onFetchNextPage || !hasNextPage || isFetchingNextPage) return;
     if (!shouldUseVirtualization) return;
 
-    // Check if any visible virtual items are near the end of loaded data
     const virtualItems = rowVirtualizer.getVirtualItems();
     if (virtualItems.length === 0) return;
 
-    const lastVirtualItem = virtualItems[virtualItems.length - 1];
     const loadedRowCount = table.getRowModel().rows.length;
 
-    // Fetch more when viewing last 20% of loaded data (or within 10 rows, whichever is larger)
-    const threshold = Math.max(10, Math.floor(loadedRowCount * 0.2));
-    if (lastVirtualItem && lastVirtualItem.index >= loadedRowCount - threshold) {
+    // Find the last visible item index
+    const lastVisibleIndex = virtualItems[virtualItems.length - 1]?.index;
+
+    // Only fetch if user is viewing within 3 rows of the loaded data boundary
+    // This prevents aggressive fetching while still loading before user sees skeletons
+    if (lastVisibleIndex !== undefined && lastVisibleIndex >= loadedRowCount - 3) {
       onFetchNextPage();
     }
   }, [
@@ -992,6 +995,29 @@ export function DataTable<TData extends RowData>({
                 >
                   {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                     const row = table.getRowModel().rows[virtualRow.index];
+
+                    // Server infinite scroll: render skeleton for unloaded data
+                    if (!row && isServerInfinite) {
+                      const skeletonStyle: React.CSSProperties = {
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: `translateY(${virtualRow.start}px)`,
+                        height: `${rowHeight}px`,
+                      };
+
+                      return (
+                        <tr key={`skeleton-${virtualRow.index}`} className={styles.row} style={skeletonStyle}>
+                          {table.getAllColumns().map((column) => (
+                            <td key={column.id} className={styles.td}>
+                              <div className={styles.skeleton} />
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    }
+
                     if (!row) return null;
 
                     const animationOrder = animatingRows.get(row.original.id);
