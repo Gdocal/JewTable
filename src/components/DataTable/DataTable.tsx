@@ -266,11 +266,16 @@ export function DataTable<TData extends RowData>({
     });
 
     // Trigger animation for this row
-    setAnimatingRows((prev) => new Set(prev).add(tempId));
+    setAnimatingRows((prev) => {
+      const newSet = new Set(prev).add(tempId);
+      console.log(`🎨 animatingRows now:`, Array.from(newSet));
+      return newSet;
+    });
     setTimeout(() => {
       setAnimatingRows((prev) => {
         const newSet = new Set(prev);
         newSet.delete(tempId);
+        console.log(`🎨 animatingRows after timeout:`, Array.from(newSet));
         return newSet;
       });
     }, 2000); // Match animation duration
@@ -356,8 +361,10 @@ export function DataTable<TData extends RowData>({
       }
     });
 
+    console.log(`📋 displayData result (${result.length} rows):`, result.map(r => r.id));
+    console.log(`🎨 animatingRows:`, Array.from(animatingRows));
     return result;
-  }, [data, modifiedData, deletedRows, newRows, rowInsertions]);
+  }, [data, modifiedData, deletedRows, newRows, rowInsertions, animatingRows]);
 
   // Memoize columns to prevent unnecessary re-renders
   const tableColumns = useMemo<ColumnDef<TData>[]>(() => {
