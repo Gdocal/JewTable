@@ -16,6 +16,14 @@
   table-layout: fixed;
 }
 
+/* Virtualization container (Phase 7) */
+.virtualizationContainer {
+  max-height: 600px;
+  overflow: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
 /* Header */
 .thead {
   background: #f8f9fa;

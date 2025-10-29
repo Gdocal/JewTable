@@ -3,11 +3,15 @@
  * Phase 7: Virtualization for Large Datasets
  */
 
+import { useMemo } from 'react';
 import { DataTable } from './components/DataTable';
-import { employeeColumns, employeeData } from './data/sampleData';
+import { employeeColumns, generateLargeDataset } from './data/sampleData';
 import styles from './App.module.css';
 
 function App() {
+  // Generate large dataset for virtualization testing (Phase 7)
+  const largeDataset = useMemo(() => generateLargeDataset(5000), []);
+
   const handleRowReorder = (newOrder: string[]) => {
     console.log('Row order changed:', newOrder);
   };
@@ -22,17 +26,19 @@ function App() {
       <main className={styles.main}>
         <div className={styles.tableCard}>
           <div className={styles.tableHeader}>
-            <h2>Employee Directory</h2>
+            <h2>Employee Directory - Large Dataset Test</h2>
             <p className={styles.subtitle}>
-              Click any cell to edit • Search and filter • Drag rows to reorder • {employeeData.length} employees
+              Testing with {largeDataset.length.toLocaleString()} employees • Virtualization ENABLED • Smooth scrolling ✨
             </p>
           </div>
 
           <DataTable
             tableId="employees"
             columns={employeeColumns}
-            data={employeeData}
-            enableRowReordering={true}
+            data={largeDataset}
+            enableRowReordering={false}
+            enableVirtualization={true}
+            rowHeight={53}
             onRowReorder={handleRowReorder}
           />
         </div>

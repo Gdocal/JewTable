@@ -216,3 +216,64 @@ export const employeeData: Employee[] = [
     active: false,
   },
 ];
+
+/**
+ * Generate a large dataset for testing virtualization (Phase 7)
+ * @param count - Number of rows to generate (default: 5000)
+ * @returns Array of Employee records
+ */
+export function generateLargeDataset(count: number = 5000): Employee[] {
+  const firstNames = [
+    'Oleksandr', 'Mariya', 'Ivan', 'Anna', 'Dmytro', 'Kateryna', 'Serhiy', 'Oksana',
+    'Yuriy', 'Natalia', 'Andriy', 'Tetiana', 'Volodymyr', 'Iryna', 'Maksym', 'Olena',
+    'Vasyl', 'Svitlana', 'Mykola', 'Yulia', 'Petro', 'Oksana', 'Viktor', 'Ludmila',
+  ];
+
+  const lastNames = [
+    'Petrenko', 'Kovalenko', 'Shevchenko', 'Bondarenko', 'Lysenko', 'Moroz', 'Kravchenko',
+    'Melnyk', 'Tkachenko', 'Kovalchuk', 'Savchenko', 'Koval', 'Pavlenko', 'Sobko', 'Rudenko',
+    'Polishchuk', 'Boyko', 'Kozak', 'Tkachuk', 'Marchenko', 'Symonenko', 'Levchenko',
+  ];
+
+  const positions = [
+    'Senior Developer', 'Junior Developer', 'Product Manager', 'UX Designer', 'DevOps Engineer',
+    'Marketing Manager', 'Sales Representative', 'HR Manager', 'QA Engineer', 'Content Writer',
+    'Data Analyst', 'Customer Support', 'Tech Lead', 'Financial Analyst', 'System Administrator',
+  ];
+
+  const departments = [
+    'Engineering', 'Product', 'Design', 'Marketing', 'Sales', 'Human Resources',
+    'Analytics', 'Support', 'Finance', 'IT',
+  ];
+
+  const result: Employee[] = [];
+  const startYear = 2018;
+  const endYear = 2024;
+
+  for (let i = 0; i < count; i++) {
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const position = positions[Math.floor(Math.random() * positions.length)];
+    const department = departments[Math.floor(Math.random() * departments.length)];
+
+    // Generate random date between startYear and endYear
+    const startDate = new Date(
+      startYear + Math.floor(Math.random() * (endYear - startYear + 1)),
+      Math.floor(Math.random() * 12),
+      Math.floor(Math.random() * 28) + 1
+    );
+
+    result.push({
+      id: `${i + 1}`,
+      name: `${firstName} ${lastName}`,
+      position,
+      department,
+      salary: Math.floor(Math.random() * (150000 - 50000) + 50000),
+      commission: Math.random() * 0.3,
+      startDate,
+      active: Math.random() > 0.1, // 90% active
+    });
+  }
+
+  return result;
+}

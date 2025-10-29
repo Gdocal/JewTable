@@ -17,6 +17,7 @@ import {
   ColumnFiltersState,
   FilterFn,
 } from '@tanstack/react-table';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   DndContext,
   closestCenter,
@@ -95,10 +96,18 @@ export function DataTable<TData extends RowData>({
   enableRowCopy = true,
   enableRowInsertion = true,
   enableRowReordering = false,
+  enableVirtualization = false,
+  rowHeight = 53,
   onRowReorder,
 }: DataTableProps<TData>) {
   // Ref for table header (used for filter popover positioning)
   const theadRef = React.useRef<HTMLTableSectionElement>(null);
+
+  // Ref for table body (used for virtualization - Phase 7)
+  const tbodyRef = useRef<HTMLTableSectionElement>(null);
+
+  // Ref for virtualization scroll container (Phase 7)
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Sorting state
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -678,6 +687,15 @@ export function DataTable<TData extends RowData>({
     getFilteredRowModel: getFilteredRowModel(),
   });
 
+  // Virtualization setup (Phase 7)
+  const rowVirtualizer = useVirtualizer({
+    count: table.getRowModel().rows.length,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize: () => rowHeight,
+    overscan: 10,
+    enabled: enableVirtualization,
+  });
+
   // Handle clicks on non-interactive areas to save edits
   const handleContainerClick = (e: React.MouseEvent) => {
     // If clicking on the container itself (not a child element like input/button),
@@ -723,15 +741,17 @@ export function DataTable<TData extends RowData>({
         columnNames={columnNames}
       />
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragCancel={() => setActiveId(null)}
-        modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-      >
-        <table className={styles.table}>
+      {enableVirtualization ? (
+        <div ref={scrollContainerRef} className={styles.virtualizationContainer}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDragCancel={() => setActiveId(null)}
+            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+          >
+            <table className={styles.table}>
           <thead ref={theadRef} className={styles.thead}>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className={styles.headerRow}>
@@ -787,7 +807,238 @@ export function DataTable<TData extends RowData>({
             items={rowOrder}
             strategy={verticalListSortingStrategy}
           >
-            <tbody className={styles.tbody}>
+            <tbody
+              ref={tbodyRef}
+              className={styles.tbody}
+              style={
+                enableVirtualization
+                  ? {
+                      height: `${rowVirtualizer.getTotalSize()}px`,
+                      position: 'relative',
+                    }
+                  : undefined
+              }
+            >
+              {enableVirtualization
+                ? rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                    const row = table.getRowModel().rows[virtualRow.index];
+                    if (!row) return null;
+
+                    const animationOrder = animatingRows.get(row.original.id);
+                    const shouldAnimate = animationOrder !== undefined;
+                    const animationDuration = shouldAnimate ? `${2 + (animationOrder * 0.1)}s` : '2s';
+                    const rowStyle: React.CSSProperties = {
+                      ...(shouldAnimate ? { '--animation-duration': animationDuration } as React.CSSProperties : undefined),
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualRow.start}px)`,
+                    };
+
+                    return enableRowReordering ? (
+                      <DraggableRow
+                        key={row.id}
+                        id={row.original.id}
+                        className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
+                        style={rowStyle}
+                        isDragDisabled={!!sorting.length || !!columnFilters.length || !!globalFilter}
+                      >
+                        {row.getVisibleCells().map((cell) => {
+                          const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
+                          return (
+                            <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''}`}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </td>
+                          );
+                        })}
+                      </DraggableRow>
+                    ) : (
+                      <tr
+                        key={row.id}
+                        className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
+                        style={rowStyle}
+                      >
+                        {row.getVisibleCells().map((cell) => {
+                          const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
+                          return (
+                            <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''}`}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })
+                : table.getRowModel().rows.map((row) => {
+                    const animationOrder = animatingRows.get(row.original.id);
+                    const shouldAnimate = animationOrder !== undefined;
+                    const animationDuration = shouldAnimate ? `${2 + (animationOrder * 0.1)}s` : '2s';
+                    const rowStyle = shouldAnimate ? { '--animation-duration': animationDuration } as React.CSSProperties : undefined;
+
+                    return enableRowReordering ? (
+                      <DraggableRow
+                        key={row.id}
+                        id={row.original.id}
+                        className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
+                        style={rowStyle}
+                        isDragDisabled={!!sorting.length || !!columnFilters.length || !!globalFilter}
+                      >
+                        {row.getVisibleCells().map((cell) => {
+                          const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
+                          return (
+                            <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''}`}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </td>
+                          );
+                        })}
+                      </DraggableRow>
+                    ) : (
+                      <tr
+                        key={row.id}
+                        className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
+                        style={rowStyle}
+                      >
+                        {row.getVisibleCells().map((cell) => {
+                          const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
+                          return (
+                            <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''}`}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+            </tbody>
+          </SortableContext>
+        </table>
+
+        {/* DragOverlay for smooth drag animations (Phase 6 - Fix snap-back) */}
+        <DragOverlay
+          dropAnimation={{
+            duration: 200,
+            easing: 'ease',
+          }}
+        >
+          {activeId ? (() => {
+            const activeRow = table.getRowModel().rows.find((row) => row.original.id === activeId);
+            if (!activeRow) return null;
+
+            const animationOrder = animatingRows.get(activeRow.original.id);
+            const shouldAnimate = animationOrder !== undefined;
+            const animationDuration = shouldAnimate ? `${2 + (animationOrder * 0.1)}s` : '2s';
+            const rowStyle = shouldAnimate ? { '--animation-duration': animationDuration } as React.CSSProperties : undefined;
+
+            // Calculate total width for the overlay table
+            const totalWidth = activeRow.getVisibleCells().reduce((sum, cell) => {
+              const isDragCol = (cell.column.columnDef.meta as any)?.isDragColumn;
+              return sum + (isDragCol ? 32 : cell.column.getSize());
+            }, 0);
+
+            return (
+              <div className={styles.dragOverlay}>
+                <table style={{
+                  width: totalWidth ? `${totalWidth}px` : 'auto',
+                  tableLayout: 'fixed',
+                  minWidth: '500px'
+                }}>
+                  <tbody>
+                    <tr className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`} style={rowStyle}>
+                      {activeRow.getVisibleCells().map((cell) => {
+                        const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
+                        const cellWidth = isDragColumn ? 32 : cell.column.getSize();
+                        return (
+                          <td
+                            key={cell.id}
+                            className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''}`}
+                            style={{
+                              width: `${cellWidth}px`,
+                              minWidth: `${cellWidth}px`,
+                              maxWidth: `${cellWidth}px`,
+                            }}
+                          >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            );
+          })() : null}
+        </DragOverlay>
+      </DndContext>
+        </div>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => setActiveId(null)}
+          modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+        >
+          <table className={styles.table}>
+          <thead ref={theadRef} className={styles.thead}>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id} className={styles.headerRow}>
+                {headerGroup.headers.map((header) => {
+                  // Find the original column definition by matching id or accessorKey
+                  const columnDef = columns.find(
+                    (c) => c.id === header.id || (c as any).accessorKey === header.id
+                  ) as any;
+                  const cellType = columnDef?.cellType || CellType.TEXT;
+                  const canFilter = header.column.getCanFilter();
+
+                  const isDragColumn = (header.column.columnDef.meta as any)?.isDragColumn;
+
+                  return (
+                    <th
+                      key={header.id}
+                      className={`${styles.th} ${
+                        header.column.getCanSort() ? styles.sortable : ''
+                      } ${header.column.getIsSorted() ? styles.sorted : ''} ${isDragColumn ? styles.dragColumn : ''}`}
+                      onClick={header.column.getToggleSortingHandler()}
+                      style={{ cursor: header.column.getCanSort() ? 'pointer' : 'default' }}
+                    >
+                      <div className={styles.thContent}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                        <div className={styles.headerIcons}>
+                          {header.column.getCanSort() && (
+                            <SortIndicator
+                              isSorted={header.column.getIsSorted()}
+                            />
+                          )}
+                          {canFilter && (
+                            <ColumnFilter
+                              column={header.column}
+                              cellType={cellType}
+                              selectOptions={columnDef?.cellOptions?.options || []}
+                              headerElement={theadRef.current}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </th>
+                  );
+                })}
+              </tr>
+            ))}
+          </thead>
+          <SortableContext
+            items={rowOrder}
+            strategy={verticalListSortingStrategy}
+          >
+            <tbody
+              className={styles.tbody}
+            >
               {table.getRowModel().rows.map((row) => {
                 const animationOrder = animatingRows.get(row.original.id);
                 const shouldAnimate = animationOrder !== undefined;
@@ -888,6 +1139,7 @@ export function DataTable<TData extends RowData>({
           })() : null}
         </DragOverlay>
       </DndContext>
+      )}
 
       {/* Empty state - Phase 5 (Improved UX) */}
       {table.getRowModel().rows.length === 0 && (
