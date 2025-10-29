@@ -62,7 +62,9 @@ function App() {
 
   // Extract traditional pagination data
   const traditionalServerData = traditionalData?.data ?? [];
-  const totalRows = traditionalData?.total ?? 0;
+  // TEMPORARY: json-server 1.0 doesn't return total count in headers
+  // In production, this would come from API response
+  const totalRows = 5000; // We know we generated 5000 employees
   const totalPages = Math.ceil(totalRows / pageSize);
 
   // Select data based on mode and pagination type

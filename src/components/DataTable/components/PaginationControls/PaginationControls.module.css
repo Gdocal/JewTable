@@ -60,7 +60,6 @@
   display: flex;
   gap: 4px;
   margin: 0 8px;
-  min-width: 280px; /* Fixed width to prevent shifting */
   justify-content: center;
 }
 

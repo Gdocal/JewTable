@@ -21,13 +21,14 @@ export function PaginationControls<TData extends RowData>({
   const pageCount = table.getPageCount();
   const currentPage = pagination.pageIndex + 1;
 
-  // Generate page numbers to show
+  // Generate page numbers to show (standard pagination UI pattern)
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
-    const maxVisible = 7;
+    const maxVisible = 7; // Total buttons to show (including current)
+    const siblingCount = 1; // Pages to show on each side of current
 
     if (pageCount <= maxVisible) {
-      // Show all pages
+      // Show all pages if total is small
       for (let i = 1; i <= pageCount; i++) {
         pages.push(i);
       }
@@ -35,34 +36,45 @@ export function PaginationControls<TData extends RowData>({
       // Always show first page
       pages.push(1);
 
-      // Calculate range around current page
-      let startPage = Math.max(2, currentPage - 1);
-      let endPage = Math.min(pageCount - 1, currentPage + 1);
+      // Calculate left and right bounds around current page
+      const leftSiblingIndex = Math.max(currentPage - siblingCount, 2);
+      const rightSiblingIndex = Math.min(currentPage + siblingCount, pageCount - 1);
 
-      // Adjust range to always show 5 pages in middle
-      if (currentPage <= 3) {
-        endPage = 5;
-      } else if (currentPage >= pageCount - 2) {
-        startPage = pageCount - 4;
-      }
+      const shouldShowLeftDots = leftSiblingIndex > 2;
+      const shouldShowRightDots = rightSiblingIndex < pageCount - 1;
 
-      // Add ellipsis before middle pages if needed
-      if (startPage > 2) {
+      // Case 1: No left dots, show right dots
+      // [1] 2 3 4 5 ... 50
+      if (!shouldShowLeftDots && shouldShowRightDots) {
+        const leftItemCount = 5;
+        for (let i = 2; i <= Math.min(leftItemCount, pageCount - 1); i++) {
+          pages.push(i);
+        }
         pages.push('...');
       }
-
-      // Add middle pages
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
+      // Case 2: Show left dots, no right dots
+      // 1 ... 46 47 48 49 [50]
+      else if (shouldShowLeftDots && !shouldShowRightDots) {
+        pages.push('...');
+        const rightItemCount = 5;
+        for (let i = Math.max(pageCount - rightItemCount + 1, 2); i <= pageCount - 1; i++) {
+          pages.push(i);
+        }
       }
-
-      // Add ellipsis after middle pages if needed
-      if (endPage < pageCount - 1) {
+      // Case 3: Show both dots
+      // 1 ... 24 [25] 26 ... 50
+      else {
+        pages.push('...');
+        for (let i = leftSiblingIndex; i <= rightSiblingIndex; i++) {
+          pages.push(i);
+        }
         pages.push('...');
       }
 
       // Always show last page
-      pages.push(pageCount);
+      if (pageCount > 1) {
+        pages.push(pageCount);
+      }
     }
 
     return pages;

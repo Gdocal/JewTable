@@ -221,11 +221,14 @@ export async function fetchData<TData extends RowData>(
 
     const data = await response.json();
 
-    // json-server doesn't return total count in response body
-    // For real API, you'd get it from headers or response
-    // For demo, we'll estimate it
-    const total = data.length < pageSize ? (page - 1) * pageSize + data.length : page * pageSize + 1;
+    // json-server 1.0 doesn't return total count in headers or response body
+    // In production, this would come from API response or X-Total-Count header
+    // For now, we can only determine if there's more data
     const hasMore = data.length === pageSize;
+
+    // Total is unknown without additional API call
+    // Caller should provide total from separate source
+    const total = 0; // Unknown - set by caller
 
     return {
       data,
