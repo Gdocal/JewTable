@@ -38,7 +38,7 @@ import {
   restrictToVerticalAxis,
   restrictToParentElement,
 } from '@dnd-kit/modifiers';
-import { DataTableProps, RowData } from './types/table.types';
+import { DataTableProps, RowData, TableMode } from './types/table.types';
 import { CellRenderer } from './cells/CellRenderer';
 import { SortIndicator } from './components/SortIndicator';
 import { GlobalSearch } from './components/GlobalSearch';
@@ -89,6 +89,11 @@ export function DataTable<TData extends RowData>({
   columns,
   data = [],
   className,
+  mode = 'client' as const,
+  onFetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+  isLoading = false,
   enableSorting = true,
   enableInlineEditing = true,
   enableRowCreation = true,
@@ -696,6 +701,28 @@ export function DataTable<TData extends RowData>({
     enabled: enableVirtualization,
   });
 
+  // Infinite scroll detection (Phase 8.2 - Server mode)
+  useEffect(() => {
+    if (mode !== 'server' || !enableVirtualization || !onFetchNextPage) return;
+    if (!hasNextPage || isFetchingNextPage) return;
+
+    const scrollElement = scrollContainerRef.current;
+    if (!scrollElement) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollElement;
+      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+
+      // Trigger fetch when 80% scrolled
+      if (scrollPercentage > 0.8) {
+        onFetchNextPage();
+      }
+    };
+
+    scrollElement.addEventListener('scroll', handleScroll);
+    return () => scrollElement.removeEventListener('scroll', handleScroll);
+  }, [mode, enableVirtualization, onFetchNextPage, hasNextPage, isFetchingNextPage]);
+
   // Handle clicks on non-interactive areas to save edits
   const handleContainerClick = (e: React.MouseEvent) => {
     // If clicking on the container itself (not a child element like input/button),
@@ -1148,6 +1175,14 @@ export function DataTable<TData extends RowData>({
           enableRowCreation={enableRowCreation}
           isReadOnly={isReadOnly}
         />
+      )}
+
+      {/* Loading indicator - Phase 8 (Server mode) */}
+      {mode === TableMode.SERVER && (isLoading || isFetchingNextPage) && (
+        <div className={styles.loadingIndicator}>
+          <div className={styles.spinner} />
+          <span>{isLoading ? 'Loading data...' : 'Loading more...'}</span>
+        </div>
       )}
 
       {/* Table footer - Phase 5 (Simplified) */}

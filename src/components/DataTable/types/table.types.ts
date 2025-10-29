@@ -30,6 +30,10 @@ export interface DataTableProps<TData extends RowData = RowData> {
 
   // Server-side callbacks (for SERVER mode)
   onFetchData?: (params: FetchDataParams) => Promise<FetchDataResponse<TData>>;
+  onFetchNextPage?: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  isLoading?: boolean;
 
   // CRUD callbacks
   onRowUpdate?: (rowId: string, data: Partial<TData>) => Promise<void>;

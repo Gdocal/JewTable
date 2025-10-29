@@ -3,14 +3,43 @@
  * Phase 8: Server Integration
  */
 
-import { useMemo } from 'react';
-import { DataTable } from './components/DataTable';
+import { useMemo, useState } from 'react';
+import { DataTable, TableMode } from './components/DataTable';
 import { employeeColumns, generateLargeDataset } from './data/sampleData';
+import { useInfiniteData } from './hooks/useInfiniteData';
+import type { Employee } from './data/sampleData';
 import styles from './App.module.css';
 
 function App() {
-  // Generate large dataset for virtualization testing (Phase 7)
+  // Mode toggle - Phase 8.2: Switch between client and server mode
+  const [mode, setMode] = useState<'client' | 'server'>('server'); // Start with server mode
+
+  // Generate large dataset for client mode testing (Phase 7)
   const largeDataset = useMemo(() => generateLargeDataset(5000), []);
+
+  // Phase 8.2: Server-side infinite query
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+  } = useInfiniteData<Employee>({
+    resource: 'employees',
+    pageSize: 100,
+    enabled: mode === 'server', // Only enabled in server mode
+  });
+
+  // Flatten infinite query pages into single array
+  const serverData = useMemo(() => {
+    if (!infiniteData) return [];
+    return infiniteData.pages.flatMap((page) => page.data);
+  }, [infiniteData]);
+
+  // Select data based on mode
+  const tableData = mode === 'server' ? serverData : largeDataset;
 
   const handleRowReorder = (newOrder: string[]) => {
     console.log('Row order changed:', newOrder);
@@ -26,16 +55,40 @@ function App() {
       <main className={styles.main}>
         <div className={styles.tableCard}>
           <div className={styles.tableHeader}>
-            <h2>Employee Directory - Large Dataset Test</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <h2>Employee Directory - Server Integration Test</h2>
+              <button
+                onClick={() => setMode(mode === 'client' ? 'server' : 'client')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '4px',
+                  border: '1px solid #dee2e6',
+                  background: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                }}
+              >
+                Switch to {mode === 'client' ? 'Server' : 'Client'} Mode
+              </button>
+            </div>
             <p className={styles.subtitle}>
-              Testing with {largeDataset.length.toLocaleString()} employees • Virtualization ENABLED • Smooth scrolling ✨
+              {mode === 'server'
+                ? `Server Mode • Loaded ${serverData.length} rows • Infinite scroll enabled • ${hasNextPage ? 'More available' : 'All loaded'}`
+                : `Client Mode • ${largeDataset.length.toLocaleString()} rows • All data in memory`
+              }
             </p>
           </div>
 
           <DataTable
             tableId="employees"
             columns={employeeColumns}
-            data={largeDataset}
+            data={tableData}
+            mode={mode as TableMode}
+            onFetchNextPage={fetchNextPage}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            isLoading={isLoading}
             enableRowReordering={false}
             enableVirtualization={true}
             rowHeight={53}
@@ -124,13 +177,16 @@ function App() {
             <li>✅ Sticky header</li>
           </ul>
 
-          <h3 className={styles.phaseNext}>Phase 8 Features 🚧</h3>
+          <h3 className={styles.phaseNext}>Phase 8 Features ✅</h3>
           <ul>
-            <li>⏳ Server-side pagination</li>
-            <li>⏳ Infinite scroll with TanStack Query</li>
-            <li>⏳ Server-side sorting/filtering</li>
-            <li>⏳ Hybrid mode (auto client/server)</li>
-            <li>⏳ API client with retry logic</li>
+            <li>✅ Mock API server with json-server</li>
+            <li>✅ API client with retry logic</li>
+            <li>✅ TanStack Query integration</li>
+            <li>✅ Infinite scroll with useInfiniteQuery</li>
+            <li>✅ Server mode with automatic pagination</li>
+            <li>✅ Client/Server mode toggle</li>
+            <li>✅ Loading indicators</li>
+            <li>⏳ Server-side sorting/filtering (future)</li>
           </ul>
         </div>
       </main>
