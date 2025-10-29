@@ -78,6 +78,7 @@ export interface DataTableProps<TData extends RowData = RowData> {
   enableRowCopy?: boolean;
   enableRowInsertion?: boolean;
   enableVirtualization?: boolean;
+  enableStickyFirstColumn?: boolean; // Phase 10.2: Sticky first column for horizontal scroll
 
   // UI customization
   pageSize?: number;

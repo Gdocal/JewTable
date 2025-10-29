@@ -111,6 +111,7 @@ export function DataTable<TData extends RowData>({
   enableRowInsertion = true,
   enableRowReordering = false,
   enableVirtualization = false,
+  enableStickyFirstColumn = false,
   rowHeight = 53,
   onRowReorder,
 }: DataTableProps<TData>) {
@@ -162,6 +163,11 @@ export function DataTable<TData extends RowData>({
 
   // Row selection state (Phase 10.1 - Row selection & batch editing)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
+  // Horizontal scroll shadows state (Phase 10.2 - Horizontal scroll)
+  const [showLeftShadow, setShowLeftShadow] = useState(false);
+  const [showRightShadow, setShowRightShadow] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // DndKit sensors (Phase 6)
   const sensors = useSensors(
@@ -788,6 +794,34 @@ export function DataTable<TData extends RowData>({
     return () => scrollElement.removeEventListener('scroll', handleScroll);
   }, [mode, paginationType, enableVirtualization, onFetchNextPage, hasNextPage, isFetchingNextPage]);
 
+  // Horizontal scroll shadow detection (Phase 10.2)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleHorizontalScroll = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = container;
+
+      // Show left shadow if scrolled right
+      setShowLeftShadow(scrollLeft > 0);
+
+      // Show right shadow if not scrolled to the end
+      setShowRightShadow(scrollLeft + clientWidth < scrollWidth - 1);
+    };
+
+    // Check on mount
+    handleHorizontalScroll();
+
+    // Listen for scroll and resize events
+    container.addEventListener('scroll', handleHorizontalScroll);
+    window.addEventListener('resize', handleHorizontalScroll);
+
+    return () => {
+      container.removeEventListener('scroll', handleHorizontalScroll);
+      window.removeEventListener('resize', handleHorizontalScroll);
+    };
+  }, [data, columnFilters, globalFilter]); // Re-check when data or filters change
+
   // Handle clicks on non-interactive areas to save edits
   const handleContainerClick = (e: React.MouseEvent) => {
     // If clicking on the container itself (not a child element like input/button),
@@ -814,7 +848,11 @@ export function DataTable<TData extends RowData>({
   const showLoadingOverlay = useManualPagination && isFetching && !isLoading;
 
   return (
-    <div className={`${styles.tableContainer} ${className || ''}`} onClick={handleContainerClick}>
+    <div
+      ref={containerRef}
+      className={`${styles.tableContainer} ${className || ''} ${showLeftShadow ? styles.hasScrollShadowLeft : ''} ${showRightShadow ? styles.hasScrollShadowRight : ''}`}
+      onClick={handleContainerClick}
+    >
       {/* Table toolbar - Phase 5 (Improved UX) */}
       <TableToolbar
         isReadOnly={isReadOnly}
@@ -862,7 +900,7 @@ export function DataTable<TData extends RowData>({
             onDragCancel={() => setActiveId(null)}
             modifiers={[restrictToVerticalAxis, restrictToParentElement]}
           >
-            <table className={styles.table}>
+            <table className={`${styles.table} ${enableStickyFirstColumn ? styles.stickyFirstColumn : ''}`}>
           <thead ref={theadRef} className={styles.thead}>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className={styles.headerRow}>
@@ -1092,7 +1130,7 @@ export function DataTable<TData extends RowData>({
             onDragCancel={() => setActiveId(null)}
             modifiers={[restrictToVerticalAxis, restrictToParentElement]}
           >
-            <table className={styles.table}>
+            <table className={`${styles.table} ${enableStickyFirstColumn ? styles.stickyFirstColumn : ''}`}>
           <thead ref={theadRef} className={styles.thead}>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className={styles.headerRow}>
