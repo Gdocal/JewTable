@@ -8,6 +8,7 @@ import { DataTable, TableMode, PaginationType } from './components/DataTable';
 import { employeeColumns, generateLargeDataset } from './data/sampleData';
 import { useInfiniteData } from './hooks/useInfiniteData';
 import { useData } from './hooks/useData';
+import { useTotalCount } from './hooks/useTotalCount';
 import type { Employee } from './data/sampleData';
 import styles from './App.module.css';
 
@@ -23,7 +24,8 @@ function App() {
   const pageSize = 100;
 
   // Generate large dataset for client mode testing (Phase 7)
-  const largeDataset = useMemo(() => generateLargeDataset(5000), []);
+  const datasetSize = 5000;
+  const largeDataset = useMemo(() => generateLargeDataset(datasetSize), []);
 
   // Phase 8.2: Server-side infinite query
   const {
@@ -60,11 +62,25 @@ function App() {
     enabled: mode === 'server' && paginationType === 'traditional',
   });
 
+  // Get total count from API (Phase 8.3)
+  const { data: totalCountFromAPI } = useTotalCount({
+    resource: 'employees',
+    enabled: mode === 'server' && paginationType === 'traditional',
+  });
+
   // Extract traditional pagination data
   const traditionalServerData = traditionalData?.data ?? [];
-  // TEMPORARY: json-server 1.0 doesn't return total count in headers
-  // In production, this would come from API response
-  const totalRows = 5000; // We know we generated 5000 employees
+
+  // Calculate total rows and pages
+  // json-server 1.0 doesn't return total count in headers (unlike json-server 0.x)
+  // In production, this would typically come from:
+  //   - X-Total-Count header (REST API standard)
+  //   - response body field (e.g., { data: [...], total: 5000 })
+  //   - dedicated /count endpoint
+  // For demo, we fetch total count from API in separate query
+  const totalRows = mode === 'server' && paginationType === 'traditional'
+    ? (totalCountFromAPI ?? largeDataset.length) // Fallback to dataset length if API not loaded yet
+    : largeDataset.length;
   const totalPages = Math.ceil(totalRows / pageSize);
 
   // Select data based on mode and pagination type
