@@ -18,7 +18,7 @@
 - [x] **Phase 7:** Virtualization (2-3h) ✅ COMPLETE
 - [x] **Phase 8:** Server Integration (3-4h) ✅ COMPLETE
 - [ ] **Phase 9:** Mobile Adaptation (4-5h)
-- [ ] **Phase 10:** Additional Features (3-4h)
+- [ ] **Phase 10:** Additional Features (8-10h) - EXPANDED
 - [ ] **Phase 11:** Testing & Documentation (2-3h)
 
 **Total Progress:** 8/12 phases complete (67%)
@@ -488,53 +488,91 @@
 ---
 
 ### Phase 10: Additional Features ⏳ Not Started
-**Estimated Time:** 3-4 hours
+**Estimated Time:** 8-10 hours
 **Status:** Not Started
 **Started:** -
 **Completed:** -
 
 #### Tasks:
-- [ ] 10.1: Bulk actions
-  - [ ] Row selection checkboxes
-  - [ ] Select All checkbox
-  - [ ] Bulk action toolbar
+- [ ] 10.1: Row selection & batch editing
+  - [ ] Row selection checkboxes (first column)
+  - [ ] Select All checkbox in header
+  - [ ] Shift+click for range selection
+  - [ ] Bulk edit dialog/toolbar
+  - [ ] Batch delete with confirmation
   - [ ] Selection count display
-- [ ] 10.2: Export/Import
-  - [ ] Export to CSV
-  - [ ] Export to Excel
-  - [ ] Respect active filters
-  - [ ] Import with validation
-  - [ ] Import preview
-- [ ] 10.3: Column visibility toggle
-  - [ ] Column visibility menu
-  - [ ] Checkbox per column
-  - [ ] Save to user preferences
-- [ ] 10.4: Column resizing
-  - [ ] Resize handles
-  - [ ] Drag to resize
-  - [ ] Double-click auto-fit
-  - [ ] Save widths
-- [ ] 10.5: Keyboard navigation
-  - [ ] Arrow keys for cell navigation
-  - [ ] Enter to edit
-  - [ ] Tab to next cell
-  - [ ] Ctrl+C/V for copy/paste
-  - [ ] Escape to exit edit mode
-- [ ] 10.6: Loading states
-  - [ ] Skeleton loaders
-  - [ ] Spinners
-  - [ ] Progress bars
-  - [ ] Smooth transitions
-- [ ] 10.7: Empty states
-  - [ ] Empty table message
-  - [ ] No filter results
-  - [ ] Error state with retry
-  - [ ] Illustrations
+  - [ ] Clear selection button
+- [ ] 10.2: Horizontal scroll
+  - [ ] Enable horizontal scrolling for wide tables
+  - [ ] Sticky first column (optional)
+  - [ ] Scroll shadows for visual feedback
+  - [ ] Horizontal scroll indicator
+- [ ] 10.3: Column resizing
+  - [ ] Resize handles on column headers
+  - [ ] Drag to resize columns
+  - [ ] Double-click to auto-fit content
+  - [ ] Min/max width constraints
+  - [ ] Save column widths to user preferences
+  - [ ] Storage strategy: localStorage (browser) or API (server)
+  - [ ] Device-specific preferences (desktop vs tablet)
+- [ ] 10.4: Badge columns (Status & Command labels)
+  - [ ] Create BadgeCell component
+  - [ ] Color badge cell type (status labels with colors)
+  - [ ] Command badge cell type (action/command labels)
+  - [ ] Predefined color schemes (success, warning, error, info, etc.)
+  - [ ] Custom badge colors and icons
+  - [ ] Multi-badge support (array of badges per cell)
+- [ ] 10.5: Row expanding
+  - [ ] Expand/collapse icon in row
+  - [ ] Expandable row content area
+  - [ ] Custom render function for expanded content
+  - [ ] Nested data display
+  - [ ] Expand all / Collapse all buttons
+  - [ ] Remember expanded state
+- [ ] 10.6: Column reordering
+  - [ ] Drag & drop column headers
+  - [ ] Visual feedback during drag
+  - [ ] Save column order to preferences
+  - [ ] Reset to default order button
+- [ ] 10.7: Column visibility toggle
+  - [ ] Column visibility menu (dropdown/modal)
+  - [ ] Checkbox per column with show/hide
+  - [ ] Required columns (cannot be hidden)
+  - [ ] Save visibility state to preferences
+  - [ ] "Show all" / "Hide all" buttons
+- [ ] 10.8: Modal window for row details
+  - [ ] Full-screen or centered modal
+  - [ ] Display all row data in readable format
+  - [ ] Edit mode in modal (alternative to inline editing)
+  - [ ] Form validation in modal
+  - [ ] Save/Cancel buttons
+  - [ ] Keyboard shortcuts (Esc to close)
+- [ ] 10.9: Import/Export CSV
+  - [ ] Export visible rows to CSV
+  - [ ] Export all data to CSV
+  - [ ] Export with filters applied
+  - [ ] Import CSV with file picker
+  - [ ] CSV validation and preview
+  - [ ] Column mapping for import
+  - [ ] Error handling for invalid data
+- [ ] 10.10: Usage indicator column
+  - [ ] Progress bar cell component
+  - [ ] Percentage display alongside bar
+  - [ ] Color coding (green/yellow/red based on usage)
+  - [ ] Customizable thresholds
+  - [ ] Animated progress bars
+- [ ] 10.11: Additional polish
+  - [ ] Keyboard navigation (Arrow keys, Enter, Tab, Esc)
+  - [ ] Loading states (skeleton loaders, spinners)
+  - [ ] Empty states with illustrations
+  - [ ] Error states with retry
 
-**Deliverable:** Polish and power-user features
+**Deliverable:** Professional-grade table with all power-user features
 
 **Notes:**
--
+- User preferences storage: localStorage for quick access, optional API sync
+- Device-specific settings: use device width + user ID as storage key
+- All features should work with virtualization and server-side data
 
 ---
 
