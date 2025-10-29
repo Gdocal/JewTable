@@ -26,7 +26,8 @@
 }
 
 .checkbox:hover:not(:disabled) {
-  transform: scale(1.1);
+  /* Removed scale transform to prevent visual artifacts with table borders */
+  opacity: 0.8;
 }
 
 .checkbox:focus {
