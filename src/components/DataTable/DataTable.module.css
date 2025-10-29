@@ -144,9 +144,61 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .tableContainer {
+    padding: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Show scrollbar hint */
+    position: relative;
+  }
+
+  .tableContainer::after {
+    content: '← Scroll to see more →';
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    pointer-events: none;
+    opacity: 0.8;
+    white-space: nowrap;
+    z-index: 10;
+  }
+
+  .table {
+    /* Allow table to be wider than viewport */
+    table-layout: auto;
+    min-width: 800px;
+    width: max-content;
+  }
+
   .th,
   .td {
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .th {
+    min-width: 100px;
+  }
+
+  .td {
+    min-width: 100px;
+  }
+
+  /* Drag handle stays compact on mobile */
+  .dragColumn {
+    min-width: 32px !important;
+    padding: 4px !important;
+  }
+
+  /* Hide drag handles on mobile - drag and drop disabled for better UX */
+  .dragColumn {
+    display: none !important;
   }
 }
