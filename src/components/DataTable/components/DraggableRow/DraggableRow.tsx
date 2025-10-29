@@ -4,8 +4,9 @@
  */
 
 import React from 'react';
-import { useSortable } from '@dnd-kit/sortable';
+import { useSortable, defaultAnimateLayoutChanges } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import type { AnimateLayoutChanges } from '@dnd-kit/sortable';
 import styles from './DraggableRow.module.css';
 
 interface DraggableRowProps {
@@ -15,6 +16,19 @@ interface DraggableRowProps {
   style?: React.CSSProperties;
   isDragDisabled?: boolean;
 }
+
+// Custom animation that ensures smooth transitions
+const animateLayoutChanges: AnimateLayoutChanges = (args) => {
+  const { isSorting, wasDragging } = args;
+
+  // Always animate when not currently sorting (includes the drop animation)
+  if (!isSorting) {
+    return true;
+  }
+
+  // Use default behavior during active sorting
+  return defaultAnimateLayoutChanges(args);
+};
 
 export function DraggableRow({ id, children, className, style, isDragDisabled }: DraggableRowProps) {
   const {
@@ -27,12 +41,17 @@ export function DraggableRow({ id, children, className, style, isDragDisabled }:
   } = useSortable({
     id,
     disabled: isDragDisabled,
+    animateLayoutChanges,
+    transition: {
+      duration: 200,
+      easing: 'ease',
+    },
   });
 
   const rowStyle: React.CSSProperties = {
     ...style,
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transition || 'transform 200ms ease',
     opacity: isDragging ? 0.5 : 1,
   };
 
