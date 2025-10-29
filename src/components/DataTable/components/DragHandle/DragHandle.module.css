@@ -1,0 +1,32 @@
+/* DragHandle Styles */
+
+.handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  cursor: grab;
+  color: #adb5bd;
+  transition: all 150ms ease;
+  border-radius: 4px;
+}
+
+.handle:hover {
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+.handle:active,
+.dragging {
+  cursor: grabbing;
+  background: #e9ecef;
+  color: #495057;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}

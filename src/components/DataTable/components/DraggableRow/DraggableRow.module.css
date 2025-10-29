@@ -1,0 +1,12 @@
+/* DraggableRow Styles */
+
+.dragging {
+  z-index: 1000;
+  cursor: grabbing;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: white;
+}
+
+.dragging td {
+  border-bottom-color: transparent;
+}

@@ -5,7 +5,7 @@
  * Phase 3: Column filtering
  */
 
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -17,6 +17,20 @@ import {
   ColumnFiltersState,
   FilterFn,
 } from '@tanstack/react-table';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { DataTableProps, RowData } from './types/table.types';
 import { CellRenderer } from './cells/CellRenderer';
 import { SortIndicator } from './components/SortIndicator';
@@ -27,6 +41,8 @@ import { TableToolbar } from './components/TableToolbar/TableToolbar';
 import { TableFooter } from './components/TableFooter/TableFooter';
 import { EmptyState } from './components/EmptyState/EmptyState';
 import { RowActions } from './components/RowActions/RowActions';
+import { DraggableRow } from './components/DraggableRow/DraggableRow';
+import { DragHandleCell } from './components/DragHandleCell/DragHandleCell';
 import {
   applyTextFilter,
   applyNumberFilter,
@@ -72,6 +88,8 @@ export function DataTable<TData extends RowData>({
   enableRowDeletion = true,
   enableRowCopy = true,
   enableRowInsertion = true,
+  enableRowReordering = false,
+  onRowReorder,
 }: DataTableProps<TData>) {
   // Ref for table header (used for filter popover positioning)
   const theadRef = React.useRef<HTMLTableSectionElement>(null);
@@ -100,6 +118,15 @@ export function DataTable<TData extends RowData>({
   const [animatingRows, setAnimatingRows] = useState<Map<string, number>>(new Map());
   // Track animation counter to ensure proper ordering when multiple rows added quickly
   const animationCounterRef = useRef(0);
+
+  // Row order state (Phase 6 - Drag & Drop)
+  const [rowOrder, setRowOrder] = useState<string[]>([]);
+
+  // DndKit sensors (Phase 6)
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor)
+  );
 
   // Create column names map for filter chips
   const columnNames = useMemo(() => {
@@ -418,6 +445,30 @@ export function DataTable<TData extends RowData>({
     console.log(`Deleted row: ${rowId}`);
   };
 
+  // Handle drag end (Phase 6)
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    setRowOrder((items) => {
+      const oldIndex = items.indexOf(active.id as string);
+      const newIndex = items.indexOf(over.id as string);
+
+      const newOrder = arrayMove(items, oldIndex, newIndex);
+
+      // Call onRowReorder callback if provided
+      if (onRowReorder) {
+        onRowReorder(newOrder);
+      }
+
+      console.log(`Reordered rows: ${active.id} moved from ${oldIndex} to ${newIndex}`);
+      return newOrder;
+    });
+  };
+
   // Get display data - merge original data with modifications, filter out deleted
   const displayData = useMemo(() => {
     // Start with original data (excluding deleted rows)
@@ -462,8 +513,35 @@ export function DataTable<TData extends RowData>({
       }
     });
 
+    // Apply row reordering if enabled (Phase 6)
+    if (enableRowReordering && rowOrder.length > 0) {
+      const orderMap = new Map(rowOrder.map((id, index) => [id, index]));
+      result.sort((a, b) => {
+        const aIndex = orderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+        const bIndex = orderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+        return aIndex - bIndex;
+      });
+    }
+
     return result;
-  }, [data, modifiedData, deletedRows, newRows, rowInsertions, animatingRows]);
+  }, [data, modifiedData, deletedRows, newRows, rowInsertions, animatingRows, enableRowReordering, rowOrder]);
+
+  // Initialize row order when displayData changes (Phase 6)
+  useEffect(() => {
+    if (enableRowReordering) {
+      const currentIds = displayData.map((row) => row.id);
+      setRowOrder((prevOrder) => {
+        // Only update if IDs have changed
+        const prevSet = new Set(prevOrder);
+        const currentSet = new Set(currentIds);
+        const hasChanged =
+          prevOrder.length !== currentIds.length ||
+          currentIds.some((id) => !prevSet.has(id));
+
+        return hasChanged ? currentIds : prevOrder;
+      });
+    }
+  }, [displayData, enableRowReordering]);
 
   // Memoize columns to prevent unnecessary re-renders
   const tableColumns = useMemo<ColumnDef<TData>[]>(() => {
@@ -523,6 +601,18 @@ export function DataTable<TData extends RowData>({
       };
     });
 
+    // Add drag handle column if row reordering is enabled (Phase 6)
+    if (enableRowReordering) {
+      userColumns.unshift({
+        id: '_drag',
+        header: '',
+        cell: (info) => <DragHandleCell rowId={info.row.original.id} />,
+        size: 40,
+        enableSorting: false,
+        enableColumnFilter: false,
+      } as ColumnDef<TData>);
+    }
+
     // Add actions column if any row actions are enabled
     const hasRowActions = enableRowCreation || enableRowCopy || enableRowInsertion || enableRowDeletion;
     if (hasRowActions) {
@@ -547,7 +637,7 @@ export function DataTable<TData extends RowData>({
     }
 
     return userColumns;
-  }, [columns, enableSorting, editingCell, enableInlineEditing, enableRowCreation, enableRowCopy, enableRowInsertion, enableRowDeletion, newRows]);
+  }, [columns, enableSorting, editingCell, enableInlineEditing, enableRowCreation, enableRowCopy, enableRowInsertion, enableRowDeletion, enableRowReordering, newRows]);
 
   // Initialize TanStack Table
   const table = useReactTable({
@@ -611,77 +701,104 @@ export function DataTable<TData extends RowData>({
         columnNames={columnNames}
       />
 
-      <table className={styles.table}>
-        <thead ref={theadRef} className={styles.thead}>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id} className={styles.headerRow}>
-              {headerGroup.headers.map((header) => {
-                // Find the original column definition by matching id or accessorKey
-                const columnDef = columns.find(
-                  (c) => c.id === header.id || (c as any).accessorKey === header.id
-                ) as any;
-                const cellType = columnDef?.cellType || CellType.TEXT;
-                const canFilter = header.column.getCanFilter();
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <table className={styles.table}>
+          <thead ref={theadRef} className={styles.thead}>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id} className={styles.headerRow}>
+                {headerGroup.headers.map((header) => {
+                  // Find the original column definition by matching id or accessorKey
+                  const columnDef = columns.find(
+                    (c) => c.id === header.id || (c as any).accessorKey === header.id
+                  ) as any;
+                  const cellType = columnDef?.cellType || CellType.TEXT;
+                  const canFilter = header.column.getCanFilter();
 
-                return (
-                  <th
-                    key={header.id}
-                    className={`${styles.th} ${
-                      header.column.getCanSort() ? styles.sortable : ''
-                    } ${header.column.getIsSorted() ? styles.sorted : ''}`}
-                    onClick={header.column.getToggleSortingHandler()}
-                    style={{ cursor: header.column.getCanSort() ? 'pointer' : 'default' }}
-                  >
-                    <div className={styles.thContent}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
+                  return (
+                    <th
+                      key={header.id}
+                      className={`${styles.th} ${
+                        header.column.getCanSort() ? styles.sortable : ''
+                      } ${header.column.getIsSorted() ? styles.sorted : ''}`}
+                      onClick={header.column.getToggleSortingHandler()}
+                      style={{ cursor: header.column.getCanSort() ? 'pointer' : 'default' }}
+                    >
+                      <div className={styles.thContent}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                        <div className={styles.headerIcons}>
+                          {header.column.getCanSort() && (
+                            <SortIndicator
+                              isSorted={header.column.getIsSorted()}
+                            />
                           )}
-                      <div className={styles.headerIcons}>
-                        {header.column.getCanSort() && (
-                          <SortIndicator
-                            isSorted={header.column.getIsSorted()}
-                          />
-                        )}
-                        {canFilter && (
-                          <ColumnFilter
-                            column={header.column}
-                            cellType={cellType}
-                            selectOptions={columnDef?.cellOptions?.options || []}
-                            headerElement={theadRef.current}
-                          />
-                        )}
+                          {canFilter && (
+                            <ColumnFilter
+                              column={header.column}
+                              cellType={cellType}
+                              selectOptions={columnDef?.cellOptions?.options || []}
+                              headerElement={theadRef.current}
+                            />
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </th>
+                    </th>
+                  );
+                })}
+              </tr>
+            ))}
+          </thead>
+          <SortableContext
+            items={rowOrder}
+            strategy={verticalListSortingStrategy}
+          >
+            <tbody className={styles.tbody}>
+              {table.getRowModel().rows.map((row) => {
+                const animationOrder = animatingRows.get(row.original.id);
+                const shouldAnimate = animationOrder !== undefined;
+                const animationDuration = shouldAnimate ? `${2 + (animationOrder * 0.1)}s` : '2s';
+                const rowStyle = shouldAnimate ? { '--animation-duration': animationDuration } as React.CSSProperties : undefined;
+
+                return enableRowReordering ? (
+                  <DraggableRow
+                    key={row.id}
+                    id={row.original.id}
+                    className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
+                    style={rowStyle}
+                    isDragDisabled={!!sorting.length || !!columnFilters.length || !!globalFilter}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className={styles.td}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </DraggableRow>
+                ) : (
+                  <tr
+                    key={row.id}
+                    className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
+                    style={rowStyle}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className={styles.td}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
                 );
               })}
-            </tr>
-          ))}
-        </thead>
-        <tbody className={styles.tbody}>
-          {table.getRowModel().rows.map((row) => {
-            const animationOrder = animatingRows.get(row.original.id);
-            const shouldAnimate = animationOrder !== undefined;
-            const animationDuration = shouldAnimate ? `${2 + (animationOrder * 0.1)}s` : '2s';
-            return (
-              <tr
-                key={row.id}
-                className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
-                style={shouldAnimate ? { '--animation-duration': animationDuration } as React.CSSProperties : undefined}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className={styles.td}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </tbody>
+          </SortableContext>
+        </table>
+      </DndContext>
 
       {/* Empty state - Phase 5 (Improved UX) */}
       {table.getRowModel().rows.length === 0 && (

@@ -56,6 +56,7 @@ export interface DataTableProps<TData extends RowData = RowData> {
   enableRowCreation?: boolean;
   enableRowDeletion?: boolean;
   enableRowCopy?: boolean;
+  enableRowInsertion?: boolean;
   enableVirtualization?: boolean;
 
   // UI customization
