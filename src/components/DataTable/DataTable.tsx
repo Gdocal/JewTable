@@ -23,7 +23,9 @@ import { SortIndicator } from './components/SortIndicator';
 import { GlobalSearch } from './components/GlobalSearch';
 import { ColumnFilter } from './components/ColumnFilter';
 import { FilterChips } from './components/FilterChips';
+import { TableToolbar } from './components/TableToolbar/TableToolbar';
 import { TableFooter } from './components/TableFooter/TableFooter';
+import { EmptyState } from './components/EmptyState/EmptyState';
 import { RowActions } from './components/RowActions/RowActions';
 import {
   applyTextFilter,
@@ -583,8 +585,16 @@ export function DataTable<TData extends RowData>({
     }
   };
 
+  // Determine if table is read-only (no editing and no row creation)
+  const isReadOnly = !enableInlineEditing && !enableRowCreation;
+
   return (
     <div className={`${styles.tableContainer} ${className || ''}`} onClick={handleContainerClick}>
+      {/* Table toolbar - Phase 5 (Improved UX) */}
+      <TableToolbar
+        isReadOnly={isReadOnly}
+      />
+
       {/* Global search - Phase 3 */}
       <GlobalSearch
         value={globalFilter}
@@ -673,17 +683,17 @@ export function DataTable<TData extends RowData>({
         </tbody>
       </table>
 
-      {/* Empty state */}
+      {/* Empty state - Phase 5 (Improved UX) */}
       {table.getRowModel().rows.length === 0 && (
-        <div className={styles.emptyState}>
-          <p>No data available</p>
-        </div>
+        <EmptyState
+          onAddRow={handleAddRow}
+          enableRowCreation={enableRowCreation}
+          isReadOnly={isReadOnly}
+        />
       )}
 
-      {/* Table footer with Add Row - Phase 5 */}
+      {/* Table footer - Phase 5 (Simplified) */}
       <TableFooter
-        onAddRow={handleAddRow}
-        enableRowCreation={enableRowCreation}
         totalRows={displayData.length}
       />
     </div>
