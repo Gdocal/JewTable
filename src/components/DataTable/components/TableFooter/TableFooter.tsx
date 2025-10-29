@@ -13,6 +13,8 @@ interface TableFooterProps {
   paginationType?: 'infinite' | 'traditional';
   hasNextPage?: boolean;
   totalCount?: number; // Total available on server
+  isCapped?: boolean; // Whether virtualization is capped
+  maxVirtualRows?: number; // Max rows that can be virtualized
 }
 
 export function TableFooter({
@@ -21,6 +23,8 @@ export function TableFooter({
   paginationType = 'traditional',
   hasNextPage = false,
   totalCount,
+  isCapped = false,
+  maxVirtualRows,
 }: TableFooterProps) {
   // Server infinite scroll: show loaded vs total
   const isServerInfinite = mode === 'server' && paginationType === 'infinite';
@@ -39,8 +43,18 @@ export function TableFooter({
         <span className={styles.rowCount}>
           {isServerInfinite && totalCount ? (
             <>
-              Loaded {totalRows.toLocaleString()} of {totalCount.toLocaleString()} rows
-              {hasNextPage && <span className={styles.moreIndicator}> • More available</span>}
+              {isCapped ? (
+                <>
+                  Showing {totalRows.toLocaleString()} of{' '}
+                  <strong>{maxVirtualRows?.toLocaleString()}</strong> viewable rows
+                  <span className={styles.cappedIndicator}> (limited from {totalCount.toLocaleString()})</span>
+                </>
+              ) : (
+                <>
+                  Loaded {totalRows.toLocaleString()} of {totalCount.toLocaleString()} rows
+                  {hasNextPage && <span className={styles.moreIndicator}> • More available</span>}
+                </>
+              )}
             </>
           ) : (
             <>{totalRows.toLocaleString()} {totalRows === 1 ? 'row' : 'rows'}</>

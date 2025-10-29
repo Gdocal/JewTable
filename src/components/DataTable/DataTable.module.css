@@ -397,3 +397,30 @@
     background-position: -200% 0;
   }
 }
+
+/* Warning banner for virtualization cap (Phase 8.2) */
+.warningBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  color: #856404;
+}
+
+.warningIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.warningContent {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.warningContent strong {
+  font-weight: 600;
+}

@@ -25,6 +25,7 @@ export const VIRTUALIZATION = {
   ENABLED_THRESHOLD: 300, // Enable virtualization for tables with more than 300 rows
   DEFAULT_ROW_HEIGHT: 48,
   OVERSCAN: 5, // Number of rows to render outside viewport
+  MAX_VIRTUAL_ROWS: 10000, // Maximum rows to virtualize (prevents browser scroll height limits)
 } as const;
 
 // Mobile breakpoints (pixels)

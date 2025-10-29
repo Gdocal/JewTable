@@ -65,6 +65,7 @@ import {
   SelectFilterValue,
 } from './components/filters';
 import { CellType } from './types/cell.types';
+import { VIRTUALIZATION } from './utils/constants';
 import styles from './DataTable.module.css';
 
 // Custom filter functions for each cell type
@@ -770,10 +771,13 @@ export function DataTable<TData extends RowData>({
   const shouldUseVirtualization = enableVirtualization && !isTraditionalPagination;
 
   // For server infinite scroll, use total count so scrollbar represents full dataset
-  // This allows users to see dataset size and jump to any position
-  const virtualizerCount = isServerInfinite && totalRows
+  // Cap at MAX_VIRTUAL_ROWS to prevent browser scroll height limits (17-33M pixels)
+  const rawVirtualCount = isServerInfinite && totalRows
     ? totalRows
     : table.getRowModel().rows.length;
+
+  const virtualizerCount = Math.min(rawVirtualCount, VIRTUALIZATION.MAX_VIRTUAL_ROWS);
+  const isVirtualizationCapped = isServerInfinite && totalRows && totalRows > VIRTUALIZATION.MAX_VIRTUAL_ROWS;
 
   const rowVirtualizer = useVirtualizer({
     count: virtualizerCount,
@@ -899,6 +903,18 @@ export function DataTable<TData extends RowData>({
         onClearAll={handleClearAllFilters}
         columnNames={columnNames}
       />
+
+      {/* Virtualization cap warning - Phase 8.2 */}
+      {isVirtualizationCapped && (
+        <div className={styles.warningBanner}>
+          <div className={styles.warningIcon}>⚠️</div>
+          <div className={styles.warningContent}>
+            <strong>Large Dataset Limited:</strong> Showing first{' '}
+            {VIRTUALIZATION.MAX_VIRTUAL_ROWS.toLocaleString()} of {totalRows?.toLocaleString()} rows.
+            Use filters to refine your results and access specific data.
+          </div>
+        </div>
+      )}
 
       {/* Batch actions toolbar - Phase 10.1 */}
       <BatchActionsToolbar
@@ -1382,6 +1398,8 @@ export function DataTable<TData extends RowData>({
         paginationType={paginationType}
         hasNextPage={hasNextPage}
         totalCount={totalRows} // Total available on server
+        isCapped={isVirtualizationCapped}
+        maxVirtualRows={VIRTUALIZATION.MAX_VIRTUAL_ROWS}
       />
     </div>
   );
