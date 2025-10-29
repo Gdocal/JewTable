@@ -16,6 +16,7 @@ import {
   SortingState,
   ColumnFiltersState,
   FilterFn,
+  RowSelectionState,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
@@ -51,6 +52,8 @@ import { RowActions } from './components/RowActions/RowActions';
 import { DraggableRow } from './components/DraggableRow/DraggableRow';
 import { DragHandleCell } from './components/DragHandleCell/DragHandleCell';
 import { PaginationControls } from './components/PaginationControls/PaginationControls';
+import { SelectionCell } from './cells/SelectionCell';
+import { BatchActionsToolbar } from './components/BatchActionsToolbar';
 import {
   applyTextFilter,
   applyNumberFilter,
@@ -156,6 +159,9 @@ export function DataTable<TData extends RowData>({
 
   // Active drag item (Phase 6 - DragOverlay fix)
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  // Row selection state (Phase 10.1 - Row selection & batch editing)
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   // DndKit sensors (Phase 6)
   const sensors = useSensors(
@@ -648,6 +654,29 @@ export function DataTable<TData extends RowData>({
       };
     });
 
+    // Add selection column if row selection is enabled (Phase 10.1)
+    // Selection column always goes first
+    userColumns.unshift({
+      id: '_select',
+      header: ({ table }) => (
+        <SelectionCell
+          checked={table.getIsAllRowsSelected()}
+          indeterminate={table.getIsSomeRowsSelected()}
+          onChange={table.getToggleAllRowsSelectedHandler()}
+        />
+      ),
+      cell: ({ row }) => (
+        <SelectionCell
+          checked={row.getIsSelected()}
+          onChange={row.getToggleSelectedHandler()}
+        />
+      ),
+      size: 44,
+      enableSorting: false,
+      enableColumnFilter: false,
+      meta: { isSelectionColumn: true },
+    } as ColumnDef<TData>);
+
     // Add drag handle column if row reordering is enabled (Phase 6)
     if (enableRowReordering) {
       userColumns.unshift({
@@ -698,11 +727,14 @@ export function DataTable<TData extends RowData>({
       sorting,
       globalFilter,
       columnFilters,
+      rowSelection, // Phase 10.1: Row selection state
       ...(useManualPagination ? { pagination } : {}),
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: setRowSelection, // Phase 10.1: Row selection handler
+    enableRowSelection: true, // Phase 10.1: Enable row selection
     ...(useManualPagination ? { onPaginationChange: setPagination } : {}),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -714,6 +746,8 @@ export function DataTable<TData extends RowData>({
           pageCount: pageCount ?? Math.ceil((totalRows ?? 0) / pagination.pageSize),
         }
       : {}),
+    // Use row.original.id as the unique identifier for selection
+    getRowId: (row) => row.id,
   });
 
   // Virtualization setup (Phase 7)
@@ -800,6 +834,22 @@ export function DataTable<TData extends RowData>({
         onRemoveGlobalFilter={handleRemoveGlobalFilter}
         onClearAll={handleClearAllFilters}
         columnNames={columnNames}
+      />
+
+      {/* Batch actions toolbar - Phase 10.1 */}
+      <BatchActionsToolbar
+        selectedCount={Object.keys(rowSelection).length}
+        onClearSelection={() => setRowSelection({})}
+        onBatchDelete={() => {
+          // Get selected row IDs
+          const selectedRowIds = Object.keys(rowSelection);
+          // Delete each selected row
+          selectedRowIds.forEach((rowId) => {
+            handleDeleteRow(rowId);
+          });
+          // Clear selection after delete
+          setRowSelection({});
+        }}
       />
 
       {enableVirtualization ? (
