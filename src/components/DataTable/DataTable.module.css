@@ -81,7 +81,8 @@
 }
 
 .newRow {
-  animation: highlightNewRow 2s ease-out;
+  animation: highlightNewRow ease-out;
+  animation-duration: var(--animation-duration, 2s);
 }
 
 @keyframes highlightNewRow {

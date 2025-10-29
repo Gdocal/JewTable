@@ -5,7 +5,7 @@
  * Phase 3: Column filtering
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -69,6 +69,7 @@ export function DataTable<TData extends RowData>({
   enableRowCreation = true,
   enableRowDeletion = true,
   enableRowCopy = true,
+  enableRowInsertion = true,
 }: DataTableProps<TData>) {
   // Ref for table header (used for filter popover positioning)
   const theadRef = React.useRef<HTMLTableSectionElement>(null);
@@ -93,8 +94,10 @@ export function DataTable<TData extends RowData>({
   const [deletedRows, setDeletedRows] = useState<Set<string>>(new Set());
   // Track insertion position for new rows (rowId -> insertAfterRowId)
   const [rowInsertions, setRowInsertions] = useState<Map<string, string | null>>(new Map());
-  // Track rows that should show the "just added" animation
-  const [animatingRows, setAnimatingRows] = useState<Set<string>>(new Set());
+  // Track rows that should show the "just added" animation (rowId -> animation order)
+  const [animatingRows, setAnimatingRows] = useState<Map<string, number>>(new Map());
+  // Track animation counter to ensure proper ordering when multiple rows added quickly
+  const animationCounterRef = useRef(0);
 
   // Create column names map for filter chips
   const columnNames = useMemo(() => {
@@ -199,15 +202,18 @@ export function DataTable<TData extends RowData>({
       return newMap;
     });
 
-    // Trigger animation for this row
-    setAnimatingRows((prev) => new Set(prev).add(tempId));
+    // Trigger animation for this row with order tracking
+    const animationOrder = animationCounterRef.current;
+    animationCounterRef.current += 1;
+    setAnimatingRows((prev) => new Map(prev).set(tempId, animationOrder));
+    const animationDuration = 2000 + (animationOrder * 100);
     setTimeout(() => {
       setAnimatingRows((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(tempId);
-        return newSet;
+        const newMap = new Map(prev);
+        newMap.delete(tempId);
+        return newMap;
       });
-    }, 2000); // Match animation duration
+    }, animationDuration);
 
     // Enter edit mode for first editable column
     const firstEditableColumn = columns.find((col) => (col as any).editable !== false);
@@ -271,17 +277,108 @@ export function DataTable<TData extends RowData>({
       return newMap;
     });
 
-    // Trigger animation for this row
-    setAnimatingRows((prev) => new Set(prev).add(tempId));
+    // Trigger animation for this row with order tracking
+    const animationOrder = animationCounterRef.current;
+    animationCounterRef.current += 1;
+    setAnimatingRows((prev) => new Map(prev).set(tempId, animationOrder));
+    const animationDuration = 2000 + (animationOrder * 100);
     setTimeout(() => {
       setAnimatingRows((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(tempId);
-        return newSet;
+        const newMap = new Map(prev);
+        newMap.delete(tempId);
+        return newMap;
       });
-    }, 2000); // Match animation duration
+    }, animationDuration);
 
     console.log(`Copied row ${rowId} to ${tempId}, will insert after ${rowId}`);
+  };
+
+  const handleInsertRow = (rowId: string) => {
+    // Exit edit mode and blur to prevent auto-scroll
+    setEditingCell(null);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    // Generate temporary ID
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Create blank row with default values based on cell type
+    const newRow: Partial<TData> = {
+      ...columns.reduce((acc, col) => {
+        const key = (col as any).accessorKey || col.id;
+        if (key && key !== 'id') {
+          const cellType = (col as any).cellType || CellType.TEXT;
+          // Set appropriate default value based on cell type
+          switch (cellType) {
+            case CellType.NUMBER:
+              acc[key] = null;
+              break;
+            case CellType.DATE:
+            case CellType.DATE_RANGE:
+              acc[key] = null;
+              break;
+            case CellType.CHECKBOX:
+              acc[key] = false;
+              break;
+            case CellType.TEXT:
+            case CellType.SELECT:
+            default:
+              acc[key] = '';
+              break;
+          }
+        }
+        return acc;
+      }, {} as any),
+    };
+
+    // Mark as new row
+    setNewRows((prev) => new Set(prev).add(tempId));
+
+    // Update insertion tracking: new row goes directly after target row,
+    // and any existing copies that were after target now go after new row
+    setRowInsertions((prev) => {
+      const newMap = new Map(prev);
+
+      // Find any existing rows that should be inserted after the target row
+      const rowsToMoveDown: string[] = [];
+      newMap.forEach((insertAfter, existingRowId) => {
+        if (insertAfter === rowId) {
+          rowsToMoveDown.push(existingRowId);
+        }
+      });
+
+      // Move those rows to be inserted after the new row instead
+      rowsToMoveDown.forEach((existingRowId) => {
+        newMap.set(existingRowId, tempId);
+      });
+
+      // New row goes directly after the target row
+      newMap.set(tempId, rowId);
+      return newMap;
+    });
+
+    // Add to modified data (will be picked up by displayData)
+    setModifiedData((prev) => {
+      const newMap = new Map(prev);
+      newMap.set(tempId, newRow);
+      return newMap;
+    });
+
+    // Trigger animation for this row with order tracking
+    const animationOrder = animationCounterRef.current;
+    animationCounterRef.current += 1;
+    setAnimatingRows((prev) => new Map(prev).set(tempId, animationOrder));
+    const animationDuration = 2000 + (animationOrder * 100);
+    setTimeout(() => {
+      setAnimatingRows((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(tempId);
+        return newMap;
+      });
+    }, animationDuration);
+
+    console.log(`Inserted blank row ${tempId} after ${rowId}`);
   };
 
   const handleDeleteRow = (rowId: string) => {
@@ -425,7 +522,7 @@ export function DataTable<TData extends RowData>({
     });
 
     // Add actions column if any row actions are enabled
-    const hasRowActions = enableRowCreation || enableRowCopy || enableRowDeletion;
+    const hasRowActions = enableRowCreation || enableRowCopy || enableRowInsertion || enableRowDeletion;
     if (hasRowActions) {
       userColumns.push({
         id: '_actions',
@@ -434,9 +531,11 @@ export function DataTable<TData extends RowData>({
           <RowActions
             rowId={info.row.original.id}
             onCopy={handleCopyRow}
+            onInsert={handleInsertRow}
             onDelete={handleDeleteRow}
             isNewRow={newRows.has(info.row.original.id)}
             enableCopy={enableRowCopy}
+            enableInsert={enableRowInsertion}
             enableDelete={enableRowDeletion}
           />
         ),
@@ -446,7 +545,7 @@ export function DataTable<TData extends RowData>({
     }
 
     return userColumns;
-  }, [columns, enableSorting, editingCell, enableInlineEditing, enableRowCreation, enableRowCopy, enableRowDeletion, newRows]);
+  }, [columns, enableSorting, editingCell, enableInlineEditing, enableRowCreation, enableRowCopy, enableRowInsertion, enableRowDeletion, newRows]);
 
   // Initialize TanStack Table
   const table = useReactTable({
@@ -554,11 +653,14 @@ export function DataTable<TData extends RowData>({
         </thead>
         <tbody className={styles.tbody}>
           {table.getRowModel().rows.map((row) => {
-            const shouldAnimate = animatingRows.has(row.original.id);
+            const animationOrder = animatingRows.get(row.original.id);
+            const shouldAnimate = animationOrder !== undefined;
+            const animationDuration = shouldAnimate ? `${2 + (animationOrder * 0.1)}s` : '2s';
             return (
               <tr
                 key={row.id}
                 className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
+                style={shouldAnimate ? { '--animation-duration': animationDuration } as React.CSSProperties : undefined}
               >
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className={styles.td}>
