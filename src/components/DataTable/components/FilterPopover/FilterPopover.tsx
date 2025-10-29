@@ -31,12 +31,51 @@ export function FilterPopover({
   anchorElement,
 }: FilterPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [initialPosition, setInitialPosition] = useState({ top: 0, left: 0 });
   const rafRef = useRef<number | null>(null);
 
   // Calculate position based on anchor element
   useEffect(() => {
-    if (!anchorElement) return;
+    if (!anchorElement || !popoverRef.current) return;
+
+    const calculatePosition = () => {
+      const rect = anchorElement.getBoundingClientRect();
+      const popoverWidth = 280; // min-width from CSS
+      const popoverMaxHeight = 450; // approximate max height including header/footer
+      const viewportHeight = window.innerHeight;
+      const spaceBelow = viewportHeight - rect.bottom;
+      const spaceAbove = rect.top;
+
+      // Horizontal positioning: right-aligned with filter icon
+      let left = rect.right - popoverWidth;
+
+      // Adjust if popover would go off left edge
+      if (left < 16) {
+        left = 16;
+      }
+
+      // Adjust if popover would go off right edge
+      if (left + popoverWidth > window.innerWidth - 16) {
+        left = window.innerWidth - popoverWidth - 16;
+      }
+
+      // Vertical positioning: prefer below, only go above if clearly better
+      let top: number;
+      const minSpaceNeeded = 300; // Minimum space to prefer a direction
+
+      if (spaceBelow >= minSpaceNeeded) {
+        // Enough space below - position below (preferred)
+        top = rect.bottom + 8;
+      } else if (spaceAbove >= minSpaceNeeded && spaceAbove > spaceBelow + 100) {
+        // Not enough space below, but significantly more space above
+        top = Math.max(8, rect.top - popoverMaxHeight - 8);
+      } else {
+        // Default to below even if limited space (popover has internal scroll)
+        top = rect.bottom + 8;
+      }
+
+      return { top, left };
+    };
 
     const updatePosition = () => {
       // Cancel any pending animation frame
@@ -46,46 +85,20 @@ export function FilterPopover({
 
       // Use requestAnimationFrame for smooth updates
       rafRef.current = requestAnimationFrame(() => {
-        const rect = anchorElement.getBoundingClientRect();
-        const popoverWidth = 280; // min-width from CSS
-        const popoverMaxHeight = 450; // approximate max height including header/footer
-        const viewportHeight = window.innerHeight;
-        const spaceBelow = viewportHeight - rect.bottom;
-        const spaceAbove = rect.top;
+        if (!popoverRef.current) return;
 
-        // Horizontal positioning: right-aligned with filter icon
-        let left = rect.right - popoverWidth;
+        const { top, left } = calculatePosition();
 
-        // Adjust if popover would go off left edge
-        if (left < 16) {
-          left = 16;
-        }
-
-        // Adjust if popover would go off right edge
-        if (left + popoverWidth > window.innerWidth - 16) {
-          left = window.innerWidth - popoverWidth - 16;
-        }
-
-        // Vertical positioning: prefer below, only go above if clearly better
-        let top: number;
-        const minSpaceNeeded = 300; // Minimum space to prefer a direction
-
-        if (spaceBelow >= minSpaceNeeded) {
-          // Enough space below - position below (preferred)
-          top = rect.bottom + 8;
-        } else if (spaceAbove >= minSpaceNeeded && spaceAbove > spaceBelow + 100) {
-          // Not enough space below, but significantly more space above
-          top = Math.max(8, rect.top - popoverMaxHeight - 8);
-        } else {
-          // Default to below even if limited space (popover has internal scroll)
-          top = rect.bottom + 8;
-        }
-
-        setPosition({ top, left });
+        // Update transform directly without triggering React re-render
+        popoverRef.current.style.transform = `translate(${left}px, ${top}px)`;
       });
     };
 
-    updatePosition();
+    // Set initial position via state (for first render)
+    const initial = calculatePosition();
+    setInitialPosition(initial);
+
+    // Listen for scroll and resize, update via direct DOM manipulation
     window.addEventListener('scroll', updatePosition, true);
     window.addEventListener('resize', updatePosition);
 
@@ -138,7 +151,7 @@ export function FilterPopover({
         position: 'fixed',
         top: 0,
         left: 0,
-        transform: `translate(${position.left}px, ${position.top}px)`,
+        transform: `translate(${initialPosition.left}px, ${initialPosition.top}px)`,
         zIndex: 1000,
         willChange: 'transform',
       }}
