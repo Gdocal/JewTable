@@ -1,17 +1,21 @@
 /**
  * Main DataTable component
  * Phase 1: Basic table with read-only cells
+ * Phase 2: Column sorting
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
+  getSortedRowModel,
   flexRender,
   ColumnDef,
+  SortingState,
 } from '@tanstack/react-table';
 import { DataTableProps, RowData } from './types/table.types';
 import { CellRenderer } from './cells/CellRenderer';
+import { SortIndicator } from './components/SortIndicator';
 import styles from './DataTable.module.css';
 
 export function DataTable<TData extends RowData>({
@@ -19,11 +23,16 @@ export function DataTable<TData extends RowData>({
   columns,
   data = [],
   className,
+  enableSorting = true,
 }: DataTableProps<TData>) {
+  // Sorting state
+  const [sorting, setSorting] = useState<SortingState>([]);
+
   // Memoize columns to prevent unnecessary re-renders
   const tableColumns = useMemo<ColumnDef<TData>[]>(() => {
     return columns.map((col) => ({
       ...col,
+      enableSorting: col.sortable !== false && enableSorting,
       cell: (info) => {
         const columnDef = col as any;
         return (
@@ -38,13 +47,18 @@ export function DataTable<TData extends RowData>({
         );
       },
     }));
-  }, [columns]);
+  }, [columns, enableSorting]);
 
   // Initialize TanStack Table
   const table = useReactTable({
     data,
     columns: tableColumns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
   return (
@@ -54,13 +68,27 @@ export function DataTable<TData extends RowData>({
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id} className={styles.headerRow}>
               {headerGroup.headers.map((header) => (
-                <th key={header.id} className={styles.th}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                <th
+                  key={header.id}
+                  className={`${styles.th} ${
+                    header.column.getCanSort() ? styles.sortable : ''
+                  } ${header.column.getIsSorted() ? styles.sorted : ''}`}
+                  onClick={header.column.getToggleSortingHandler()}
+                  style={{ cursor: header.column.getCanSort() ? 'pointer' : 'default' }}
+                >
+                  <div className={styles.thContent}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    {header.column.getCanSort() && (
+                      <SortIndicator
+                        isSorted={header.column.getIsSorted()}
+                      />
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>

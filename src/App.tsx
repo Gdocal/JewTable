@@ -1,6 +1,6 @@
 /**
  * Development App component
- * Phase 1: Testing basic DataTable
+ * Phase 2: Column Sorting
  */
 
 import { DataTable } from './components/DataTable';
@@ -12,7 +12,7 @@ function App() {
     <div className={styles.app}>
       <header className={styles.header}>
         <h1>JewTable Development</h1>
-        <p>Phase 1: Basic Table - Read-Only Cells</p>
+        <p>Phase 2: Column Sorting</p>
       </header>
 
       <main className={styles.main}>
@@ -20,7 +20,7 @@ function App() {
           <div className={styles.tableHeader}>
             <h2>Employee Directory</h2>
             <p className={styles.subtitle}>
-              Testing table with {employeeData.length} employees across 7 column types
+              Click any column header to sort • {employeeData.length} employees
             </p>
           </div>
 
@@ -44,11 +44,21 @@ function App() {
             <li>✅ Responsive design</li>
           </ul>
 
-          <h3 className={styles.phaseNext}>Coming in Phase 2</h3>
+          <h3 className={styles.phaseNext}>Phase 2 Features ✅</h3>
           <ul>
-            <li>⏳ Column sorting (click headers)</li>
-            <li>⏳ Multi-column sorting</li>
-            <li>⏳ Sort indicators</li>
+            <li>✅ Column sorting (click any header to sort)</li>
+            <li>✅ Ascending/Descending/None states (click 3x)</li>
+            <li>✅ Sort indicators with up/down arrows</li>
+            <li>✅ Visual feedback for sorted columns</li>
+            <li>✅ Hover effect on sortable headers</li>
+            <li>✅ Works with all data types</li>
+          </ul>
+
+          <h3 className={styles.phaseNext}>Coming in Phase 3</h3>
+          <ul>
+            <li>⏳ Advanced filtering (ag-Grid style)</li>
+            <li>⏳ Quick search across all columns</li>
+            <li>⏳ Filter chips and clear all</li>
           </ul>
         </div>
       </main>

@@ -1,0 +1,30 @@
+.indicator {
+  display: inline-flex;
+  flex-direction: column;
+  margin-left: 6px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.arrow {
+  font-size: 10px;
+  line-height: 1;
+  user-select: none;
+}
+
+.arrowUp {
+  margin-bottom: -2px;
+}
+
+.arrowDown {
+  margin-top: -2px;
+}
+
+.inactive {
+  color: #ccc;
+  opacity: 0.4;
+}
+
+.active {
+  color: #667eea;
+}

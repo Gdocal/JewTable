@@ -31,6 +31,26 @@
   color: #495057;
   border-bottom: 1px solid #dee2e6;
   white-space: nowrap;
+  user-select: none;
+}
+
+.thContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sortable {
+  transition: background-color 150ms ease;
+}
+
+.sortable:hover {
+  background-color: #f1f3f5;
+}
+
+.sorted {
+  background-color: #f8f9fa;
+  font-weight: 700;
 }
 
 /* Body */
