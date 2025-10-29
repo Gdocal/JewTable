@@ -763,14 +763,19 @@ export function DataTable<TData extends RowData>({
     getRowId: (row) => row.id,
   });
 
-  // Virtualization setup (Phase 7)
-  // Only virtualize for Client mode + Infinite scroll (all data in memory)
-  // Server mode infinite scroll uses standard infinite scroll (render all loaded rows)
+  // Virtualization setup (Phase 7 & 8.2)
+  // Server infinite scroll: virtualize with TOTAL count (scrollbar shows full dataset)
+  // Client infinite scroll: virtualize with loaded data count
   const isServerInfinite = mode === TableMode.SERVER && paginationType === PaginationType.INFINITE;
-  const shouldUseVirtualization = enableVirtualization && !isTraditionalPagination && !isServerInfinite;
+  const shouldUseVirtualization = enableVirtualization && !isTraditionalPagination;
+
+  // For server infinite scroll, use total count so scrollbar represents full dataset
+  const virtualizerCount = isServerInfinite && totalRows
+    ? totalRows
+    : table.getRowModel().rows.length;
 
   const rowVirtualizer = useVirtualizer({
-    count: table.getRowModel().rows.length,
+    count: virtualizerCount,
     getScrollElement: () => useManualPagination ? scrollContainerRef.current : tbodyRef.current,
     estimateSize: () => rowHeight,
     overscan: 10,
@@ -784,28 +789,33 @@ export function DataTable<TData extends RowData>({
   }, [pagination, useManualPagination, onPaginationChange]);
 
   // Infinite scroll detection (Phase 8.2 - Server mode with infinite pagination)
+  // Check if we need to load more data based on visible virtual items
   useEffect(() => {
     if (mode !== TableMode.SERVER || paginationType !== PaginationType.INFINITE) return;
-    if (!onFetchNextPage) return;
-    if (!hasNextPage || isFetchingNextPage) return;
+    if (!onFetchNextPage || !hasNextPage || isFetchingNextPage) return;
+    if (!shouldUseVirtualization) return;
 
-    // Infinite scroll uses tbody as scroll element (renders all loaded rows)
-    const scrollElement = tbodyRef.current;
-    if (!scrollElement) return;
+    // Check if any visible virtual items are near the end of loaded data
+    const virtualItems = rowVirtualizer.getVirtualItems();
+    if (virtualItems.length === 0) return;
 
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = scrollElement;
-      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+    const lastVirtualItem = virtualItems[virtualItems.length - 1];
+    const loadedRowCount = table.getRowModel().rows.length;
 
-      // Trigger fetch when 80% scrolled
-      if (scrollPercentage > 0.8) {
-        onFetchNextPage();
-      }
-    };
-
-    scrollElement.addEventListener('scroll', handleScroll);
-    return () => scrollElement.removeEventListener('scroll', handleScroll);
-  }, [mode, paginationType, onFetchNextPage, hasNextPage, isFetchingNextPage]);
+    // If we're viewing rows within 5 rows of the loaded data end, fetch more
+    if (lastVirtualItem && lastVirtualItem.index >= loadedRowCount - 5) {
+      onFetchNextPage();
+    }
+  }, [
+    mode,
+    paginationType,
+    shouldUseVirtualization,
+    rowVirtualizer.getVirtualItems(),
+    table.getRowModel().rows.length,
+    onFetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  ]);
 
   // Horizontal scroll shadow detection (Phase 10.2)
   useEffect(() => {
@@ -982,6 +992,29 @@ export function DataTable<TData extends RowData>({
                 >
                   {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                     const row = table.getRowModel().rows[virtualRow.index];
+
+                    // Server infinite scroll: render skeleton for unloaded data
+                    if (!row && isServerInfinite) {
+                      const skeletonStyle: React.CSSProperties = {
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: `translateY(${virtualRow.start}px)`,
+                        height: `${rowHeight}px`,
+                      };
+
+                      return (
+                        <tr key={`skeleton-${virtualRow.index}`} className={styles.row} style={skeletonStyle}>
+                          {table.getAllColumns().map((column) => (
+                            <td key={column.id} className={styles.td}>
+                              <div className={styles.skeleton} />
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    }
+
                     if (!row) return null;
 
                     const animationOrder = animatingRows.get(row.original.id);
