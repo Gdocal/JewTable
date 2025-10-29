@@ -2,7 +2,7 @@
 
 **Project Start:** 2025-10-29
 **Estimated Completion:** TBD (30-42 hours dev time)
-**Current Phase:** Phase 6 - Drag & Drop
+**Current Phase:** Phase 7 - Virtualization
 
 ---
 
@@ -14,14 +14,14 @@
 - [x] **Phase 3:** Filtering (3-4h) ✅ COMPLETE
 - [x] **Phase 4:** Inline Editing (4-5h) ✅ COMPLETE
 - [x] **Phase 5:** Row Creation (2-3h) ✅ COMPLETE
-- [ ] **Phase 6:** Drag & Drop (3-4h)
+- [x] **Phase 6:** Drag & Drop (3-4h) ✅ COMPLETE
 - [ ] **Phase 7:** Virtualization (2-3h)
 - [ ] **Phase 8:** Server Integration (3-4h)
 - [ ] **Phase 9:** Mobile Adaptation (4-5h)
 - [ ] **Phase 10:** Additional Features (3-4h)
 - [ ] **Phase 11:** Testing & Documentation (2-3h)
 
-**Total Progress:** 6/12 phases complete (50%)
+**Total Progress:** 7/12 phases complete (58%)
 
 ---
 
@@ -296,47 +296,62 @@
 
 ---
 
-### Phase 6: Drag & Drop Row Reordering ⏳ Not Started
+### Phase 6: Drag & Drop Row Reordering ✅ COMPLETE
 **Estimated Time:** 3-4 hours
-**Status:** Not Started
-**Started:** -
-**Completed:** -
+**Actual Time:** ~3 hours
+**Status:** Complete
+**Started:** 2025-10-29
+**Completed:** 2025-10-29
+**Git Commits:** 0fe9bc1, 28b28fb, ea6b4ea, c158e7c, b1db061
 
 #### Tasks:
-- [ ] 6.1: DndKit setup
-  - [ ] Wrap table in DndContext
-  - [ ] Configure sensors
-  - [ ] Set up collision detection
-- [ ] 6.2: Draggable rows
-  - [ ] Create useRowDragDrop hook
-  - [ ] Add drag handle (≡ icon)
-  - [ ] Visual feedback during drag
-- [ ] 6.3: Drop zones & indicators
-  - [ ] Horizontal drop indicators
-  - [ ] Highlight target zone
-  - [ ] Preview position
-  - [ ] Smooth animations
-- [ ] 6.4: Reorder logic
-  - [ ] onDragEnd handler
-  - [ ] Update row order
-  - [ ] onRowReorder callback
-  - [ ] Optimistic update
-- [ ] 6.5: D&D with filters/sorting
-  - [ ] Handle filtered indices
-  - [ ] Warning with active filters
-  - [ ] Disable when sorted (optional)
+- [x] 6.1: DndKit setup
+  - [x] Wrap table in DndContext
+  - [x] Configure sensors (PointerSensor, KeyboardSensor)
+  - [x] Set up collision detection (closestCenter)
+- [x] 6.2: Draggable rows
+  - [x] Create DraggableRow component with useSortable
+  - [x] Add drag handle (≡≡ icon) in DragHandle component
+  - [x] Visual feedback during drag (opacity, shadow)
+- [x] 6.3: Smooth animations
+  - [x] DragOverlay pattern for visual drag representation
+  - [x] Hide original row during drag (opacity: 0)
+  - [x] Custom animateLayoutChanges function
+  - [x] Drop animation configuration
+- [x] 6.4: Reorder logic
+  - [x] handleDragStart to track active item
+  - [x] handleDragEnd with arrayMove
+  - [x] Update row order state
+  - [x] onRowReorder callback
+- [x] 6.5: D&D with filters/sorting
+  - [x] Disable drag when sorting/filtering active
+  - [x] Row order state management
+  - [x] Auto-initialize rowOrder from displayData
+- [x] 6.6: Bug fixes & polish
+  - [x] Fixed snap-back animation bug with DragOverlay
+  - [x] Fixed infinite table height with modifiers
+  - [x] Applied restrictToVerticalAxis and restrictToParentElement
+  - [x] Optimized drag handle column width (32px)
+  - [x] Added proper DragOverlay styling
+  - [x] Mobile: Hide drag handles, disable reordering
 
-**Deliverable:** Drag & drop row reordering
+**Deliverable:** ✅ Full drag & drop row reordering with mobile responsiveness
 
 **Notes:**
--
+- Created 4 new components: DragHandle, DraggableRow, DragHandleCell
+- Installed @dnd-kit/modifiers for containment
+- Used DragOverlay pattern to prevent snap-back animation
+- 10px activation constraint to prevent accidental drags
+- Drag handles hidden on mobile (< 768px) to avoid scroll conflicts
+- Row order persisted via onRowReorder callback
+- Disabled when sorting/filtering active for data integrity
 
 ---
 
-### Phase 7: Virtualization ⏳ Not Started
+### Phase 7: Virtualization ⏳ In Progress
 **Estimated Time:** 2-3 hours
-**Status:** Not Started
-**Started:** -
+**Status:** In Progress
+**Started:** 2025-10-29
 **Completed:** -
 
 #### Tasks:

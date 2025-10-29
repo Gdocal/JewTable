@@ -1,6 +1,6 @@
 /**
  * Development App component
- * Phase 6: Drag & Drop Row Reordering
+ * Phase 7: Virtualization for Large Datasets
  */
 
 import { DataTable } from './components/DataTable';
@@ -16,7 +16,7 @@ function App() {
     <div className={styles.app}>
       <header className={styles.header}>
         <h1>JewTable Development</h1>
-        <p>Phase 6: Drag & Drop Row Reordering</p>
+        <p>Phase 7: Virtualization for Large Datasets</p>
       </header>
 
       <main className={styles.main}>
@@ -105,13 +105,16 @@ function App() {
             <li>✅ Smooth animations with SortableContext</li>
             <li>✅ Disabled when sorting/filtering active</li>
             <li>✅ onRowReorder callback for persistence</li>
+            <li>✅ Mobile responsive with horizontal scroll</li>
+            <li>✅ Drag disabled on mobile to prevent conflicts</li>
           </ul>
 
-          <h3 className={styles.phaseNext}>Coming in Phase 7</h3>
+          <h3 className={styles.phaseNext}>Phase 7 Features 🚧</h3>
           <ul>
             <li>⏳ Virtualization for 5000+ rows</li>
             <li>⏳ TanStack Virtual integration</li>
             <li>⏳ Dynamic row heights</li>
+            <li>⏳ Smooth scrolling performance</li>
           </ul>
         </div>
       </main>
