@@ -33,6 +33,7 @@ export function FilterPopover({
   const popoverRef = useRef<HTMLDivElement>(null);
   const [initialPosition, setInitialPosition] = useState({ top: 0, left: 0 });
   const rafRef = useRef<number | null>(null);
+  const currentPositionRef = useRef({ top: 0, left: 0 });
 
   // Calculate position based on anchor element
   useEffect(() => {
@@ -59,19 +60,37 @@ export function FilterPopover({
         left = window.innerWidth - popoverWidth - 16;
       }
 
-      // Vertical positioning: keep near icon, ensure visible on screen
-      let top = rect.bottom + 8; // Default: below the filter icon
+      // Vertical positioning: use available space intelligently
+      let top: number;
 
-      // Ensure popover doesn't go below viewport
-      const maxTop = viewportHeight - popoverMaxHeight - 16;
-      if (top > maxTop) {
-        // Adjust upward to fit in viewport, but stay near the icon
-        top = Math.max(8, maxTop);
-      }
+      // Calculate available space
+      const minMargin = 16;
+      const maxBottomPosition = viewportHeight - minMargin;
 
-      // If really tight space and icon is near bottom, try above
-      if (spaceBelow < 200 && spaceAbove > spaceBelow + 50) {
-        top = Math.max(8, rect.top - popoverMaxHeight - 8);
+      // Try positioning below icon first
+      const belowPosition = rect.bottom + 8;
+      const belowBottom = belowPosition + popoverMaxHeight;
+
+      // Try positioning above icon
+      const abovePosition = rect.top - popoverMaxHeight - 8;
+
+      // Choose best position based on available space
+      if (belowBottom <= maxBottomPosition) {
+        // Fits below - use this position
+        top = belowPosition;
+      } else if (abovePosition >= minMargin) {
+        // Doesn't fit below, but fits above
+        top = abovePosition;
+      } else {
+        // Doesn't fit well in either position - use best fit
+        // Position it to maximize visible area
+        if (spaceBelow >= spaceAbove) {
+          // More space below - position to show as much as possible below
+          top = Math.max(minMargin, maxBottomPosition - popoverMaxHeight);
+        } else {
+          // More space above - position to show as much as possible
+          top = minMargin;
+        }
       }
 
       return { top, left };
@@ -87,7 +106,36 @@ export function FilterPopover({
       rafRef.current = requestAnimationFrame(() => {
         if (!popoverRef.current) return;
 
-        const { top, left } = calculatePosition();
+        const rect = anchorElement.getBoundingClientRect();
+        const popoverHeight = popoverRef.current.offsetHeight || popoverMaxHeight;
+        const popoverWidth = popoverRef.current.offsetWidth || 280;
+
+        // Get current position
+        let { top, left } = currentPositionRef.current;
+
+        // Update horizontal position to follow icon (horizontal scroll)
+        left = rect.right - popoverWidth;
+        if (left < 16) left = 16;
+        if (left + popoverWidth > window.innerWidth - 16) {
+          left = window.innerWidth - popoverWidth - 16;
+        }
+
+        // For vertical: only adjust if popover would go off screen
+        const currentBottom = top + popoverHeight;
+        const viewportHeight = window.innerHeight;
+
+        // Check if current position is still valid
+        if (currentBottom > viewportHeight - 16) {
+          // Going off bottom - move up
+          top = Math.max(16, viewportHeight - popoverHeight - 16);
+        } else if (top < 16) {
+          // Going off top - move down
+          top = 16;
+        }
+        // Otherwise keep current vertical position (don't follow icon)
+
+        // Save new position
+        currentPositionRef.current = { top, left };
 
         // Update transform directly without triggering React re-render
         // Use translate3d for better GPU acceleration
@@ -98,6 +146,7 @@ export function FilterPopover({
     // Set initial position via state (for first render)
     const initial = calculatePosition();
     setInitialPosition(initial);
+    currentPositionRef.current = initial;
 
     // Listen for scroll and resize with passive listeners for better performance
     window.addEventListener('scroll', updatePosition, { passive: true, capture: true });
