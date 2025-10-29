@@ -26,17 +26,25 @@ export function RowActions({
 }: RowActionsProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     setShowDeleteConfirm(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
     onDelete(rowId);
     setShowDeleteConfirm(false);
   };
 
-  const handleCancelDelete = () => {
+  const handleCancelDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
     setShowDeleteConfirm(false);
+  };
+
+  const handleCopyClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onCopy(rowId);
   };
 
   if (showDeleteConfirm) {
@@ -45,7 +53,7 @@ export function RowActions({
         <span className={styles.confirmText}>Delete?</span>
         <button
           className={styles.confirmButton}
-          onClick={handleConfirmDelete}
+          onMouseDown={handleConfirmDelete}
           type="button"
           title="Confirm delete"
         >
@@ -53,7 +61,7 @@ export function RowActions({
         </button>
         <button
           className={styles.cancelButton}
-          onClick={handleCancelDelete}
+          onMouseDown={handleCancelDelete}
           type="button"
           title="Cancel"
         >
@@ -74,7 +82,7 @@ export function RowActions({
         <Tooltip text="Copy row below" position="top">
           <button
             className={styles.actionButton}
-            onClick={() => onCopy(rowId)}
+            onMouseDown={handleCopyClick}
             type="button"
             aria-label="Copy row"
           >
@@ -90,7 +98,7 @@ export function RowActions({
         <Tooltip text="Delete row" position="top">
           <button
             className={`${styles.actionButton} ${styles.deleteButton}`}
-            onClick={handleDeleteClick}
+            onMouseDown={handleDeleteClick}
             type="button"
             aria-label="Delete row"
           >

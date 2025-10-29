@@ -15,8 +15,9 @@ export function EditableCheckboxCell({
   value,
   onSave,
 }: EditableCheckboxCellProps) {
-  const handleToggle = () => {
-    onSave(!value);
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default checkbox behavior
+    onSave(!value); // Toggle immediately on mousedown (before blur from other cells)
   };
 
   return (
@@ -24,7 +25,8 @@ export function EditableCheckboxCell({
       <input
         type="checkbox"
         checked={value}
-        onChange={handleToggle}
+        onMouseDown={handleMouseDown}
+        readOnly
         className={styles.checkbox}
       />
     </div>
