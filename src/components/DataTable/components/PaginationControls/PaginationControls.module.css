@@ -116,6 +116,46 @@
   font-size: 14px;
 }
 
+/* Page size selector */
+.pageSizeSelector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pageSizeLabel {
+  font-size: 14px;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+.pageSizeSelect {
+  padding: 4px 8px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.pageSizeSelect:hover:not(:disabled) {
+  border-color: #adb5bd;
+}
+
+.pageSizeSelect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageSizeSelect:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.1);
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .container {

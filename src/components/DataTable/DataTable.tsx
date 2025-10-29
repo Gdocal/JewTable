@@ -113,6 +113,7 @@ export function DataTable<TData extends RowData>({
   enableVirtualization = false,
   enableStickyFirstColumn = false,
   rowHeight = 53,
+  pageSizeOptions,
   onRowReorder,
 }: DataTableProps<TData>) {
   // Ref for table header (used for filter popover positioning)
@@ -728,6 +729,9 @@ export function DataTable<TData extends RowData>({
   // Determine if using manual pagination (Phase 8.3)
   const useManualPagination = mode === TableMode.SERVER && paginationType === PaginationType.TRADITIONAL;
 
+  // Determine if using traditional pagination (any mode) - for CSS styling
+  const isTraditionalPagination = paginationType === PaginationType.TRADITIONAL;
+
   // Initialize TanStack Table
   const table = useReactTable({
     data: displayData,
@@ -760,12 +764,15 @@ export function DataTable<TData extends RowData>({
   });
 
   // Virtualization setup (Phase 7)
+  // Disable virtualization in traditional pagination mode
+  const shouldUseVirtualization = enableVirtualization && !isTraditionalPagination;
+
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
-    getScrollElement: () => scrollContainerRef.current,
+    getScrollElement: () => useManualPagination ? scrollContainerRef.current : tbodyRef.current,
     estimateSize: () => rowHeight,
     overscan: 10,
-    enabled: enableVirtualization,
+    enabled: shouldUseVirtualization,
   });
 
   // Pagination change callback (Phase 8.3 - Traditional pagination)
@@ -894,7 +901,7 @@ export function DataTable<TData extends RowData>({
       />
 
       {enableVirtualization ? (
-        <div ref={scrollContainerRef} className={`${styles.virtualizationContainer} ${useManualPagination ? styles.paginationMode : ''} ${showLoadingOverlay ? styles.loadingOverlay : ''}`}>
+        <div ref={scrollContainerRef} className={`${styles.virtualizationContainer} ${isTraditionalPagination ? styles.paginationMode : ''} ${showLoadingOverlay ? styles.loadingOverlay : ''}`}>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -962,17 +969,15 @@ export function DataTable<TData extends RowData>({
             <tbody
               ref={tbodyRef}
               className={styles.tbody}
-              style={
-                enableVirtualization
-                  ? {
-                      height: `${rowVirtualizer.getTotalSize()}px`,
-                      position: 'relative',
-                    }
-                  : undefined
-              }
             >
-              {enableVirtualization
-                ? rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              {enableVirtualization && !isTraditionalPagination ? (
+                <div
+                  className={styles.virtualScrollContent}
+                  style={{
+                    height: `${rowVirtualizer.getTotalSize()}px`,
+                  }}
+                >
+                  {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                     const row = table.getRowModel().rows[virtualRow.index];
                     if (!row) return null;
 
@@ -1021,8 +1026,10 @@ export function DataTable<TData extends RowData>({
                         })}
                       </tr>
                     );
-                  })
-                : table.getRowModel().rows.map((row) => {
+                  })}
+                </div>
+              ) : (
+                table.getRowModel().rows.map((row) => {
                     const animationOrder = animatingRows.get(row.original.id);
                     const shouldAnimate = animationOrder !== undefined;
                     const animationDuration = shouldAnimate ? `${2 + (animationOrder * 0.1)}s` : '2s';
@@ -1061,7 +1068,8 @@ export function DataTable<TData extends RowData>({
                         })}
                       </tr>
                     );
-                  })}
+                  })
+              )}
             </tbody>
           </SortableContext>
         </table>
@@ -1313,8 +1321,19 @@ export function DataTable<TData extends RowData>({
       )}
 
       {/* Pagination controls - Phase 8.3 (Traditional pagination) */}
-      {mode === TableMode.SERVER && paginationType === PaginationType.TRADITIONAL && (
-        <PaginationControls table={table} isLoading={isLoading} isFetching={isFetching} />
+      {paginationType === PaginationType.TRADITIONAL && (
+        <PaginationControls
+          table={table}
+          isLoading={isLoading}
+          isFetching={isFetching}
+          pageSizeOptions={pageSizeOptions}
+          onPageSizeChange={(newSize) => {
+            // Notify parent component of page size change
+            if (onPaginationChange) {
+              onPaginationChange({ pageIndex: 0, pageSize: newSize });
+            }
+          }}
+        />
       )}
 
       {/* Table footer - Phase 5 (Simplified) */}

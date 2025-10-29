@@ -66,6 +66,11 @@
   overflow-x: auto;
 }
 
+.virtualizationContainer.paginationMode .tbody {
+  max-height: none;
+  overflow-y: visible;
+}
+
 .virtualizationContainer .table {
   display: table;
   width: 100%;
@@ -86,6 +91,12 @@
   max-height: 600px;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* Virtual scroll content wrapper - holds total height for proper scrollbar sizing */
+.virtualScrollContent {
+  position: relative;
+  width: 100%;
 }
 
 /* Make sure rows match the header width */

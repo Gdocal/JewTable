@@ -82,6 +82,7 @@ export interface DataTableProps<TData extends RowData = RowData> {
 
   // UI customization
   pageSize?: number;
+  pageSizeOptions?: number[]; // Options for page size selector
   minRows?: number; // Minimum rows to display (for empty states)
   rowHeight?: number; // For virtualization
 

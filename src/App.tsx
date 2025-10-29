@@ -3,7 +3,7 @@
  * Phase 8: Server Integration
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { DataTable, TableMode, PaginationType } from './components/DataTable';
 import { employeeColumns, generateLargeDataset } from './data/sampleData';
 import { useInfiniteData } from './hooks/useInfiniteData';
@@ -21,11 +21,19 @@ function App() {
 
   // Pagination state for traditional mode
   const [page, setPage] = useState(1);
-  const pageSize = 100;
+  const [pageSize, setPageSize] = useState(10);
+
+  // Available page size options
+  const pageSizeOptions = [10, 25, 50, 100, 200];
 
   // Generate large dataset for client mode testing (Phase 7)
   const datasetSize = 5000;
   const largeDataset = useMemo(() => generateLargeDataset(datasetSize), []);
+
+  // Reset to page 1 when mode, pagination type, or page size changes
+  useEffect(() => {
+    setPage(1);
+  }, [mode, paginationType, pageSize]);
 
   // Phase 8.2: Server-side infinite query
   const {
@@ -38,7 +46,7 @@ function App() {
     error: errorInfinite,
   } = useInfiniteData<Employee>({
     resource: 'employees',
-    pageSize: 100,
+    pageSize: pageSize,
     enabled: mode === 'server' && paginationType === 'infinite',
   });
 
@@ -84,9 +92,22 @@ function App() {
   const totalPages = Math.ceil(totalRows / pageSize);
 
   // Select data based on mode and pagination type
-  const tableData = mode === 'server'
-    ? (paginationType === 'infinite' ? infiniteServerData : traditionalServerData)
-    : largeDataset;
+  const tableData = useMemo(() => {
+    if (mode === 'server') {
+      return paginationType === 'infinite' ? infiniteServerData : traditionalServerData;
+    } else {
+      // Client mode
+      if (paginationType === 'traditional') {
+        // Client-side pagination: slice the data
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        return largeDataset.slice(startIndex, endIndex);
+      } else {
+        // Infinite/virtualized scroll: return all data
+        return largeDataset;
+      }
+    }
+  }, [mode, paginationType, infiniteServerData, traditionalServerData, largeDataset, page, pageSize]);
 
   // Select loading state
   const isLoading = mode === 'server'
@@ -101,6 +122,11 @@ function App() {
     // Update page state when pagination changes (pageIndex is 0-based, page is 1-based)
     // Note: Buttons are disabled during fetch to prevent double-active state
     setPage(pagination.pageIndex + 1);
+
+    // Update page size if changed
+    if (pagination.pageSize !== pageSize) {
+      setPageSize(pagination.pageSize);
+    }
   };
 
   return (
@@ -130,23 +156,21 @@ function App() {
                 >
                   {mode === 'client' ? '🌐 Server' : '💾 Client'} Mode
                 </button>
-                {mode === 'server' && (
-                  <button
-                    onClick={() => setPaginationType(paginationType === 'infinite' ? 'traditional' : 'infinite')}
-                    style={{
-                      padding: '8px 16px',
-                      borderRadius: '4px',
-                      border: '1px solid #0d6efd',
-                      background: '#0d6efd',
-                      color: 'white',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                    }}
-                  >
-                    {paginationType === 'infinite' ? '📄 Traditional' : '∞ Infinite'} Scroll
-                  </button>
-                )}
+                <button
+                  onClick={() => setPaginationType(paginationType === 'infinite' ? 'traditional' : 'infinite')}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    border: '1px solid #0d6efd',
+                    background: '#0d6efd',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                  }}
+                >
+                  {paginationType === 'infinite' ? '📄 Pagination' : '∞ Scroll'}
+                </button>
               </div>
             </div>
             <p className={styles.subtitle}>
@@ -156,8 +180,11 @@ function App() {
               {mode === 'server' && paginationType === 'traditional' &&
                 `Server Mode • Traditional Pagination • Showing ${traditionalServerData.length} of ${totalRows} rows • Page ${page}/${totalPages}`
               }
-              {mode === 'client' &&
-                `Client Mode • ${largeDataset.length.toLocaleString()} rows • All data in memory`
+              {mode === 'client' && paginationType === 'infinite' &&
+                `Client Mode • Virtualized Scroll • ${largeDataset.length.toLocaleString()} rows • All data in memory`
+              }
+              {mode === 'client' && paginationType === 'traditional' &&
+                `Client Mode • Traditional Pagination • Showing ${tableData.length} of ${largeDataset.length.toLocaleString()} rows • Page ${page}/${totalPages}`
               }
             </p>
           </div>
@@ -175,6 +202,7 @@ function App() {
             // Traditional pagination props
             totalRows={totalRows}
             pageCount={totalPages}
+            pageSizeOptions={pageSizeOptions}
             onPaginationChange={handlePaginationChange}
             // Common props
             isLoading={isLoading}

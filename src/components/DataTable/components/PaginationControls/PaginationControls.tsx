@@ -12,12 +12,16 @@ export interface PaginationControlsProps<TData extends RowData> {
   table: Table<TData>;
   isLoading?: boolean;
   isFetching?: boolean; // Disable buttons during fetch
+  pageSizeOptions?: number[];
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
 export function PaginationControls<TData extends RowData>({
   table,
   isLoading = false,
   isFetching = false,
+  pageSizeOptions = [10, 25, 50, 100, 200],
+  onPageSizeChange,
 }: PaginationControlsProps<TData>) {
   const pagination = table.getState().pagination;
   const pageCount = table.getPageCount();
@@ -89,9 +93,30 @@ export function PaginationControls<TData extends RowData>({
           Page <strong>{currentPage}</strong> of <strong>{pageCount}</strong>
         </span>
         <span className={styles.separator}>•</span>
-        <span>
-          {pagination.pageSize} rows per page
-        </span>
+        <div className={styles.pageSizeSelector}>
+          <label htmlFor="pageSize" className={styles.pageSizeLabel}>
+            Rows per page:
+          </label>
+          <select
+            id="pageSize"
+            value={pagination.pageSize}
+            onChange={(e) => {
+              const newSize = Number(e.target.value);
+              table.setPageSize(newSize);
+              if (onPageSizeChange) {
+                onPageSizeChange(newSize);
+              }
+            }}
+            disabled={isLoading || isFetching}
+            className={styles.pageSizeSelect}
+          >
+            {pageSizeOptions.map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className={styles.controls}>
