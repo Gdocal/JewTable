@@ -36,9 +36,18 @@ export function FilterPopover({
   const [initialPosition, setInitialPosition] = useState({ top: 0, left: 0, maxHeight: 0 });
   const rafRef = useRef<number | null>(null);
 
+  // Wait for refs to be available
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    if (anchorElement && headerElement) {
+      setIsReady(true);
+    }
+  }, [anchorElement, headerElement]);
+
   // Calculate position based on header and anchor elements
   useEffect(() => {
-    if (!anchorElement || !headerElement || !popoverRef.current) return;
+    if (!isReady || !anchorElement || !headerElement || !popoverRef.current) return;
 
     const calculatePosition = () => {
       const anchorRect = anchorElement.getBoundingClientRect();
@@ -105,7 +114,7 @@ export function FilterPopover({
       window.removeEventListener('scroll', updatePosition, { capture: true } as any);
       window.removeEventListener('resize', updatePosition);
     };
-  }, [anchorElement, headerElement]);
+  }, [isReady, anchorElement, headerElement]);
 
   // Close on click outside
   useEffect(() => {
@@ -150,6 +159,8 @@ export function FilterPopover({
         transform: `translate3d(${initialPosition.left}px, ${initialPosition.top}px, 0)`,
         maxHeight: `${initialPosition.maxHeight}px`,
         zIndex: 1000,
+        opacity: isReady ? 1 : 0, // Hide until positioned
+        pointerEvents: isReady ? 'auto' : 'none', // Disable interaction until ready
       }}
     >
       <div className={styles.header}>

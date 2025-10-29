@@ -185,11 +185,20 @@ export function DataTable<TData extends RowData>({
       id: tempId,
     };
 
-    // Add to data and mark as new
-    data.push(copiedRow);
+    // Find index of the row being copied in original data
+    const originalIndex = data.findIndex((row) => row.id === rowId);
+
+    // Insert below the copied row (originalIndex + 1)
+    if (originalIndex !== -1) {
+      data.splice(originalIndex + 1, 0, copiedRow);
+    } else {
+      // Fallback: add at end if not found
+      data.push(copiedRow);
+    }
+
     setNewRows((prev) => new Set(prev).add(tempId));
 
-    console.log(`Copied row ${rowId} to ${tempId}`);
+    console.log(`Copied row ${rowId} to ${tempId} at position ${originalIndex + 1}`);
   };
 
   const handleDeleteRow = (rowId: string) => {

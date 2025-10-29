@@ -37,8 +37,9 @@
 }
 
 .icon {
-  font-size: 14px;
-  line-height: 1;
+  width: 16px;
+  height: 16px;
+  color: inherit;
 }
 
 /* Delete confirmation */
