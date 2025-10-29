@@ -764,8 +764,10 @@ export function DataTable<TData extends RowData>({
   });
 
   // Virtualization setup (Phase 7)
-  // Disable virtualization in traditional pagination mode
-  const shouldUseVirtualization = enableVirtualization && !isTraditionalPagination;
+  // Only virtualize for Client mode + Infinite scroll (all data in memory)
+  // Server mode infinite scroll uses standard infinite scroll (render all loaded rows)
+  const isServerInfinite = mode === TableMode.SERVER && paginationType === PaginationType.INFINITE;
+  const shouldUseVirtualization = enableVirtualization && !isTraditionalPagination && !isServerInfinite;
 
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
@@ -784,10 +786,10 @@ export function DataTable<TData extends RowData>({
   // Infinite scroll detection (Phase 8.2 - Server mode with infinite pagination)
   useEffect(() => {
     if (mode !== TableMode.SERVER || paginationType !== PaginationType.INFINITE) return;
-    if (!enableVirtualization || !onFetchNextPage) return;
+    if (!onFetchNextPage) return;
     if (!hasNextPage || isFetchingNextPage) return;
 
-    // Infinite scroll uses tbody as scroll element (not container)
+    // Infinite scroll uses tbody as scroll element (renders all loaded rows)
     const scrollElement = tbodyRef.current;
     if (!scrollElement) return;
 
@@ -803,7 +805,7 @@ export function DataTable<TData extends RowData>({
 
     scrollElement.addEventListener('scroll', handleScroll);
     return () => scrollElement.removeEventListener('scroll', handleScroll);
-  }, [mode, paginationType, enableVirtualization, onFetchNextPage, hasNextPage, isFetchingNextPage]);
+  }, [mode, paginationType, onFetchNextPage, hasNextPage, isFetchingNextPage]);
 
   // Horizontal scroll shadow detection (Phase 10.2)
   useEffect(() => {
@@ -971,7 +973,7 @@ export function DataTable<TData extends RowData>({
               ref={tbodyRef}
               className={styles.tbody}
             >
-              {enableVirtualization && !isTraditionalPagination ? (
+              {shouldUseVirtualization ? (
                 <div
                   className={styles.virtualScrollContent}
                   style={{
