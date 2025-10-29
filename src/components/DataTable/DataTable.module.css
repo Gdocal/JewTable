@@ -105,14 +105,13 @@
 }
 
 .th {
-  padding: 12px 12px;
+  padding: 12px 8px;
   text-align: left;
   font-weight: 600;
   color: #495057;
   border-bottom: 1px solid #dee2e6;
   white-space: nowrap;
   user-select: none;
-  overflow: hidden;
   position: relative;
 }
 
@@ -120,8 +119,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
+  min-width: 0;
+}
+
+.thContent > span:first-child {
   overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
 }
 
 .headerIcons {
@@ -186,9 +192,15 @@
 }
 
 .td {
-  padding: 12px 16px;
+  padding: 12px 8px;
   color: #212529;
   vertical-align: middle;
+}
+
+/* Selection column - minimal padding (Phase 10.1) */
+.th:first-child,
+.td:first-child {
+  padding-right: 4px !important;
 }
 
 /* Drag handle column - minimal padding (Phase 6) */
