@@ -3,7 +3,7 @@
  * Phase 3: Filtering
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Column } from '@tanstack/react-table';
 import { FilterIcon } from '../FilterPopover/FilterIcon';
 import { FilterPopover } from '../FilterPopover/FilterPopover';
@@ -33,6 +33,7 @@ export function ColumnFilter<TData extends RowData>({
   selectOptions = [],
 }: ColumnFilterProps<TData>) {
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const filterValue = column.getFilterValue();
   const isActive = filterValue !== undefined;
 
@@ -91,7 +92,11 @@ export function ColumnFilter<TData extends RowData>({
   };
 
   return (
-    <div className={styles.container} onClick={(e) => e.stopPropagation()}>
+    <div
+      ref={containerRef}
+      className={styles.container}
+      onClick={(e) => e.stopPropagation()}
+    >
       <FilterIcon isActive={isActive} isOpen={isOpen} onClick={handleToggle} />
       {isOpen && (
         <FilterPopover
@@ -102,6 +107,7 @@ export function ColumnFilter<TData extends RowData>({
           onClose={() => setIsOpen(false)}
           onApply={handleApply}
           onClear={handleClear}
+          anchorElement={containerRef.current}
         >
           {renderFilterContent()}
         </FilterPopover>

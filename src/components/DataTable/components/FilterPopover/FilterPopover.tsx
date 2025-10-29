@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './FilterPopover.module.css';
 
 interface FilterPopoverProps {
@@ -15,6 +16,7 @@ interface FilterPopoverProps {
   onApply: (filter: any) => void;
   onClear: () => void;
   children: React.ReactNode;
+  anchorElement: HTMLElement | null;
 }
 
 export function FilterPopover({
@@ -26,20 +28,66 @@ export function FilterPopover({
   onApply,
   onClear,
   children,
+  anchorElement,
 }: FilterPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  // Calculate position based on anchor element
+  useEffect(() => {
+    if (!anchorElement) return;
+
+    const updatePosition = () => {
+      const rect = anchorElement.getBoundingClientRect();
+      const popoverWidth = 280; // min-width from CSS
+      const popoverHeight = 400; // approximate max height
+
+      let left = rect.left;
+      let top = rect.bottom + 8;
+
+      // Adjust if popover would go off right edge
+      if (left + popoverWidth > window.innerWidth) {
+        left = window.innerWidth - popoverWidth - 16;
+      }
+
+      // Adjust if popover would go off bottom edge
+      if (top + popoverHeight > window.innerHeight) {
+        top = rect.top - popoverHeight - 8;
+        // If still not enough space, position at top of viewport
+        if (top < 0) {
+          top = 8;
+        }
+      }
+
+      setPosition({ top, left });
+    };
+
+    updatePosition();
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [anchorElement]);
 
   // Close on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(event.target as Node) &&
+        anchorElement &&
+        !anchorElement.contains(event.target as Node)
+      ) {
         onClose();
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose]);
+  }, [onClose, anchorElement]);
 
   // Close on Escape key
   useEffect(() => {
@@ -53,11 +101,19 @@ export function FilterPopover({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [onClose]);
 
-  return (
+  if (!anchorElement) return null;
+
+  const popoverContent = (
     <div
       className={styles.popover}
       ref={popoverRef}
       onClick={(e) => e.stopPropagation()}
+      style={{
+        position: 'fixed',
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+        zIndex: 1000,
+      }}
     >
       <div className={styles.header}>
         <h4 className={styles.title}>Filter: {columnName}</h4>
@@ -96,4 +152,6 @@ export function FilterPopover({
       </div>
     </div>
   );
+
+  return createPortal(popoverContent, document.body);
 }
