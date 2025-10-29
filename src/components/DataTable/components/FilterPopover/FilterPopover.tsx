@@ -17,6 +17,7 @@ interface FilterPopoverProps {
   onClear: () => void;
   children: React.ReactNode;
   anchorElement: HTMLElement | null;
+  headerElement: HTMLElement | null; // Table header for stable vertical positioning
 }
 
 export function FilterPopover({
@@ -29,25 +30,25 @@ export function FilterPopover({
   onClear,
   children,
   anchorElement,
+  headerElement,
 }: FilterPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
-  const [initialPosition, setInitialPosition] = useState({ top: 0, left: 0 });
+  const [initialPosition, setInitialPosition] = useState({ top: 0, left: 0, maxHeight: 0 });
   const rafRef = useRef<number | null>(null);
 
-  // Calculate position based on anchor element
+  // Calculate position based on header and anchor elements
   useEffect(() => {
-    if (!anchorElement || !popoverRef.current) return;
+    if (!anchorElement || !headerElement || !popoverRef.current) return;
 
     const calculatePosition = () => {
-      const rect = anchorElement.getBoundingClientRect();
+      const anchorRect = anchorElement.getBoundingClientRect();
+      const headerRect = headerElement.getBoundingClientRect();
       const popoverWidth = 280; // min-width from CSS
-      const popoverMaxHeight = 450; // approximate max height including header/footer
       const viewportHeight = window.innerHeight;
-      const spaceBelow = viewportHeight - rect.bottom;
-      const spaceAbove = rect.top;
+      const margin = 8;
 
       // Horizontal positioning: right-aligned with filter icon
-      let left = rect.right - popoverWidth;
+      let left = anchorRect.right - popoverWidth;
 
       // Adjust if popover would go off left edge
       if (left < 16) {
@@ -59,22 +60,15 @@ export function FilterPopover({
         left = window.innerWidth - popoverWidth - 16;
       }
 
-      // Vertical positioning: keep near icon, ensure visible on screen
-      let top = rect.bottom + 8; // Default: below the filter icon
+      // Vertical positioning: ANCHOR TO HEADER BOTTOM (stable reference)
+      // This is the key insight from Gemini - don't track the icon, track the header
+      const top = headerRect.bottom + margin;
 
-      // Ensure popover doesn't go below viewport
-      const maxTop = viewportHeight - popoverMaxHeight - 16;
-      if (top > maxTop) {
-        // Adjust upward to fit in viewport, but stay near the icon
-        top = Math.max(8, maxTop);
-      }
+      // Calculate maxHeight: available space from header bottom to viewport bottom
+      const availableHeight = viewportHeight - headerRect.bottom - margin * 2;
+      const maxHeight = Math.max(200, availableHeight); // Minimum 200px
 
-      // If really tight space and icon is near bottom, try above
-      if (spaceBelow < 200 && spaceAbove > spaceBelow + 50) {
-        top = Math.max(8, rect.top - popoverMaxHeight - 8);
-      }
-
-      return { top, left };
+      return { top, left, maxHeight };
     };
 
     const updatePosition = () => {
@@ -87,11 +81,12 @@ export function FilterPopover({
       rafRef.current = requestAnimationFrame(() => {
         if (!popoverRef.current) return;
 
-        const { top, left } = calculatePosition();
+        const { top, left, maxHeight } = calculatePosition();
 
-        // Update transform directly without triggering React re-render
+        // Update transform and maxHeight directly without triggering React re-render
         // Use translate3d for better GPU acceleration
         popoverRef.current.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+        popoverRef.current.style.maxHeight = `${maxHeight}px`;
       });
     };
 
@@ -110,7 +105,7 @@ export function FilterPopover({
       window.removeEventListener('scroll', updatePosition, { capture: true } as any);
       window.removeEventListener('resize', updatePosition);
     };
-  }, [anchorElement]);
+  }, [anchorElement, headerElement]);
 
   // Close on click outside
   useEffect(() => {
@@ -141,7 +136,7 @@ export function FilterPopover({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [onClose]);
 
-  if (!anchorElement) return null;
+  if (!anchorElement || !headerElement) return null;
 
   const popoverContent = (
     <div
@@ -153,6 +148,7 @@ export function FilterPopover({
         top: 0,
         left: 0,
         transform: `translate3d(${initialPosition.left}px, ${initialPosition.top}px, 0)`,
+        maxHeight: `${initialPosition.maxHeight}px`,
         zIndex: 1000,
       }}
     >

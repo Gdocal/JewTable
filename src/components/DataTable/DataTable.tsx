@@ -64,6 +64,9 @@ export function DataTable<TData extends RowData>({
   className,
   enableSorting = true,
 }: DataTableProps<TData>) {
+  // Ref for table header (used for filter popover positioning)
+  const theadRef = React.useRef<HTMLTableSectionElement>(null);
+
   // Sorting state
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -184,7 +187,7 @@ export function DataTable<TData extends RowData>({
       />
 
       <table className={styles.table}>
-        <thead className={styles.thead}>
+        <thead ref={theadRef} className={styles.thead}>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id} className={styles.headerRow}>
               {headerGroup.headers.map((header) => {
@@ -222,6 +225,7 @@ export function DataTable<TData extends RowData>({
                             column={header.column}
                             cellType={cellType}
                             selectOptions={columnDef?.cellOptions?.options || []}
+                            headerElement={theadRef.current}
                           />
                         )}
                       </div>

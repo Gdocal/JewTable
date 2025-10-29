@@ -1,7 +1,7 @@
 /* FilterPopover Styles */
 
 .popover {
-  /* Position handled by inline styles (fixed positioning with portal) */
+  /* Position and maxHeight handled by inline styles (fixed positioning with portal) */
   min-width: 280px;
   max-width: 400px;
   background: white;
@@ -10,6 +10,7 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Ensure content doesn't overflow the maxHeight */
 
   /* Disable all transitions for instant positioning */
   transition: none !important;

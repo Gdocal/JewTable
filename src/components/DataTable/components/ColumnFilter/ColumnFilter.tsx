@@ -25,12 +25,14 @@ interface ColumnFilterProps<TData extends RowData> {
   column: Column<TData, unknown>;
   cellType?: CellType;
   selectOptions?: string[];
+  headerElement?: HTMLElement | null; // Table header reference for popover positioning
 }
 
 export function ColumnFilter<TData extends RowData>({
   column,
   cellType = CellType.TEXT,
   selectOptions = [],
+  headerElement = null,
 }: ColumnFilterProps<TData>) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -108,6 +110,7 @@ export function ColumnFilter<TData extends RowData>({
           onApply={handleApply}
           onClear={handleClear}
           anchorElement={containerRef.current}
+          headerElement={headerElement}
         >
           {renderFilterContent()}
         </FilterPopover>
