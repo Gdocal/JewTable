@@ -42,19 +42,26 @@ export function FilterPopover({
       const popoverWidth = 280; // min-width from CSS
       const popoverHeight = 400; // approximate max height
 
-      let left = rect.left;
+      // Position below the filter icon, aligned to the right edge of the icon
+      let left = rect.right - popoverWidth;
       let top = rect.bottom + 8;
 
+      // Adjust if popover would go off left edge
+      if (left < 16) {
+        left = 16;
+      }
+
       // Adjust if popover would go off right edge
-      if (left + popoverWidth > window.innerWidth) {
+      if (left + popoverWidth > window.innerWidth - 16) {
         left = window.innerWidth - popoverWidth - 16;
       }
 
       // Adjust if popover would go off bottom edge
       if (top + popoverHeight > window.innerHeight) {
+        // Try positioning above the filter icon
         top = rect.top - popoverHeight - 8;
         // If still not enough space, position at top of viewport
-        if (top < 0) {
+        if (top < 8) {
           top = 8;
         }
       }

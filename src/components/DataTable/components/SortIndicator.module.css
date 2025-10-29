@@ -21,10 +21,11 @@
 }
 
 .inactive {
-  color: #ccc;
-  opacity: 0.4;
+  color: #d1d5db;
+  opacity: 0.6;
 }
 
 .active {
   color: #667eea;
+  font-weight: bold;
 }
