@@ -2,7 +2,7 @@
 
 **Project Start:** 2025-10-29
 **Estimated Completion:** TBD (30-42 hours dev time)
-**Current Phase:** Phase 1 - Basic Table
+**Current Phase:** Phase 3 - Filtering
 
 ---
 
@@ -10,7 +10,7 @@
 
 - [x] **Phase 0:** Preparation (0.5-1h) ✅ COMPLETE
 - [x] **Phase 1:** Basic Table (2-3h) ✅ COMPLETE
-- [ ] **Phase 2:** Sorting (1-2h)
+- [x] **Phase 2:** Sorting (1-2h) ✅ COMPLETE
 - [ ] **Phase 3:** Filtering (3-4h)
 - [ ] **Phase 4:** Inline Editing (4-5h)
 - [ ] **Phase 5:** Row Creation (2-3h)
@@ -21,7 +21,7 @@
 - [ ] **Phase 10:** Additional Features (3-4h)
 - [ ] **Phase 11:** Testing & Documentation (2-3h)
 
-**Total Progress:** 2/11 phases complete (18%)
+**Total Progress:** 3/11 phases complete (27%)
 
 ---
 
@@ -116,28 +116,35 @@
 
 ---
 
-### Phase 2: Sorting ⏳ Not Started
+### Phase 2: Sorting ✅ COMPLETE
 **Estimated Time:** 1-2 hours
-**Status:** Not Started
-**Started:** -
-**Completed:** -
+**Actual Time:** ~1 hour
+**Status:** Complete
+**Started:** 2025-10-29
+**Completed:** 2025-10-29
+**Git Commit:** 02d7b3a
 
 #### Tasks:
-- [ ] 2.1: Client-side sorting
-  - [ ] Add getSortedRowModel to table config
-  - [ ] Create TableHeader component with sort icons
-  - [ ] Add visual indicators for active sort
-  - [ ] Test asc/desc/none states
-- [ ] 2.2: Server-side sorting
+- [x] 2.1: Client-side sorting
+  - [x] Add getSortedRowModel to table config
+  - [x] Create SortIndicator component with sort icons
+  - [x] Add visual indicators for active sort
+  - [x] Test asc/desc/none states (3-way toggle)
+- [ ] 2.2: Server-side sorting (deferred to Phase 8)
   - [ ] Create useTableState hook
   - [ ] Add manualSorting mode
   - [ ] Create sort params generator for API
   - [ ] Test with mock API
 
-**Deliverable:** Clickable column headers with sorting functionality
+**Deliverable:** ✅ Clickable column headers with sorting functionality
 
 **Notes:**
--
+- Created SortIndicator component with up/down arrows
+- Implemented 3-way toggle: asc → desc → none
+- Added sortable/sorted CSS classes for visual feedback
+- Works with all data types (text, number, date, checkbox)
+- Hover effect on sortable headers
+- Server-side sorting deferred to Phase 8 (Server Integration)
 
 ---
 
@@ -585,6 +592,28 @@
 - **Phase 1 Status:** ✅ COMPLETE & COMMITTED
 - **Next Steps:**
   - Begin Phase 2: Sorting implementation
+
+#### Session 5: Phase 2 Implementation
+- **Action:** Implement column sorting functionality
+- **Files Created (2):**
+  - SortIndicator/SortIndicator.tsx + .module.css (sort arrow indicators)
+- **Files Updated:**
+  - DataTable.tsx (added sorting state and getSortedRowModel)
+  - DataTable.module.css (added sortable/sorted classes)
+  - App.tsx (updated to show Phase 2 features)
+  - App.module.css (updated phase indicators)
+- **Features Implemented:**
+  - Client-side sorting with TanStack Table's getSortedRowModel
+  - SortingState management with useState
+  - SortIndicator component with up/down arrows
+  - 3-way sort toggle (asc → desc → none)
+  - Visual feedback (sortable hover, sorted highlighting)
+  - Works with all data types (text, number, date, checkbox)
+  - Column headers are clickable with pointer cursor
+- **Git Commit:** 02d7b3a - "feat: Phase 2 - Column sorting"
+- **Phase 2 Status:** ✅ COMPLETE & COMMITTED
+- **Next Steps:**
+  - Begin Phase 3: Filtering implementation
 
 ---
 
