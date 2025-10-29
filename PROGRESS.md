@@ -19,9 +19,10 @@
 - [x] **Phase 8:** Server Integration (3-4h) ✅ COMPLETE
 - [ ] **Phase 9:** Mobile Adaptation (4-5h)
 - [~] **Phase 10:** Additional Features (8-10h) ⏳ IN PROGRESS (5/10 features done)
-- [ ] **Phase 11:** Testing & Documentation (2-3h)
+- [ ] **Phase 11:** ERP Integration Features (TBD) 🆕 PLANNED
+- [ ] **Phase 12:** Testing & Documentation (2-3h)
 
-**Total Progress:** 8/12 phases complete (67%), Phase 10 in progress (50%)
+**Total Progress:** 8/13 phases complete (62%), Phase 10 in progress (50%)
 
 ---
 
@@ -434,6 +435,18 @@
 
 **Deliverable:** ✅ Full server integration with hybrid pagination modes
 
+**Latest Updates (Session 2 - 2025-10-29):**
+- [x] 8.7: Server-side virtualization enhancements ✅
+  - [x] Proper skeleton rows for unloaded data with shimmer animation
+  - [x] Virtualizer configured with total dataset count (accurate scrollbar)
+  - [x] Smart fetch detection (loads when within 3 rows of boundary)
+  - [x] Footer status: "Loaded X of Y rows • More available"
+  - [x] Fixed checkbox hover artifact (removed scale transform)
+  - [x] Loading indicator as floating overlay (no layout shift)
+  - [x] 10k row virtualization cap for massive datasets (1M+ support)
+  - [x] Warning banner when dataset exceeds 10k cap
+  - [x] Production-ready for enterprise-scale data
+
 **Notes:**
 - Mock API server with json-server 1.0 (5000 employee records)
 - TanStack Query for data fetching with caching and background refetch
@@ -445,6 +458,8 @@
 - scrollbar-gutter: stable reserves space for scrollbar
 - Dynamic total count fetched from API with 5-minute cache
 - Loading overlay instead of empty states for better UX
+- Server-side virtualization with skeleton rows and 10k cap prevents browser crashes
+- Scrollbar accurately represents full dataset (5k rows), loads data just-in-time
 - Server-side sorting/filtering deferred to future phase
 
 ---
@@ -595,7 +610,71 @@
 
 ---
 
-### Phase 11: Testing & Documentation ⏳ Not Started
+### Phase 11: ERP Integration Features 🆕 Planned
+**Estimated Time:** TBD (4-6 hours estimated)
+**Status:** Planning
+**Started:** -
+**Completed:** -
+
+#### Requirements Discussion:
+
+**Context:** This table is being developed for an in-house ERP system with reference data (довідники) management needs.
+
+**Problem Statement:**
+1. **Reference Data Freshness**
+   - Columns display data from reference lists (e.g., departments, categories, statuses)
+   - These lists are updated by other users in other tabs/sessions
+   - Need fresh data when dropdown opens, but don't want to reload every time
+   - Balance between performance and data freshness
+
+2. **Inline Creation of Reference Items**
+   - Users need to add new items to reference lists inline (e.g., add new department)
+   - Reference items appear simple (just a name/label in dropdown)
+   - Behind them are complex structures with many fields and validation rules
+   - Need modal/form to create complex reference items properly
+
+#### Proposed Tasks:
+- [ ] 11.1: Reference data cell type (SelectCell with reference data)
+  - [ ] Lazy-load reference data on dropdown open
+  - [ ] Cache reference data with TTL (time-to-live)
+  - [ ] Manual refresh button in dropdown
+  - [ ] Real-time updates via WebSocket/polling (optional)
+  - [ ] Search/filter within large reference lists
+
+- [ ] 11.2: Inline reference item creation
+  - [ ] "+ Add New" button in dropdown
+  - [ ] Opens modal with full creation form
+  - [ ] Form validation and required fields
+  - [ ] Save to reference API endpoint
+  - [ ] Auto-select newly created item
+  - [ ] Update cache with new item
+
+- [ ] 11.3: Reference data cache management
+  - [ ] Cache strategy: React Query with stale-while-revalidate
+  - [ ] Configurable TTL per reference type
+  - [ ] Cache invalidation on create/update/delete
+  - [ ] Optimistic updates for better UX
+  - [ ] Background refetch on window focus
+
+- [ ] 11.4: Complex reference data forms
+  - [ ] Reusable modal component for reference creation
+  - [ ] Form schema definition (React Hook Form + Zod)
+  - [ ] Multi-step forms for complex references
+  - [ ] Dependent fields and conditional validation
+  - [ ] File uploads for reference data (if needed)
+
+**Deliverable:** Production-ready ERP reference data management system
+
+**Architecture Discussion Needed:**
+- Cache strategy: In-memory + React Query vs dedicated cache store?
+- Real-time updates: WebSocket, polling, or manual refresh?
+- Reference data API structure and conventions
+- Security: Who can create new reference items?
+- Conflict handling: What if reference item is deleted while user has dropdown open?
+
+---
+
+### Phase 12: Testing & Documentation ⏳ Not Started
 **Estimated Time:** 2-3 hours
 **Status:** Not Started
 **Started:** -
