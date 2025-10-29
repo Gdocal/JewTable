@@ -99,6 +99,7 @@ function App() {
 
   const handlePaginationChange = (pagination: { pageIndex: number; pageSize: number }) => {
     // Update page state when pagination changes (pageIndex is 0-based, page is 1-based)
+    // Note: Buttons are disabled during fetch to prevent double-active state
     setPage(pagination.pageIndex + 1);
   };
 

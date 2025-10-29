@@ -1223,7 +1223,7 @@ export function DataTable<TData extends RowData>({
 
       {/* Pagination controls - Phase 8.3 (Traditional pagination) */}
       {mode === TableMode.SERVER && paginationType === PaginationType.TRADITIONAL && (
-        <PaginationControls table={table} isLoading={isLoading} />
+        <PaginationControls table={table} isLoading={isLoading} isFetching={isFetching} />
       )}
 
       {/* Table footer - Phase 5 (Simplified) */}

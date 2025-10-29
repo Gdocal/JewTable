@@ -11,11 +11,13 @@ import styles from './PaginationControls.module.css';
 export interface PaginationControlsProps<TData extends RowData> {
   table: Table<TData>;
   isLoading?: boolean;
+  isFetching?: boolean; // Disable buttons during fetch
 }
 
 export function PaginationControls<TData extends RowData>({
   table,
   isLoading = false,
+  isFetching = false,
 }: PaginationControlsProps<TData>) {
   const pagination = table.getState().pagination;
   const pageCount = table.getPageCount();
@@ -95,7 +97,7 @@ export function PaginationControls<TData extends RowData>({
       <div className={styles.controls}>
         <button
           onClick={() => table.firstPage()}
-          disabled={!table.getCanPreviousPage() || isLoading}
+          disabled={!table.getCanPreviousPage() || isLoading || isFetching}
           className={styles.button}
           title="First page"
         >
@@ -104,7 +106,7 @@ export function PaginationControls<TData extends RowData>({
 
         <button
           onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage() || isLoading}
+          disabled={!table.getCanPreviousPage() || isLoading || isFetching}
           className={styles.button}
           title="Previous page"
         >
@@ -121,7 +123,7 @@ export function PaginationControls<TData extends RowData>({
               <button
                 key={page}
                 onClick={() => table.setPageIndex((page as number) - 1)}
-                disabled={isLoading}
+                disabled={isLoading || isFetching}
                 className={`${styles.pageButton} ${
                   currentPage === page ? styles.active : ''
                 }`}
@@ -134,7 +136,7 @@ export function PaginationControls<TData extends RowData>({
 
         <button
           onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage() || isLoading}
+          disabled={!table.getCanNextPage() || isLoading || isFetching}
           className={styles.button}
           title="Next page"
         >
@@ -143,7 +145,7 @@ export function PaginationControls<TData extends RowData>({
 
         <button
           onClick={() => table.lastPage()}
-          disabled={!table.getCanNextPage() || isLoading}
+          disabled={!table.getCanNextPage() || isLoading || isFetching}
           className={styles.button}
           title="Last page"
         >

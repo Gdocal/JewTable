@@ -93,6 +93,13 @@
   transition: none; /* Instant active state change */
 }
 
+/* Keep white text on active button even when hovering */
+.pageButton.active:hover {
+  background: #0b5ed7; /* Slightly darker blue on hover */
+  border-color: #0a58ca;
+  color: white; /* Force white text */
+}
+
 .pageButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;

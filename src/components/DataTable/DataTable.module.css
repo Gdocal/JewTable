@@ -23,6 +23,7 @@
   border: 1px solid #dee2e6;
   border-radius: 4px;
   display: block;
+  scrollbar-gutter: stable; /* Reserve space for scrollbar */
 }
 
 .virtualizationContainer .table {
@@ -47,6 +48,7 @@
   position: sticky;
   top: 0;
   z-index: 10;
+  background: white;
 }
 
 /* Header */
