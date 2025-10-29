@@ -1,0 +1,31 @@
+/* EditableCheckboxCell Styles */
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #667eea;
+  transition: transform 150ms ease;
+}
+
+.checkbox:hover {
+  transform: scale(1.1);
+}
+
+.checkbox:active {
+  transform: scale(0.95);
+}
+
+.checkbox:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+  border-radius: 2px;
+}

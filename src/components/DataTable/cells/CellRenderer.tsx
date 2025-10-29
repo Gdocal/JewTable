@@ -15,6 +15,7 @@ import { EditableTextCell } from './EditableTextCell/EditableTextCell';
 import { EditableNumberCell } from './EditableNumberCell/EditableNumberCell';
 import { EditableDateCell } from './EditableDateCell/EditableDateCell';
 import { EditableSelectCell } from './EditableSelectCell/EditableSelectCell';
+import { EditableCheckboxCell } from './EditableCheckboxCell/EditableCheckboxCell';
 
 interface CellRendererProps {
   value: unknown;
@@ -88,8 +89,13 @@ export function CellRenderer({
         );
 
       case CellType.CHECKBOX:
-        // Checkbox editing is instant (toggle), not modal
-        return <CheckboxCell value={value as boolean} />;
+        // Checkbox editing is instant (toggle on click)
+        return (
+          <EditableCheckboxCell
+            value={value as boolean}
+            onSave={onSave}
+          />
+        );
 
       case CellType.TEXT:
       default:

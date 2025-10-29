@@ -63,6 +63,7 @@ export function DataTable<TData extends RowData>({
   data = [],
   className,
   enableSorting = true,
+  enableInlineEditing = true,
 }: DataTableProps<TData>) {
   // Ref for table header (used for filter popover positioning)
   const theadRef = React.useRef<HTMLTableSectionElement>(null);
@@ -178,7 +179,8 @@ export function DataTable<TData extends RowData>({
           const rowId = info.row.original.id;
           const columnId = info.column.id;
           const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === columnId;
-          const isEditable = columnDef.editable !== false;
+          // Cell is editable if: global editing is enabled AND column is not explicitly disabled
+          const isEditable = enableInlineEditing && columnDef.editable !== false;
 
           return (
             <CellRenderer
@@ -197,7 +199,7 @@ export function DataTable<TData extends RowData>({
         },
       };
     });
-  }, [columns, enableSorting, editingCell]);
+  }, [columns, enableSorting, editingCell, enableInlineEditing]);
 
   // Initialize TanStack Table
   const table = useReactTable({
