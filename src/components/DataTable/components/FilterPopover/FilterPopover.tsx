@@ -32,48 +32,57 @@ export function FilterPopover({
 }: FilterPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const rafRef = useRef<number | null>(null);
 
   // Calculate position based on anchor element
   useEffect(() => {
     if (!anchorElement) return;
 
     const updatePosition = () => {
-      const rect = anchorElement.getBoundingClientRect();
-      const popoverWidth = 280; // min-width from CSS
-      const popoverMaxHeight = 450; // approximate max height including header/footer
-      const viewportHeight = window.innerHeight;
-      const spaceBelow = viewportHeight - rect.bottom;
-      const spaceAbove = rect.top;
-
-      // Horizontal positioning: right-aligned with filter icon
-      let left = rect.right - popoverWidth;
-
-      // Adjust if popover would go off left edge
-      if (left < 16) {
-        left = 16;
+      // Cancel any pending animation frame
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
       }
 
-      // Adjust if popover would go off right edge
-      if (left + popoverWidth > window.innerWidth - 16) {
-        left = window.innerWidth - popoverWidth - 16;
-      }
+      // Use requestAnimationFrame for smooth updates
+      rafRef.current = requestAnimationFrame(() => {
+        const rect = anchorElement.getBoundingClientRect();
+        const popoverWidth = 280; // min-width from CSS
+        const popoverMaxHeight = 450; // approximate max height including header/footer
+        const viewportHeight = window.innerHeight;
+        const spaceBelow = viewportHeight - rect.bottom;
+        const spaceAbove = rect.top;
 
-      // Vertical positioning: prefer below, only go above if clearly better
-      let top: number;
-      const minSpaceNeeded = 300; // Minimum space to prefer a direction
+        // Horizontal positioning: right-aligned with filter icon
+        let left = rect.right - popoverWidth;
 
-      if (spaceBelow >= minSpaceNeeded) {
-        // Enough space below - position below (preferred)
-        top = rect.bottom + 8;
-      } else if (spaceAbove >= minSpaceNeeded && spaceAbove > spaceBelow + 100) {
-        // Not enough space below, but significantly more space above
-        top = Math.max(8, rect.top - popoverMaxHeight - 8);
-      } else {
-        // Default to below even if limited space (popover has internal scroll)
-        top = rect.bottom + 8;
-      }
+        // Adjust if popover would go off left edge
+        if (left < 16) {
+          left = 16;
+        }
 
-      setPosition({ top, left });
+        // Adjust if popover would go off right edge
+        if (left + popoverWidth > window.innerWidth - 16) {
+          left = window.innerWidth - popoverWidth - 16;
+        }
+
+        // Vertical positioning: prefer below, only go above if clearly better
+        let top: number;
+        const minSpaceNeeded = 300; // Minimum space to prefer a direction
+
+        if (spaceBelow >= minSpaceNeeded) {
+          // Enough space below - position below (preferred)
+          top = rect.bottom + 8;
+        } else if (spaceAbove >= minSpaceNeeded && spaceAbove > spaceBelow + 100) {
+          // Not enough space below, but significantly more space above
+          top = Math.max(8, rect.top - popoverMaxHeight - 8);
+        } else {
+          // Default to below even if limited space (popover has internal scroll)
+          top = rect.bottom + 8;
+        }
+
+        setPosition({ top, left });
+      });
     };
 
     updatePosition();
@@ -81,6 +90,9 @@ export function FilterPopover({
     window.addEventListener('resize', updatePosition);
 
     return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
       window.removeEventListener('scroll', updatePosition, true);
       window.removeEventListener('resize', updatePosition);
     };
@@ -124,9 +136,11 @@ export function FilterPopover({
       onClick={(e) => e.stopPropagation()}
       style={{
         position: 'fixed',
-        top: `${position.top}px`,
-        left: `${position.left}px`,
+        top: 0,
+        left: 0,
+        transform: `translate(${position.left}px, ${position.top}px)`,
         zIndex: 1000,
+        willChange: 'transform',
       }}
     >
       <div className={styles.header}>
