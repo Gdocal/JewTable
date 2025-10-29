@@ -54,7 +54,11 @@ export function FilterPopover({
   }, [onClose]);
 
   return (
-    <div className={styles.popover} ref={popoverRef}>
+    <div
+      className={styles.popover}
+      ref={popoverRef}
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className={styles.header}>
         <h4 className={styles.title}>Filter: {columnName}</h4>
         <button

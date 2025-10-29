@@ -91,7 +91,7 @@ export function ColumnFilter<TData extends RowData>({
   };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} onClick={(e) => e.stopPropagation()}>
       <FilterIcon isActive={isActive} isOpen={isOpen} onClick={handleToggle} />
       {isOpen && (
         <FilterPopover
