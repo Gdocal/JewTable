@@ -30,8 +30,8 @@
 }
 
 .button {
-  padding: 6px 12px;
-  min-width: 36px;
+  padding: 6px 8px;
+  width: 44px; /* Fixed width same as page buttons */
   height: 36px;
   border: 1px solid #dee2e6;
   background: white;
@@ -40,7 +40,7 @@
   font-weight: 500;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.15s, border-color 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -57,15 +57,16 @@
 }
 
 .pageNumbers {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(7, 44px); /* Fixed 7 slots, each 44px wide */
   gap: 4px;
   margin: 0 8px;
   justify-content: center;
 }
 
 .pageButton {
-  padding: 6px 12px;
-  min-width: 36px;
+  padding: 6px 8px;
+  width: 44px; /* Fixed width to accommodate 2-digit numbers */
   height: 36px;
   border: 1px solid #dee2e6;
   background: white;
@@ -74,6 +75,9 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pageButton:hover:not(:disabled) {
@@ -95,10 +99,14 @@
 }
 
 .ellipsis {
-  padding: 6px 8px;
+  width: 44px; /* Same width as buttons */
+  height: 36px;
+  padding: 0;
   color: #6c757d;
   display: flex;
   align-items: center;
+  justify-content: center;
+  font-size: 14px;
 }
 
 /* Mobile responsive */
@@ -119,14 +127,27 @@
   }
 
   .pageNumbers {
+    grid-template-columns: repeat(7, 36px); /* Smaller on mobile */
     margin: 0 4px;
   }
 
-  .button,
-  .pageButton {
-    min-width: 32px;
+  .button {
+    width: 36px; /* Match grid width on mobile */
     height: 32px;
-    padding: 4px 8px;
+    padding: 4px 6px;
     font-size: 14px;
+  }
+
+  .pageButton {
+    width: 36px; /* Smaller on mobile */
+    height: 32px;
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+
+  .ellipsis {
+    width: 36px; /* Match button width on mobile */
+    height: 32px;
+    font-size: 13px;
   }
 }
