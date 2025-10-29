@@ -9,6 +9,7 @@ export enum CellType {
   DATE_RANGE = 'dateRange',
   SELECT = 'select',
   CHECKBOX = 'checkbox',
+  BADGE = 'badge', // Phase 10.4: Badge cell for status/command labels
   CUSTOM = 'custom',
 }
 

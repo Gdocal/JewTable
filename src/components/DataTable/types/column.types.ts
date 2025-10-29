@@ -49,6 +49,10 @@ export interface CellOptions {
 
   // For select cells
   selectOptions?: SelectOption[];
+  options?: SelectOption[]; // Alias for selectOptions (backwards compatibility)
+
+  // For badge cells (Phase 10.4)
+  badgeVariant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'light' | 'dark';
 
   // For custom cells
   customRenderer?: React.ComponentType<unknown>;

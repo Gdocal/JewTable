@@ -16,6 +16,7 @@ import { EditableNumberCell } from './EditableNumberCell/EditableNumberCell';
 import { EditableDateCell } from './EditableDateCell/EditableDateCell';
 import { EditableSelectCell } from './EditableSelectCell/EditableSelectCell';
 import { EditableCheckboxCell } from './EditableCheckboxCell/EditableCheckboxCell';
+import { BadgeCell } from './BadgeCell'; // Phase 10.4: Badge cell
 
 interface CellRendererProps {
   value: unknown;
@@ -134,6 +135,14 @@ export function CellRenderer({
 
     case CellType.CHECKBOX:
       return <CheckboxCell value={value as boolean} />;
+
+    case CellType.BADGE:
+      return (
+        <BadgeCell
+          value={value as any}
+          defaultVariant={cellOptions?.badgeVariant}
+        />
+      );
 
     case CellType.TEXT:
     default:
