@@ -54,6 +54,17 @@ export interface CellOptions {
   // For badge cells (Phase 10.4)
   badgeVariant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'light' | 'dark';
 
+  // For progress bar cells (Phase 10.10)
+  showPercentage?: boolean;
+  showProgressLabel?: boolean;
+  progressLabel?: string;
+  progressThresholds?: {
+    danger?: number; // Below this is red
+    warning?: number; // Below this is yellow
+    success?: number; // Above warning is green
+  };
+  animatedProgress?: boolean;
+
   // For custom cells
   customRenderer?: React.ComponentType<unknown>;
   customEditor?: React.ComponentType<unknown>;

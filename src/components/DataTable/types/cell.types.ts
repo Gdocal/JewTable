@@ -10,6 +10,7 @@ export enum CellType {
   SELECT = 'select',
   CHECKBOX = 'checkbox',
   BADGE = 'badge', // Phase 10.4: Badge cell for status/command labels
+  PROGRESS = 'progress', // Phase 10.10: Progress bar cell
   CUSTOM = 'custom',
 }
 

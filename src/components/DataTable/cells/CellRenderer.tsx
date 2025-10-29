@@ -17,6 +17,7 @@ import { EditableDateCell } from './EditableDateCell/EditableDateCell';
 import { EditableSelectCell } from './EditableSelectCell/EditableSelectCell';
 import { EditableCheckboxCell } from './EditableCheckboxCell/EditableCheckboxCell';
 import { BadgeCell } from './BadgeCell'; // Phase 10.4: Badge cell
+import { ProgressCell } from './ProgressCell'; // Phase 10.10: Progress bar cell
 
 interface CellRendererProps {
   value: unknown;
@@ -141,6 +142,18 @@ export function CellRenderer({
         <BadgeCell
           value={value as any}
           defaultVariant={cellOptions?.badgeVariant}
+        />
+      );
+
+    case CellType.PROGRESS:
+      return (
+        <ProgressCell
+          value={value as number}
+          showPercentage={cellOptions?.showPercentage !== false}
+          showLabel={cellOptions?.showProgressLabel}
+          label={cellOptions?.progressLabel}
+          thresholds={cellOptions?.progressThresholds}
+          animated={cellOptions?.animatedProgress}
         />
       );
 
