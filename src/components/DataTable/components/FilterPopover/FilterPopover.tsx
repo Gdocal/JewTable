@@ -59,19 +59,19 @@ export function FilterPopover({
         left = window.innerWidth - popoverWidth - 16;
       }
 
-      // Vertical positioning: prefer below, only go above if clearly better
-      let top: number;
-      const minSpaceNeeded = 300; // Minimum space to prefer a direction
+      // Vertical positioning: keep near icon, ensure visible on screen
+      let top = rect.bottom + 8; // Default: below the filter icon
 
-      if (spaceBelow >= minSpaceNeeded) {
-        // Enough space below - position below (preferred)
-        top = rect.bottom + 8;
-      } else if (spaceAbove >= minSpaceNeeded && spaceAbove > spaceBelow + 100) {
-        // Not enough space below, but significantly more space above
+      // Ensure popover doesn't go below viewport
+      const maxTop = viewportHeight - popoverMaxHeight - 16;
+      if (top > maxTop) {
+        // Adjust upward to fit in viewport, but stay near the icon
+        top = Math.max(8, maxTop);
+      }
+
+      // If really tight space and icon is near bottom, try above
+      if (spaceBelow < 200 && spaceAbove > spaceBelow + 50) {
         top = Math.max(8, rect.top - popoverMaxHeight - 8);
-      } else {
-        // Default to below even if limited space (popover has internal scroll)
-        top = rect.bottom + 8;
       }
 
       return { top, left };
@@ -90,7 +90,8 @@ export function FilterPopover({
         const { top, left } = calculatePosition();
 
         // Update transform directly without triggering React re-render
-        popoverRef.current.style.transform = `translate(${left}px, ${top}px)`;
+        // Use translate3d for better GPU acceleration
+        popoverRef.current.style.transform = `translate3d(${left}px, ${top}px, 0)`;
       });
     };
 
@@ -98,15 +99,15 @@ export function FilterPopover({
     const initial = calculatePosition();
     setInitialPosition(initial);
 
-    // Listen for scroll and resize, update via direct DOM manipulation
-    window.addEventListener('scroll', updatePosition, true);
-    window.addEventListener('resize', updatePosition);
+    // Listen for scroll and resize with passive listeners for better performance
+    window.addEventListener('scroll', updatePosition, { passive: true, capture: true });
+    window.addEventListener('resize', updatePosition, { passive: true });
 
     return () => {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
       }
-      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('scroll', updatePosition, { capture: true } as any);
       window.removeEventListener('resize', updatePosition);
     };
   }, [anchorElement]);
@@ -151,9 +152,8 @@ export function FilterPopover({
         position: 'fixed',
         top: 0,
         left: 0,
-        transform: `translate(${initialPosition.left}px, ${initialPosition.top}px)`,
+        transform: `translate3d(${initialPosition.left}px, ${initialPosition.top}px, 0)`,
         zIndex: 1000,
-        willChange: 'transform',
       }}
     >
       <div className={styles.header}>
