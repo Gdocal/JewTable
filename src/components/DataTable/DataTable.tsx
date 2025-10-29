@@ -188,7 +188,10 @@ export function DataTable<TData extends RowData>({
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id} className={styles.headerRow}>
               {headerGroup.headers.map((header) => {
-                const columnDef = columns.find((c) => c.id === header.id) as any;
+                // Find the original column definition by matching id or accessorKey
+                const columnDef = columns.find(
+                  (c) => c.id === header.id || (c as any).accessorKey === header.id
+                ) as any;
                 const cellType = columnDef?.cellType || CellType.TEXT;
                 const canFilter = header.column.getCanFilter();
 
