@@ -54,6 +54,8 @@ export interface DataTableProps<TData extends RowData = RowData> {
   enableRowReordering?: boolean;
   enableInlineEditing?: boolean;
   enableRowCreation?: boolean;
+  enableRowDeletion?: boolean;
+  enableRowCopy?: boolean;
   enableVirtualization?: boolean;
 
   // UI customization

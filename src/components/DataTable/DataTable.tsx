@@ -23,7 +23,7 @@ import { SortIndicator } from './components/SortIndicator';
 import { GlobalSearch } from './components/GlobalSearch';
 import { ColumnFilter } from './components/ColumnFilter';
 import { FilterChips } from './components/FilterChips';
-import { TableActions } from './components/TableActions/TableActions';
+import { TableFooter } from './components/TableFooter/TableFooter';
 import { RowActions } from './components/RowActions/RowActions';
 import {
   applyTextFilter,
@@ -67,6 +67,8 @@ export function DataTable<TData extends RowData>({
   enableSorting = true,
   enableInlineEditing = true,
   enableRowCreation = true,
+  enableRowDeletion = true,
+  enableRowCopy = true,
 }: DataTableProps<TData>) {
   // Ref for table header (used for filter popover positioning)
   const theadRef = React.useRef<HTMLTableSectionElement>(null);
@@ -296,8 +298,9 @@ export function DataTable<TData extends RowData>({
       };
     });
 
-    // Add actions column if row creation is enabled
-    if (enableRowCreation) {
+    // Add actions column if any row actions are enabled
+    const hasRowActions = enableRowCreation || enableRowCopy || enableRowDeletion;
+    if (hasRowActions) {
       userColumns.push({
         id: '_actions',
         header: 'Actions',
@@ -307,6 +310,8 @@ export function DataTable<TData extends RowData>({
             onCopy={handleCopyRow}
             onDelete={handleDeleteRow}
             isNewRow={newRows.has(info.row.original.id)}
+            enableCopy={enableRowCopy}
+            enableDelete={enableRowDeletion}
           />
         ),
         enableSorting: false,
@@ -315,7 +320,7 @@ export function DataTable<TData extends RowData>({
     }
 
     return userColumns;
-  }, [columns, enableSorting, editingCell, enableInlineEditing, enableRowCreation, newRows]);
+  }, [columns, enableSorting, editingCell, enableInlineEditing, enableRowCreation, enableRowCopy, enableRowDeletion, newRows]);
 
   // Initialize TanStack Table
   const table = useReactTable({
@@ -336,12 +341,6 @@ export function DataTable<TData extends RowData>({
 
   return (
     <div className={`${styles.tableContainer} ${className || ''}`}>
-      {/* Table actions (Add Row) - Phase 5 */}
-      <TableActions
-        onAddRow={handleAddRow}
-        enableRowCreation={enableRowCreation}
-      />
-
       {/* Global search - Phase 3 */}
       <GlobalSearch
         value={globalFilter}
@@ -427,6 +426,13 @@ export function DataTable<TData extends RowData>({
           <p>No data available</p>
         </div>
       )}
+
+      {/* Table footer with Add Row - Phase 5 */}
+      <TableFooter
+        onAddRow={handleAddRow}
+        enableRowCreation={enableRowCreation}
+        totalRows={displayData.length}
+      />
     </div>
   );
 }
