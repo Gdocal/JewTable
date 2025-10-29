@@ -668,18 +668,21 @@ export function DataTable<TData extends RowData>({
         <SelectionCell
           checked={table.getIsAllRowsSelected()}
           indeterminate={table.getIsSomeRowsSelected()}
-          onChange={table.getToggleAllRowsSelectedHandler()}
+          onChange={(checked) => table.toggleAllRowsSelected(checked)}
         />
       ),
       cell: ({ row }) => (
         <SelectionCell
           checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
+          onChange={(checked) => row.toggleSelected(checked)}
         />
       ),
-      size: 44,
+      size: 40,
+      minSize: 40,
+      maxSize: 40,
       enableSorting: false,
       enableColumnFilter: false,
+      enableResizing: false,
       meta: { isSelectionColumn: true },
     } as ColumnDef<TData>);
 
@@ -891,7 +894,7 @@ export function DataTable<TData extends RowData>({
       />
 
       {enableVirtualization ? (
-        <div ref={scrollContainerRef} className={`${styles.virtualizationContainer} ${showLoadingOverlay ? styles.loadingOverlay : ''}`}>
+        <div ref={scrollContainerRef} className={`${styles.virtualizationContainer} ${useManualPagination ? styles.paginationMode : ''} ${showLoadingOverlay ? styles.loadingOverlay : ''}`}>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}

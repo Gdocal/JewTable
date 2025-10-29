@@ -15,6 +15,8 @@ export interface Employee extends RowData {
   commission: number;
   startDate: Date;
   active: boolean;
+  status?: string | { label: string; variant: string; icon?: string }; // Badge column
+  performance?: number; // Progress bar column (0-100)
 }
 
 export const employeeColumns: DataTableColumnDef<Employee>[] = [
@@ -62,6 +64,22 @@ export const employeeColumns: DataTableColumnDef<Employee>[] = [
     header: 'Active',
     cellType: CellType.CHECKBOX,
   },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cellType: CellType.BADGE,
+    editable: false,
+  },
+  {
+    accessorKey: 'performance',
+    header: 'Performance',
+    cellType: CellType.PROGRESS,
+    editable: false,
+    cellOptions: {
+      showPercentage: true,
+      animatedProgress: false,
+    },
+  },
 ];
 
 export const employeeData: Employee[] = [
@@ -74,6 +92,8 @@ export const employeeData: Employee[] = [
     commission: 0.15,
     startDate: new Date('2020-03-15'),
     active: true,
+    status: { label: 'Active', variant: 'success', icon: '✓' },
+    performance: 85,
   },
   {
     id: '2',
@@ -84,6 +104,8 @@ export const employeeData: Employee[] = [
     commission: 0.12,
     startDate: new Date('2019-07-22'),
     active: true,
+    status: { label: 'On Leave', variant: 'warning', icon: '⏸' },
+    performance: 92,
   },
   {
     id: '3',
@@ -94,6 +116,8 @@ export const employeeData: Employee[] = [
     commission: 0.08,
     startDate: new Date('2021-01-10'),
     active: true,
+    status: { label: 'Active', variant: 'success', icon: '✓' },
+    performance: 78,
   },
   {
     id: '4',
@@ -104,6 +128,8 @@ export const employeeData: Employee[] = [
     commission: 0.10,
     startDate: new Date('2020-11-05'),
     active: true,
+    status: { label: 'Active', variant: 'success', icon: '✓' },
+    performance: 88,
   },
   {
     id: '5',
@@ -114,6 +140,8 @@ export const employeeData: Employee[] = [
     commission: 0.05,
     startDate: new Date('2022-06-01'),
     active: true,
+    status: { label: 'Training', variant: 'info', icon: '📚' },
+    performance: 65,
   },
   {
     id: '6',
@@ -124,6 +152,8 @@ export const employeeData: Employee[] = [
     commission: 0.20,
     startDate: new Date('2021-09-14'),
     active: true,
+    status: { label: 'Active', variant: 'success', icon: '✓' },
+    performance: 94,
   },
   {
     id: '7',
@@ -134,6 +164,8 @@ export const employeeData: Employee[] = [
     commission: 0.25,
     startDate: new Date('2022-02-20'),
     active: true,
+    status: { label: 'Active', variant: 'success', icon: '✓' },
+    performance: 72,
   },
   {
     id: '8',
@@ -144,6 +176,8 @@ export const employeeData: Employee[] = [
     commission: 0.08,
     startDate: new Date('2019-12-01'),
     active: true,
+    status: { label: 'Active', variant: 'success', icon: '✓' },
+    performance: 81,
   },
   {
     id: '9',
@@ -154,6 +188,8 @@ export const employeeData: Employee[] = [
     commission: 0.07,
     startDate: new Date('2021-05-18'),
     active: false,
+    status: { label: 'Inactive', variant: 'secondary', icon: '○' },
+    performance: 45,
   },
   {
     id: '10',
@@ -164,6 +200,8 @@ export const employeeData: Employee[] = [
     commission: 0.06,
     startDate: new Date('2022-08-25'),
     active: true,
+    status: { label: 'Probation', variant: 'warning', icon: '⚠' },
+    performance: 58,
   },
   {
     id: '11',
@@ -174,6 +212,8 @@ export const employeeData: Employee[] = [
     commission: 0.09,
     startDate: new Date('2020-10-12'),
     active: true,
+    status: { label: 'Active', variant: 'success', icon: '✓' },
+    performance: 90,
   },
   {
     id: '12',
@@ -184,6 +224,8 @@ export const employeeData: Employee[] = [
     commission: 0.04,
     startDate: new Date('2023-01-09'),
     active: true,
+    status: { label: 'New Hire', variant: 'primary', icon: '🆕' },
+    performance: 62,
   },
   {
     id: '13',
@@ -194,6 +236,8 @@ export const employeeData: Employee[] = [
     commission: 0.18,
     startDate: new Date('2018-04-03'),
     active: true,
+    status: { label: 'Lead', variant: 'info', icon: '★' },
+    performance: 96,
   },
   {
     id: '14',
@@ -204,6 +248,8 @@ export const employeeData: Employee[] = [
     commission: 0.07,
     startDate: new Date('2021-11-22'),
     active: true,
+    status: { label: 'Active', variant: 'success', icon: '✓' },
+    performance: 83,
   },
   {
     id: '15',
@@ -214,6 +260,8 @@ export const employeeData: Employee[] = [
     commission: 0.06,
     startDate: new Date('2022-03-30'),
     active: false,
+    status: { label: 'Terminated', variant: 'danger', icon: '✕' },
+    performance: 28,
   },
 ];
 
@@ -246,6 +294,16 @@ export function generateLargeDataset(count: number = 5000): Employee[] {
     'Analytics', 'Support', 'Finance', 'IT',
   ];
 
+  const statuses = [
+    { label: 'Active', variant: 'success' as const, icon: '✓' },
+    { label: 'On Leave', variant: 'warning' as const, icon: '⏸' },
+    { label: 'Training', variant: 'info' as const, icon: '📚' },
+    { label: 'Probation', variant: 'warning' as const, icon: '⚠' },
+    { label: 'New Hire', variant: 'primary' as const, icon: '🆕' },
+    { label: 'Lead', variant: 'info' as const, icon: '★' },
+    { label: 'Inactive', variant: 'secondary' as const, icon: '○' },
+  ];
+
   const result: Employee[] = [];
   const startYear = 2018;
   const endYear = 2024;
@@ -255,6 +313,7 @@ export function generateLargeDataset(count: number = 5000): Employee[] {
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
     const position = positions[Math.floor(Math.random() * positions.length)];
     const department = departments[Math.floor(Math.random() * departments.length)];
+    const isActive = Math.random() > 0.1; // 90% active
 
     // Generate random date between startYear and endYear
     const startDate = new Date(
@@ -262,6 +321,18 @@ export function generateLargeDataset(count: number = 5000): Employee[] {
       Math.floor(Math.random() * 12),
       Math.floor(Math.random() * 28) + 1
     );
+
+    // Generate random status (favor Active for active employees)
+    let status;
+    if (!isActive) {
+      status = { label: 'Inactive', variant: 'secondary' as const, icon: '○' };
+    } else {
+      const statusIndex = Math.floor(Math.random() * (statuses.length - 1)); // Exclude Inactive
+      status = statuses[statusIndex];
+    }
+
+    // Generate random performance (0-100, favor 60-90 range)
+    const performance = Math.floor(Math.random() * 40 + 60); // 60-100 range
 
     result.push({
       id: `${i + 1}`,
@@ -271,7 +342,9 @@ export function generateLargeDataset(count: number = 5000): Employee[] {
       salary: Math.floor(Math.random() * (150000 - 50000) + 50000),
       commission: Math.random() * 0.3,
       startDate,
-      active: Math.random() > 0.1, // 90% active
+      active: isActive,
+      status,
+      performance,
     });
   }
 
