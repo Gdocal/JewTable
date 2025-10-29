@@ -1,6 +1,6 @@
 /**
  * Development App component
- * Phase 3: Filtering
+ * Phase 4: Inline Editing
  */
 
 import { DataTable } from './components/DataTable';
@@ -12,7 +12,7 @@ function App() {
     <div className={styles.app}>
       <header className={styles.header}>
         <h1>JewTable Development</h1>
-        <p>Phase 3: Filtering</p>
+        <p>Phase 4: Inline Editing</p>
       </header>
 
       <main className={styles.main}>
@@ -20,7 +20,7 @@ function App() {
           <div className={styles.tableHeader}>
             <h2>Employee Directory</h2>
             <p className={styles.subtitle}>
-              Search globally or filter by column • {employeeData.length} employees
+              Click any cell to edit • Search and filter • {employeeData.length} employees
             </p>
           </div>
 
@@ -67,11 +67,24 @@ function App() {
             <li>✅ Debounced search (300ms)</li>
           </ul>
 
-          <h3 className={styles.phaseNext}>Coming in Phase 4</h3>
+          <h3 className={styles.phaseNext}>Phase 4 Features ✅</h3>
           <ul>
-            <li>⏳ Inline cell editing</li>
-            <li>⏳ Cell-level validation</li>
-            <li>⏳ Unsaved changes tracking</li>
+            <li>✅ Inline cell editing (click any cell)</li>
+            <li>✅ EditableTextCell with keyboard shortcuts</li>
+            <li>✅ EditableNumberCell with number formatting</li>
+            <li>✅ EditableDateCell with date picker</li>
+            <li>✅ EditableSelectCell with dropdown</li>
+            <li>✅ Enter/Tab to save, Escape to cancel</li>
+            <li>✅ Unsaved changes tracking with Map</li>
+            <li>✅ Visual feedback (hover, focus, errors)</li>
+          </ul>
+
+          <h3 className={styles.phaseNext}>Coming in Phase 5</h3>
+          <ul>
+            <li>⏳ Add new rows</li>
+            <li>⏳ Copy existing rows</li>
+            <li>⏳ Delete rows</li>
+            <li>⏳ Save/Discard row changes</li>
           </ul>
         </div>
       </main>

@@ -76,6 +76,12 @@ export function DataTable<TData extends RowData>({
   // Column filters state (Phase 3)
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
+  // Edit state (Phase 4) - track which cell is being edited
+  const [editingCell, setEditingCell] = useState<{ rowId: string; columnId: string } | null>(null);
+
+  // Modified data state (Phase 4) - track unsaved changes
+  const [modifiedData, setModifiedData] = useState<Map<string, Partial<TData>>>(new Map());
+
   // Create column names map for filter chips
   const columnNames = useMemo(() => {
     return columns.reduce((acc, col) => {
@@ -101,6 +107,39 @@ export function DataTable<TData extends RowData>({
     setColumnFilters([]);
     setGlobalFilter('');
   };
+
+  // Edit handlers (Phase 4)
+  const handleStartEdit = (rowId: string, columnId: string) => {
+    setEditingCell({ rowId, columnId });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCell(null);
+  };
+
+  const handleSaveEdit = (rowId: string, columnId: string, newValue: any) => {
+    // Update the modified data map
+    setModifiedData((prev) => {
+      const newMap = new Map(prev);
+      const existingChanges = newMap.get(rowId) || {};
+      newMap.set(rowId, { ...existingChanges, [columnId]: newValue });
+      return newMap;
+    });
+
+    // Exit edit mode
+    setEditingCell(null);
+
+    // TODO: In Phase 8, this will trigger API save
+    console.log(`Saved: Row ${rowId}, Column ${columnId}, Value:`, newValue);
+  };
+
+  // Get display data - merge original data with modifications
+  const displayData = useMemo(() => {
+    return data.map((row) => {
+      const modifications = modifiedData.get(row.id);
+      return modifications ? { ...row, ...modifications } : row;
+    });
+  }, [data, modifiedData]);
 
   // Memoize columns to prevent unnecessary re-renders
   const tableColumns = useMemo<ColumnDef<TData>[]>(() => {
@@ -136,24 +175,33 @@ export function DataTable<TData extends RowData>({
         enableColumnFilter: col.filterable !== false,
         filterFn,
         cell: (info) => {
+          const rowId = info.row.original.id;
+          const columnId = info.column.id;
+          const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === columnId;
+          const isEditable = columnDef.editable !== false;
+
           return (
             <CellRenderer
               value={info.getValue()}
               cellType={columnDef.cellType}
               cellOptions={columnDef.cellOptions}
-              rowId={info.row.original.id}
-              columnId={info.column.id}
-              isEditing={false}
+              rowId={rowId}
+              columnId={columnId}
+              isEditing={isEditing}
+              isEditable={isEditable}
+              onStartEdit={() => handleStartEdit(rowId, columnId)}
+              onSave={(newValue) => handleSaveEdit(rowId, columnId, newValue)}
+              onCancel={handleCancelEdit}
             />
           );
         },
       };
     });
-  }, [columns, enableSorting]);
+  }, [columns, enableSorting, editingCell]);
 
   // Initialize TanStack Table
   const table = useReactTable({
-    data,
+    data: displayData,
     columns: tableColumns,
     state: {
       sorting,

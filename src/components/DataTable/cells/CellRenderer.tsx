@@ -1,6 +1,7 @@
 /**
  * Cell Renderer Factory
  * Routes to appropriate cell component based on cellType
+ * Phase 4: Added editable cell support
  */
 
 import React from 'react';
@@ -10,6 +11,10 @@ import { TextCell } from './TextCell/TextCell';
 import { NumberCell } from './NumberCell/NumberCell';
 import { DateCell } from './DateCell/DateCell';
 import { CheckboxCell } from './CheckboxCell/CheckboxCell';
+import { EditableTextCell } from './EditableTextCell/EditableTextCell';
+import { EditableNumberCell } from './EditableNumberCell/EditableNumberCell';
+import { EditableDateCell } from './EditableDateCell/EditableDateCell';
+import { EditableSelectCell } from './EditableSelectCell/EditableSelectCell';
 
 interface CellRendererProps {
   value: unknown;
@@ -18,6 +23,11 @@ interface CellRendererProps {
   rowId: string;
   columnId: string;
   isEditing: boolean;
+  isEditable?: boolean;
+  onStartEdit?: () => void;
+  onSave?: (value: any) => void;
+  onCancel?: () => void;
+  error?: string;
 }
 
 export function CellRenderer({
@@ -27,8 +37,76 @@ export function CellRenderer({
   rowId,
   columnId,
   isEditing,
+  isEditable = true,
+  onStartEdit = () => {},
+  onSave = () => {},
+  onCancel = () => {},
+  error,
 }: CellRendererProps) {
-  // Route to appropriate cell component based on type
+  // If cell is editable, use editable components
+  if (isEditable) {
+    switch (cellType) {
+      case CellType.NUMBER:
+        return (
+          <EditableNumberCell
+            value={value as number}
+            onSave={onSave}
+            onCancel={onCancel}
+            isEditing={isEditing}
+            onStartEdit={onStartEdit}
+            format={cellOptions?.numberFormat}
+            decimals={cellOptions?.decimals}
+            currencySymbol={cellOptions?.currencySymbol}
+            error={error}
+          />
+        );
+
+      case CellType.DATE:
+        return (
+          <EditableDateCell
+            value={value as Date | string}
+            onSave={onSave}
+            onCancel={onCancel}
+            isEditing={isEditing}
+            onStartEdit={onStartEdit}
+            dateFormat={cellOptions?.dateFormat}
+            error={error}
+          />
+        );
+
+      case CellType.SELECT:
+        return (
+          <EditableSelectCell
+            value={value as string}
+            onSave={onSave}
+            onCancel={onCancel}
+            isEditing={isEditing}
+            onStartEdit={onStartEdit}
+            options={cellOptions?.options || []}
+            error={error}
+          />
+        );
+
+      case CellType.CHECKBOX:
+        // Checkbox editing is instant (toggle), not modal
+        return <CheckboxCell value={value as boolean} />;
+
+      case CellType.TEXT:
+      default:
+        return (
+          <EditableTextCell
+            value={value as string}
+            onSave={onSave}
+            onCancel={onCancel}
+            isEditing={isEditing}
+            onStartEdit={onStartEdit}
+            error={error}
+          />
+        );
+    }
+  }
+
+  // Read-only mode: use original cell components
   switch (cellType) {
     case CellType.NUMBER:
       return (
