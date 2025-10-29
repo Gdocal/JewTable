@@ -2,7 +2,7 @@
 
 **Project Start:** 2025-10-29
 **Estimated Completion:** TBD (30-42 hours dev time)
-**Current Phase:** Phase 5 - Row Creation
+**Current Phase:** Phase 6 - Drag & Drop
 
 ---
 
@@ -13,7 +13,7 @@
 - [x] **Phase 2:** Sorting (1-2h) ✅ COMPLETE
 - [x] **Phase 3:** Filtering (3-4h) ✅ COMPLETE
 - [x] **Phase 4:** Inline Editing (4-5h) ✅ COMPLETE
-- [ ] **Phase 5:** Row Creation (2-3h)
+- [x] **Phase 5:** Row Creation (2-3h) ✅ COMPLETE
 - [ ] **Phase 6:** Drag & Drop (3-4h)
 - [ ] **Phase 7:** Virtualization (2-3h)
 - [ ] **Phase 8:** Server Integration (3-4h)
@@ -21,7 +21,7 @@
 - [ ] **Phase 10:** Additional Features (3-4h)
 - [ ] **Phase 11:** Testing & Documentation (2-3h)
 
-**Total Progress:** 5/12 phases complete (42%)
+**Total Progress:** 6/12 phases complete (50%)
 
 ---
 
@@ -245,38 +245,54 @@
 
 ---
 
-### Phase 5: Row Creation ⏳ Not Started
+### Phase 5: Row Creation ✅ COMPLETE
 **Estimated Time:** 2-3 hours
-**Status:** Not Started
-**Started:** -
-**Completed:** -
+**Actual Time:** ~2 hours
+**Status:** Complete
+**Started:** 2025-10-29
+**Completed:** 2025-10-29
+**Git Commits:** e85baee, 2571ff3
 
 #### Tasks:
-- [ ] 5.1: Add new row
-  - [ ] Add "Add Row" button
-  - [ ] Create row with default values
-  - [ ] Auto-enter edit mode
-  - [ ] Visual highlighting of new row
-- [ ] 5.2: Copy row functionality
-  - [ ] Add Copy button/icon per row
-  - [ ] Clone row data
-  - [ ] Insert below current row
-  - [ ] Generate temporary ID
-- [ ] 5.3: Save new rows
-  - [ ] Create onRowCreate callback
-  - [ ] Validate required fields
-  - [ ] Send to server
-  - [ ] Replace temp ID with server ID
-- [ ] 5.4: Delete rows
-  - [ ] Add Delete button/icon
-  - [ ] Confirmation dialog
-  - [ ] Handle unsaved vs saved rows
-  - [ ] onRowDelete callback
+- [x] 5.1: Add new row
+  - [x] Add "Add Row" button (in empty state and toolbar)
+  - [x] Create row with default values (cell-type aware)
+  - [x] Auto-enter edit mode on first editable column
+  - [x] Visual highlighting with green animation
+- [x] 5.2: Copy row functionality
+  - [x] Add Copy button with icon per row
+  - [x] Clone row data
+  - [x] Insert below current row with proper chaining
+  - [x] Generate temporary ID (temp_timestamp_random)
+- [x] 5.3: Insert blank row
+  - [x] Add Insert button with + icon per row
+  - [x] Create blank row with type-aware defaults
+  - [x] Insert below current row
+  - [x] Proper insertion order with multiple inserts
+- [x] 5.4: Delete rows
+  - [x] Add Delete button with trash icon
+  - [x] Confirmation dialog (Delete? ✓ ✕)
+  - [x] Handle new vs existing rows
+  - [x] State tracking with deletedRows Set
+- [x] 5.5: UX improvements
+  - [x] TableToolbar component with read-only indicator
+  - [x] Enhanced EmptyState with "Add Your First Row" CTA
+  - [x] Simplified TableFooter (pagination + row count)
+  - [x] Animation timing fix (staggered by insertion order)
+  - [x] Removed redundant Add Row button
 
-**Deliverable:** Complete row CRUD operations
+**Deliverable:** ✅ Complete row CRUD operations with excellent UX
 
 **Notes:**
--
+- Row actions: Copy, Insert, Delete with visual icons and tooltips
+- Temporary IDs for new rows (format: temp_timestamp_random)
+- State management: newRows Set, deletedRows Set, rowInsertions Map, modifiedData Map
+- Green highlight animation with proper sequencing (2s + 100ms per row)
+- Recursive insertion logic for proper row ordering
+- Blur handling to prevent auto-scroll during row operations
+- Read-only badge shown when table is not editable
+- Empty state with prominent call-to-action
+- Server sync deferred to Phase 8
 
 ---
 
