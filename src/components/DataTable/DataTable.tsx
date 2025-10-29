@@ -1372,9 +1372,13 @@ export function DataTable<TData extends RowData>({
         />
       )}
 
-      {/* Table footer - Phase 5 (Simplified) */}
+      {/* Table footer - Phase 5 (Simplified), Phase 8 (Enhanced for infinite scroll) */}
       <TableFooter
         totalRows={displayData.length}
+        mode={mode}
+        paginationType={paginationType}
+        hasNextPage={hasNextPage}
+        totalCount={totalRows} // Total available on server
       />
     </div>
   );
