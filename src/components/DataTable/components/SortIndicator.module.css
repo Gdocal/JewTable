@@ -1,6 +1,7 @@
 .indicator {
   display: inline-flex;
   flex-direction: column;
+  gap: 1px;
   margin-left: 6px;
   line-height: 1;
   vertical-align: middle;
@@ -13,11 +14,11 @@
 }
 
 .arrowUp {
-  margin-bottom: -2px;
+  /* Space handled by gap in parent */
 }
 
 .arrowDown {
-  margin-top: -2px;
+  /* Space handled by gap in parent */
 }
 
 .inactive {

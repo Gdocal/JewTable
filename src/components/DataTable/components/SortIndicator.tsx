@@ -12,22 +12,22 @@ interface SortIndicatorProps {
 }
 
 export function SortIndicator({ isSorted }: SortIndicatorProps) {
-  if (!isSorted) {
-    return (
-      <span className={styles.indicator}>
-        <span className={`${styles.arrow} ${styles.arrowUp} ${styles.inactive}`}>▲</span>
-        <span className={`${styles.arrow} ${styles.arrowDown} ${styles.inactive}`}>▼</span>
-      </span>
-    );
-  }
-
   return (
     <span className={styles.indicator}>
-      {isSorted === 'asc' ? (
-        <span className={`${styles.arrow} ${styles.arrowUp} ${styles.active}`}>▲</span>
-      ) : (
-        <span className={`${styles.arrow} ${styles.arrowDown} ${styles.active}`}>▼</span>
-      )}
+      <span
+        className={`${styles.arrow} ${styles.arrowUp} ${
+          isSorted === 'asc' ? styles.active : styles.inactive
+        }`}
+      >
+        ▲
+      </span>
+      <span
+        className={`${styles.arrow} ${styles.arrowDown} ${
+          isSorted === 'desc' ? styles.active : styles.inactive
+        }`}
+      >
+        ▼
+      </span>
     </span>
   );
 }

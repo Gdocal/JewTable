@@ -40,11 +40,13 @@ export function FilterPopover({
     const updatePosition = () => {
       const rect = anchorElement.getBoundingClientRect();
       const popoverWidth = 280; // min-width from CSS
-      const popoverHeight = 400; // approximate max height
+      const popoverMaxHeight = 450; // approximate max height including header/footer
+      const viewportHeight = window.innerHeight;
+      const spaceBelow = viewportHeight - rect.bottom;
+      const spaceAbove = rect.top;
 
-      // Position below the filter icon, aligned to the right edge of the icon
+      // Horizontal positioning: right-aligned with filter icon
       let left = rect.right - popoverWidth;
-      let top = rect.bottom + 8;
 
       // Adjust if popover would go off left edge
       if (left < 16) {
@@ -56,14 +58,19 @@ export function FilterPopover({
         left = window.innerWidth - popoverWidth - 16;
       }
 
-      // Adjust if popover would go off bottom edge
-      if (top + popoverHeight > window.innerHeight) {
-        // Try positioning above the filter icon
-        top = rect.top - popoverHeight - 8;
-        // If still not enough space, position at top of viewport
-        if (top < 8) {
-          top = 8;
-        }
+      // Vertical positioning: prefer below, only go above if clearly better
+      let top: number;
+      const minSpaceNeeded = 300; // Minimum space to prefer a direction
+
+      if (spaceBelow >= minSpaceNeeded) {
+        // Enough space below - position below (preferred)
+        top = rect.bottom + 8;
+      } else if (spaceAbove >= minSpaceNeeded && spaceAbove > spaceBelow + 100) {
+        // Not enough space below, but significantly more space above
+        top = Math.max(8, rect.top - popoverMaxHeight - 8);
+      } else {
+        // Default to below even if limited space (popover has internal scroll)
+        top = rect.bottom + 8;
       }
 
       setPosition({ top, left });
