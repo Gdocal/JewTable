@@ -113,7 +113,7 @@ export function EditableDateCell({
   return (
     <div
       className={styles.viewContainer}
-      onClick={onStartEdit}
+      onMouseDown={onStartEdit}
       onDoubleClick={onStartEdit}
     >
       <span className={styles.value}>{formattedValue}</span>
