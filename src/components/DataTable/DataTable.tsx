@@ -149,20 +149,25 @@ export function DataTable<TData extends RowData>({
     const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Create empty row with default values
-    const newRow: TData = {
-      id: tempId,
+    const newRow: Partial<TData> = {
       ...columns.reduce((acc, col) => {
         const key = (col as any).accessorKey || col.id;
-        if (key) {
+        if (key && key !== 'id') {
           acc[key] = '';
         }
         return acc;
       }, {} as any),
-    } as TData;
+    };
 
-    // Add to data and mark as new
-    data.push(newRow);
+    // Mark as new row
     setNewRows((prev) => new Set(prev).add(tempId));
+
+    // Add to modified data (will be picked up by displayData)
+    setModifiedData((prev) => {
+      const newMap = new Map(prev);
+      newMap.set(tempId, newRow);
+      return newMap;
+    });
 
     // Enter edit mode for first editable column
     const firstEditableColumn = columns.find((col) => (col as any).editable !== false);
@@ -182,25 +187,22 @@ export function DataTable<TData extends RowData>({
     const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Copy all data except ID
-    const copiedRow: TData = {
+    const copiedRow: Partial<TData> = {
       ...rowToCopy,
-      id: tempId,
     };
+    delete (copiedRow as any).id;
 
-    // Find index of the row being copied in original data
-    const originalIndex = data.findIndex((row) => row.id === rowId);
-
-    // Insert below the copied row (originalIndex + 1)
-    if (originalIndex !== -1) {
-      data.splice(originalIndex + 1, 0, copiedRow);
-    } else {
-      // Fallback: add at end if not found
-      data.push(copiedRow);
-    }
-
+    // Mark as new row
     setNewRows((prev) => new Set(prev).add(tempId));
 
-    console.log(`Copied row ${rowId} to ${tempId} at position ${originalIndex + 1}`);
+    // Add to modified data (will be picked up by displayData)
+    setModifiedData((prev) => {
+      const newMap = new Map(prev);
+      newMap.set(tempId, copiedRow);
+      return newMap;
+    });
+
+    console.log(`Copied row ${rowId} to ${tempId}`);
   };
 
   const handleDeleteRow = (rowId: string) => {
@@ -232,13 +234,23 @@ export function DataTable<TData extends RowData>({
 
   // Get display data - merge original data with modifications, filter out deleted
   const displayData = useMemo(() => {
-    return data
-      .filter((row) => !deletedRows.has(row.id))
-      .map((row) => {
-        const modifications = modifiedData.get(row.id);
-        return modifications ? { ...row, ...modifications } : row;
-      });
-  }, [data, modifiedData, deletedRows]);
+    // Start with original data (excluding deleted rows)
+    const baseData = data.filter((row) => !deletedRows.has(row.id));
+
+    // Collect new rows from modifiedData
+    const newRowData: TData[] = [];
+    modifiedData.forEach((modifications, rowId) => {
+      if (newRows.has(rowId)) {
+        newRowData.push({ ...modifications, id: rowId } as TData);
+      }
+    });
+
+    // Combine and apply modifications
+    return [...baseData, ...newRowData].map((row) => {
+      const modifications = modifiedData.get(row.id);
+      return modifications ? { ...row, ...modifications } : row;
+    });
+  }, [data, modifiedData, deletedRows, newRows]);
 
   // Memoize columns to prevent unnecessary re-renders
   const tableColumns = useMemo<ColumnDef<TData>[]>(() => {
