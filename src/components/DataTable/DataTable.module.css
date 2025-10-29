@@ -118,10 +118,14 @@
 .thContent {
   display: block;
   position: relative;
-  padding-right: 60px; /* Reserve space for icons on the right */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Only add padding for columns with icons */
+.th:not(:first-child):not(:last-child) .thContent {
+  padding-right: 32px; /* Reserve space for sort/filter icons */
 }
 
 .headerIcons {
@@ -200,13 +204,15 @@
 /* Selection column - minimal padding (Phase 10.1) */
 .th:first-child,
 .td:first-child {
-  padding-right: 4px !important;
+  padding-left: 8px !important;
+  padding-right: 0 !important;
+  width: 40px;
 }
 
 /* Second column (after checkbox) - reduce left padding to remove gap */
 .th:nth-child(2),
 .td:nth-child(2) {
-  padding-left: 4px !important;
+  padding-left: 8px !important;
 }
 
 /* Drag handle column - minimal padding (Phase 6) */
