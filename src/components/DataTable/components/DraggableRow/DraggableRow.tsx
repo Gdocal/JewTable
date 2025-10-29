@@ -50,9 +50,11 @@ export function DraggableRow({ id, children, className, style, isDragDisabled }:
 
   const rowStyle: React.CSSProperties = {
     ...style,
-    transform: CSS.Transform.toString(transform),
-    transition: transition || 'transform 200ms ease',
-    opacity: isDragging ? 0.5 : 1,
+    // Don't apply transform to original row - DragOverlay handles visual representation
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
+    transition: isDragging ? undefined : (transition || 'transform 200ms ease'),
+    // Hide original row completely during drag - DragOverlay shows the visual
+    opacity: isDragging ? 0 : 1,
   };
 
   return (

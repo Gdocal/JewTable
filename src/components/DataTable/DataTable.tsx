@@ -25,12 +25,18 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import {
+  restrictToVerticalAxis,
+  restrictToParentElement,
+} from '@dnd-kit/modifiers';
 import { DataTableProps, RowData } from './types/table.types';
 import { CellRenderer } from './cells/CellRenderer';
 import { SortIndicator } from './components/SortIndicator';
@@ -122,9 +128,16 @@ export function DataTable<TData extends RowData>({
   // Row order state (Phase 6 - Drag & Drop)
   const [rowOrder, setRowOrder] = useState<string[]>([]);
 
+  // Active drag item (Phase 6 - DragOverlay fix)
+  const [activeId, setActiveId] = useState<string | null>(null);
+
   // DndKit sensors (Phase 6)
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10, // Require 10px movement before drag starts
+      },
+    }),
     useSensor(KeyboardSensor)
   );
 
@@ -445,11 +458,17 @@ export function DataTable<TData extends RowData>({
     console.log(`Deleted row: ${rowId}`);
   };
 
+  // Handle drag start (Phase 6 - DragOverlay fix)
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
   // Handle drag end (Phase 6)
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (!over || active.id === over.id) {
+      setActiveId(null); // Clear active ID
       return;
     }
 
@@ -467,6 +486,8 @@ export function DataTable<TData extends RowData>({
       console.log(`Reordered rows: ${active.id} moved from ${oldIndex} to ${newIndex}`);
       return newOrder;
     });
+
+    setActiveId(null); // Clear active ID
   };
 
   // Get display data - merge original data with modifications, filter out deleted
@@ -704,7 +725,10 @@ export function DataTable<TData extends RowData>({
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        onDragCancel={() => setActiveId(null)}
+        modifiers={[restrictToVerticalAxis, restrictToParentElement]}
       >
         <table className={styles.table}>
           <thead ref={theadRef} className={styles.thead}>
@@ -798,6 +822,33 @@ export function DataTable<TData extends RowData>({
             </tbody>
           </SortableContext>
         </table>
+
+        {/* DragOverlay for smooth drag animations (Phase 6 - Fix snap-back) */}
+        <DragOverlay>
+          {activeId ? (() => {
+            const activeRow = table.getRowModel().rows.find((row) => row.original.id === activeId);
+            if (!activeRow) return null;
+
+            const animationOrder = animatingRows.get(activeRow.original.id);
+            const shouldAnimate = animationOrder !== undefined;
+            const animationDuration = shouldAnimate ? `${2 + (animationOrder * 0.1)}s` : '2s';
+            const rowStyle = shouldAnimate ? { '--animation-duration': animationDuration } as React.CSSProperties : undefined;
+
+            return (
+              <table style={{ width: 'auto', tableLayout: 'fixed' }}>
+                <tbody>
+                  <tr className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`} style={rowStyle}>
+                    {activeRow.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className={styles.td} style={{ width: cell.column.getSize() }}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            );
+          })() : null}
+        </DragOverlay>
       </DndContext>
 
       {/* Empty state - Phase 5 (Improved UX) */}
