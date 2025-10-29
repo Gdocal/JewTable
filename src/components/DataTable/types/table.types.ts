@@ -1,0 +1,148 @@
+/**
+ * Main table type definitions
+ */
+
+import { SortingState } from '@tanstack/react-table';
+import { DataTableColumnDef } from './column.types';
+import { FilterState } from './filter.types';
+
+export enum TableMode {
+  CLIENT = 'client', // All data loaded, client-side operations
+  SERVER = 'server', // Server-side pagination, filtering, sorting
+}
+
+export interface RowData {
+  id: string;
+  [key: string]: unknown;
+}
+
+export interface DataTableProps<TData extends RowData = RowData> {
+  // Required props
+  tableId: string;
+  columns: DataTableColumnDef<TData>[];
+
+  // Data (controlled or uncontrolled)
+  data?: TData[];
+  initialData?: TData[];
+
+  // Mode
+  mode?: TableMode;
+
+  // Server-side callbacks (for SERVER mode)
+  onFetchData?: (params: FetchDataParams) => Promise<FetchDataResponse<TData>>;
+
+  // CRUD callbacks
+  onRowUpdate?: (rowId: string, data: Partial<TData>) => Promise<void>;
+  onRowCreate?: (data: TData) => Promise<TData>;
+  onRowDelete?: (rowId: string) => Promise<void>;
+  onRowReorder?: (rowIds: string[]) => Promise<void>;
+
+  // State callbacks
+  onFilterChange?: (filters: FilterState) => void;
+  onSortChange?: (sorting: SortingState) => void;
+
+  // User preferences
+  userId?: string; // For saving user-specific preferences
+  onSavePreferences?: (preferences: TablePreferences) => Promise<void>;
+  onLoadPreferences?: () => Promise<TablePreferences>;
+
+  // Features
+  enableSorting?: boolean;
+  enableFiltering?: boolean;
+  enableGlobalSearch?: boolean;
+  enableRowSelection?: boolean;
+  enableRowReordering?: boolean;
+  enableInlineEditing?: boolean;
+  enableRowCreation?: boolean;
+  enableVirtualization?: boolean;
+
+  // UI customization
+  pageSize?: number;
+  minRows?: number; // Minimum rows to display (for empty states)
+  rowHeight?: number; // For virtualization
+
+  // Validation
+  rowValidationSchema?: unknown; // Zod schema for cross-field validation
+
+  // Styling
+  className?: string;
+  styles?: TableStyles;
+}
+
+export interface FetchDataParams {
+  page: number;
+  pageSize: number;
+  filters?: FilterState;
+  sorting?: SortingState;
+  globalSearch?: string;
+}
+
+export interface FetchDataResponse<TData> {
+  data: TData[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface TablePreferences {
+  tableId: string;
+  userId: string;
+  filters?: FilterState;
+  sorting?: SortingState;
+  columnVisibility?: Record<string, boolean>;
+  columnWidths?: Record<string, number>;
+  columnOrder?: string[];
+}
+
+export interface TableStyles {
+  table?: string;
+  header?: string;
+  body?: string;
+  row?: string;
+  cell?: string;
+}
+
+// Internal table state
+export interface TableState {
+  // Data
+  data: RowData[];
+  totalCount: number;
+
+  // Pagination (for server mode)
+  page: number;
+  pageSize: number;
+
+  // Filters & Search
+  filters: FilterState;
+
+  // Sorting
+  sorting: SortingState;
+
+  // Selection
+  selectedRowIds: Set<string>;
+
+  // Editing
+  editingCellId: string | null;
+  editingRowId: string | null;
+
+  // Unsaved changes
+  pendingChanges: Map<string, Partial<RowData>>;
+
+  // UI state
+  isLoading: boolean;
+  error: Error | null;
+}
+
+// Cell identifier
+export interface CellId {
+  rowId: string;
+  columnId: string;
+}
+
+// Change tracking
+export interface RowChanges {
+  rowId: string;
+  original: RowData;
+  modified: Partial<RowData>;
+  isNew: boolean;
+}
