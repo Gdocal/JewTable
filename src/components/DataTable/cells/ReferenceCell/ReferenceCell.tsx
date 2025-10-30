@@ -9,6 +9,9 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { ReferenceCellProps, ReferenceConfig } from '../../types/reference.types';
 import { useReferenceData } from '../../hooks/useReferenceData';
 import { getReferenceConfig, mergeReferenceConfig } from '../../utils/referenceRegistry';
+import { ReferenceCreateModal } from '../../components/ReferenceCreateModal/ReferenceCreateModal';
+import { ReferenceInlineCreate } from '../../components/ReferenceCreateModal/ReferenceInlineCreate';
+import { HighlightText } from '../../utils/HighlightText';
 import styles from './ReferenceCell.module.css';
 
 // Import the registry (will be created by users)
@@ -49,6 +52,8 @@ export function ReferenceCell({
   // State
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showInlineCreate, setShowInlineCreate] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Fetch data (lazy - only when dropdown opens)
@@ -135,6 +140,44 @@ export function ReferenceCell({
     setSearchQuery('');
   };
 
+  // Handle create button click
+  const handleCreateClick = () => {
+    const createType = config.create?.form?.type || 'modal';
+
+    if (createType === 'inline') {
+      setShowInlineCreate(true);
+    } else {
+      setShowCreateModal(true);
+    }
+  };
+
+  // Handle creation success
+  const handleCreateSuccess = (newItem: any) => {
+    const newValue = (newItem as any)[config.value as string];
+
+    // Close modals/forms
+    setShowCreateModal(false);
+    setShowInlineCreate(false);
+
+    // Select the newly created item
+    onChange(newValue);
+
+    // Call user callback if provided
+    if (onCreateSuccess) {
+      onCreateSuccess(newItem);
+    }
+
+    // Close dropdown
+    setIsOpen(false);
+    setSearchQuery('');
+  };
+
+  // Handle create cancel
+  const handleCreateCancel = () => {
+    setShowCreateModal(false);
+    setShowInlineCreate(false);
+  };
+
   return (
     <div className={styles.referenceCell} ref={dropdownRef}>
       {/* Trigger button */}
@@ -209,13 +252,31 @@ export function ReferenceCell({
                   {config.render?.option ? (
                     config.render.option(option, searchQuery)
                   ) : (
-                    <span>{(option as any)[config.label as string]}</span>
+                    <span>
+                      {config.search?.highlightMatches && searchQuery ? (
+                        <HighlightText
+                          text={(option as any)[config.label as string]}
+                          query={searchQuery}
+                        />
+                      ) : (
+                        (option as any)[config.label as string]
+                      )}
+                    </span>
                   )}
                   {isSelected && <span className={styles.checkmark}>✓</span>}
                 </button>
               );
             })}
           </div>
+
+          {/* Inline creation form */}
+          {showInlineCreate && (
+            <ReferenceInlineCreate
+              config={config}
+              onSuccess={handleCreateSuccess}
+              onCancel={handleCreateCancel}
+            />
+          )}
 
           {/* Footer actions */}
           <div className={styles.footer}>
@@ -228,21 +289,28 @@ export function ReferenceCell({
               🔄 Refresh
             </button>
 
-            {/* Create button (Phase B - will be implemented later) */}
-            {config.create?.enabled && (
+            {/* Create button */}
+            {config.create?.enabled && !showInlineCreate && (
               <button
                 type="button"
                 className={styles.createButton}
-                onClick={() => {
-                  // TODO: Open create modal
-                  console.log('Create new item (Phase B)');
-                }}
+                onClick={handleCreateClick}
               >
                 + Add New
               </button>
             )}
           </div>
         </div>
+      )}
+
+      {/* Create modal */}
+      {showCreateModal && (
+        <ReferenceCreateModal
+          config={config}
+          isOpen={showCreateModal}
+          onClose={handleCreateCancel}
+          onSuccess={handleCreateSuccess}
+        />
       )}
     </div>
   );

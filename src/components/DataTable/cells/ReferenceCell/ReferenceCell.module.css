@@ -245,3 +245,12 @@
 .optionsList::-webkit-scrollbar-thumb:hover {
   background: #adb5bd;
 }
+
+/* Highlight styles for search matches */
+.option :global(mark.highlight) {
+  background: #fff3cd;
+  color: #212529;
+  font-weight: 500;
+  padding: 0 2px;
+  border-radius: 2px;
+}

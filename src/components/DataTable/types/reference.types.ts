@@ -231,4 +231,4 @@ export interface ReferenceAPIResponse<T = any> {
 /**
  * Helper type for defining references with type safety
  */
-export type DefineReferenceConfig<T> = Omit<ReferenceConfig<T>, 'type'>;
+export type DefineReferenceConfig<T> = Omit<ReferenceConfig<T>, 'type' | 'endpoint'>;
