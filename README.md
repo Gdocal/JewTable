@@ -11,7 +11,8 @@ A feature-rich, performant React table component built with TanStack Table for c
 - **Row Management** - Create, update, delete, and reorder rows
 - **Drag & Drop** - Reorder rows with visual feedback
 - **Virtualization** - Handle thousands of rows efficiently
-- **Server Integration** - Client/server mode auto-switching
+- **Server Integration** - Client/server mode with hybrid pagination
+- **Reference Data** - Smart dropdowns with lazy loading, caching, and inline creation (ERP-ready)
 - **Mobile Responsive** - Adaptive card layout for mobile devices
 - **Type Safe** - Full TypeScript support
 - **Accessible** - WCAG AA compliant
@@ -20,8 +21,10 @@ A feature-rich, performant React table component built with TanStack Table for c
 
 - **React 18+** with TypeScript
 - **TanStack Table** - Headless table logic
+- **TanStack Query** - Data fetching and caching
 - **TanStack Virtual** - Virtual scrolling
 - **Zustand** - State management
+- **React Hook Form** - Form state management
 - **@dnd-kit** - Drag and drop
 - **Zod** - Schema validation
 - **CSS Modules** - Scoped styling
@@ -29,31 +32,42 @@ A feature-rich, performant React table component built with TanStack Table for c
 
 ## Project Status
 
-### Phase 0: Preparation ✅ COMPLETE
+### Completed Phases
 
-- [x] Project structure setup
-- [x] TypeScript configuration
-- [x] All dependencies installed
-- [x] Complete type definitions
-- [x] Zustand stores created
-- [x] Utility functions implemented
-- [x] API client wrapper
+- [x] **Phase 0**: Preparation ✅
+- [x] **Phase 1**: Basic Table ✅
+- [x] **Phase 2**: Sorting ✅
+- [x] **Phase 3**: Filtering ✅
+- [x] **Phase 4**: Inline Editing ✅
+- [x] **Phase 5**: Row Creation ✅
+- [x] **Phase 6**: Drag & Drop ✅
+- [x] **Phase 7**: Virtualization ✅
+- [x] **Phase 8**: Server Integration ✅
+- [x] **Phase 11**: ERP Integration (Reference Data System) ✅
+
+### In Progress
+
+- [~] **Phase 10**: Additional Features (5/10 features complete)
 
 ### Upcoming Phases
 
-- **Phase 1**: Basic Table (2-3h)
-- **Phase 2**: Sorting (1-2h)
-- **Phase 3**: Filtering (3-4h)
-- **Phase 4**: Inline Editing (4-5h)
-- **Phase 5**: Row Creation (2-3h)
-- **Phase 6**: Drag & Drop (3-4h)
-- **Phase 7**: Virtualization (2-3h)
-- **Phase 8**: Server Integration (3-4h)
 - **Phase 9**: Mobile Adaptation (4-5h)
-- **Phase 10**: Additional Features (3-4h)
-- **Phase 11**: Testing & Documentation (2-3h)
+- **Phase 12**: Testing & Documentation (2-3h)
 
-**Total Estimated Time**: 30-42 hours
+**Progress**: 9/13 phases complete (69%)
+
+## Reference Data System (ERP Integration)
+
+Complete reference data management for enterprise applications:
+
+- **Smart Dropdowns** - Lazy loading with configurable cache strategies
+- **Inline Creation** - Quick item creation directly in dropdowns
+- **Modal Forms** - Full validation with React Hook Form + Zod
+- **Search** - Client-side with highlighting or server-side with debouncing
+- **Flexible Configuration** - Registry pattern with type-safe configs
+- **Multiple Layouts** - Inline, modal, grid, or vertical forms
+
+[→ Quick Start Guide](./docs/REFERENCE_QUICK_START.md) | [→ Full Documentation](./docs/REFERENCE_DATA_SYSTEM.md) | [→ Testing Guide](./docs/REFERENCE_TESTING_GUIDE.md)
 
 ## Getting Started
 
@@ -70,6 +84,10 @@ npm run dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) to view the development app.
+
+**Try the demos:**
+- 📊 **DataTable Demo** - Full table features (sorting, filtering, editing, virtualization)
+- 📑 **Reference System Demo** - ERP reference data management (NEW!)
 
 ### Build
 
@@ -93,7 +111,17 @@ See [PROGRESS.md](./PROGRESS.md) for detailed development progress tracking.
 
 ## Documentation
 
-Comprehensive documentation will be available after Phase 11.
+### Reference Data System
+- [Quick Start Guide](./docs/REFERENCE_QUICK_START.md) - Get started in 5 minutes
+- [Complete Documentation](./docs/REFERENCE_DATA_SYSTEM.md) - Comprehensive guide (900+ lines)
+- [Testing Guide](./docs/REFERENCE_TESTING_GUIDE.md) - Step-by-step testing instructions
+
+### Architecture
+- [Architecture Documentation](./ARCHITECTURE.md) - System design and patterns
+- [Progress Tracking](./PROGRESS.md) - Detailed development progress
+
+### Additional Documentation
+Full table component documentation coming with Phase 12.
 
 ## License
 
