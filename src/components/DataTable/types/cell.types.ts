@@ -11,6 +11,7 @@ export enum CellType {
   CHECKBOX = 'checkbox',
   BADGE = 'badge', // Phase 10.4: Badge cell for status/command labels
   PROGRESS = 'progress', // Phase 10.10: Progress bar cell
+  REFERENCE = 'reference', // Phase 11: Reference data cell with lazy loading
   CUSTOM = 'custom',
 }
 

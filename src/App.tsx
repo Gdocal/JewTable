@@ -10,7 +10,16 @@ import { useInfiniteData } from './hooks/useInfiniteData';
 import { useData } from './hooks/useData';
 import { useTotalCount } from './hooks/useTotalCount';
 import type { Employee } from './data/sampleData';
+import { ReferenceCell, setReferenceRegistry } from './components/DataTable/cells/ReferenceCell';
+import { referenceRegistry } from './config/references';
+import { setupMockReferenceApi } from './utils/mockReferenceApi';
+import { CellType } from './components/DataTable/types/cell.types';
+import type { DataTableColumnDef } from './components/DataTable/types/column.types';
 import styles from './App.module.css';
+
+// Initialize mock reference API and registry (Phase 11)
+setupMockReferenceApi();
+setReferenceRegistry(referenceRegistry);
 
 function App() {
   // Mode toggle - Phase 8.2: Switch between client and server mode
@@ -129,6 +138,32 @@ function App() {
     }
   };
 
+  // Phase 11: Add ReferenceCell column for testing cache behavior across rows
+  const columnsWithReference: DataTableColumnDef<Employee>[] = useMemo(() => {
+    // Insert reference column after position column (index 1)
+    const columns = [...employeeColumns];
+    columns.splice(2, 0, {
+      id: 'departmentRef',
+      header: 'Department (Ref)',
+      accessorKey: 'departmentId',
+      cellType: CellType.REFERENCE,
+      cell: (info: any) => (
+        <ReferenceCell
+          type="departments"
+          value={info.getValue()}
+          onChange={(newValue) => {
+            console.log(`Row ${info.row.id}: Department changed to ${newValue}`);
+            // In real app: update data here
+          }}
+          onCreateSuccess={(newItem) => {
+            console.log('New department created:', newItem);
+          }}
+        />
+      ),
+    });
+    return columns;
+  }, []);
+
   return (
     <div className={styles.app}>
       <header className={styles.header}>
@@ -191,7 +226,7 @@ function App() {
 
           <DataTable
             tableId="employees"
-            columns={employeeColumns}
+            columns={columnsWithReference}
             data={tableData}
             mode={mode as TableMode}
             paginationType={paginationType as PaginationType}

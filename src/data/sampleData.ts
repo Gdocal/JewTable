@@ -11,11 +11,13 @@ export interface Employee extends RowData {
   name: string;
   position: string;
   department: string;
+  departmentId?: number; // For ReferenceCell integration
   salary: number;
   commission: number;
   startDate: Date;
   active: boolean;
   status?: string | { label: string; variant: string; icon?: string }; // Badge column
+  statusId?: number; // For ReferenceCell integration
   performance?: number; // Progress bar column (0-100)
 }
 
@@ -88,35 +90,41 @@ export const employeeData: Employee[] = [
     name: 'Oleksandr Petrenko',
     position: 'Senior Developer',
     department: 'Engineering',
+    departmentId: 1,
     salary: 95000,
     commission: 0.15,
     startDate: new Date('2020-03-15'),
     active: true,
     status: { label: 'Active', variant: 'success', icon: '✓' },
+    statusId: 1,
     performance: 85,
   },
   {
     id: '2',
     name: 'Mariya Kovalenko',
     position: 'Product Manager',
-    department: 'Product',
+    department: 'Engineering',
+    departmentId: 1,
     salary: 105000,
     commission: 0.12,
     startDate: new Date('2019-07-22'),
     active: true,
     status: { label: 'On Leave', variant: 'warning', icon: '⏸' },
+    statusId: 3,
     performance: 92,
   },
   {
     id: '3',
     name: 'Ivan Shevchenko',
     position: 'UX Designer',
-    department: 'Design',
+    department: 'Marketing',
+    departmentId: 3,
     salary: 78000,
     commission: 0.08,
     startDate: new Date('2021-01-10'),
     active: true,
     status: { label: 'Active', variant: 'success', icon: '✓' },
+    statusId: 1,
     performance: 78,
   },
   {
@@ -124,11 +132,13 @@ export const employeeData: Employee[] = [
     name: 'Anna Bondarenko',
     position: 'DevOps Engineer',
     department: 'Engineering',
+    departmentId: 1,
     salary: 92000,
     commission: 0.10,
     startDate: new Date('2020-11-05'),
     active: true,
     status: { label: 'Active', variant: 'success', icon: '✓' },
+    statusId: 1,
     performance: 88,
   },
   {
@@ -289,9 +299,16 @@ export function generateLargeDataset(count: number = 5000): Employee[] {
     'Data Analyst', 'Customer Support', 'Tech Lead', 'Financial Analyst', 'System Administrator',
   ];
 
-  const departments = [
-    'Engineering', 'Product', 'Design', 'Marketing', 'Sales', 'Human Resources',
-    'Analytics', 'Support', 'Finance', 'IT',
+  // Map to match mock API departments (id: 1-8)
+  const departmentMap = [
+    { id: 1, name: 'Engineering' },
+    { id: 2, name: 'Sales' },
+    { id: 3, name: 'Marketing' },
+    { id: 4, name: 'Human Resources' },
+    { id: 5, name: 'Finance' },
+    { id: 6, name: 'Operations' },
+    { id: 7, name: 'Customer Support' },
+    { id: 8, name: 'Research & Development' },
   ];
 
   const statuses = [
@@ -312,7 +329,10 @@ export function generateLargeDataset(count: number = 5000): Employee[] {
     const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
     const position = positions[Math.floor(Math.random() * positions.length)];
-    const department = departments[Math.floor(Math.random() * departments.length)];
+
+    // Pick random department with ID
+    const departmentData = departmentMap[Math.floor(Math.random() * departmentMap.length)];
+
     const isActive = Math.random() > 0.1; // 90% active
 
     // Generate random date between startYear and endYear
@@ -324,11 +344,15 @@ export function generateLargeDataset(count: number = 5000): Employee[] {
 
     // Generate random status (favor Active for active employees)
     let status;
+    let statusId;
     if (!isActive) {
       status = { label: 'Inactive', variant: 'secondary' as const, icon: '○' };
+      statusId = 2; // Inactive ID
     } else {
       const statusIndex = Math.floor(Math.random() * (statuses.length - 1)); // Exclude Inactive
       status = statuses[statusIndex];
+      // Map to reference status IDs (mostly Active)
+      statusId = Math.random() > 0.8 ? 3 : 1; // 80% Active (1), 20% Pending (3)
     }
 
     // Generate random performance (0-100, favor 60-90 range)
@@ -338,12 +362,14 @@ export function generateLargeDataset(count: number = 5000): Employee[] {
       id: `${i + 1}`,
       name: `${firstName} ${lastName}`,
       position,
-      department,
+      department: departmentData.name,
+      departmentId: departmentData.id,
       salary: Math.floor(Math.random() * (150000 - 50000) + 50000),
       commission: Math.random() * 0.3,
       startDate,
       active: isActive,
       status,
+      statusId,
       performance,
     });
   }
