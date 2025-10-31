@@ -17,6 +17,7 @@ import {
   ColumnFiltersState,
   FilterFn,
   RowSelectionState,
+  ColumnSizingState,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
@@ -145,6 +146,7 @@ export function DataTable<TData extends RowData>({
   enableVirtualization = false,
   enableStickyFirstColumn = false,
   enableRowExpanding = false,
+  enableColumnResizing = false,
   renderExpandedContent,
   rowHeight = 53,
   pageSizeOptions,
@@ -201,6 +203,9 @@ export function DataTable<TData extends RowData>({
 
   // Expanded rows state (Phase 10.5 - Row expanding)
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // Column sizing state (Phase 10.3 - Column resizing)
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
   // Horizontal scroll shadows state (Phase 10.2 - Horizontal scroll)
   const [showLeftShadow, setShowLeftShadow] = useState(false);
@@ -853,13 +858,16 @@ export function DataTable<TData extends RowData>({
       globalFilter,
       columnFilters,
       rowSelection, // Phase 10.1: Row selection state
+      columnSizing, // Phase 10.3: Column sizing state
       ...(useManualPagination ? { pagination } : {}),
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection, // Phase 10.1: Row selection handler
+    onColumnSizingChange: setColumnSizing, // Phase 10.3: Column sizing handler
     enableRowSelection: true, // Phase 10.1: Enable row selection
+    columnResizeMode: 'onChange', // Phase 10.3: Update column size on drag
     ...(useManualPagination ? { onPaginationChange: setPagination } : {}),
     getCoreRowModel: getCoreRowModel(),
     // Phase 8.4: Only use client-side sorting/filtering in client mode
@@ -1097,7 +1105,11 @@ export function DataTable<TData extends RowData>({
                         header.column.getCanSort() ? styles.sortable : ''
                       } ${header.column.getIsSorted() ? styles.sorted : ''} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`}
                       onClick={header.column.getToggleSortingHandler()}
-                      style={{ cursor: header.column.getCanSort() ? 'pointer' : 'default' }}
+                      style={{
+                        cursor: header.column.getCanSort() ? 'pointer' : 'default',
+                        width: header.getSize(),
+                        position: 'relative'
+                      }}
                     >
                       <div className={styles.thContent}>
                         {header.isPlaceholder
@@ -1123,6 +1135,14 @@ export function DataTable<TData extends RowData>({
                           )}
                         </div>
                       </div>
+                      {/* Resize handle - Phase 10.3 */}
+                      {enableColumnResizing && header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={`${styles.resizeHandle} ${header.column.getIsResizing() ? styles.isResizing : ''}`}
+                        />
+                      )}
                     </th>
                   );
                 })}
@@ -1395,7 +1415,11 @@ export function DataTable<TData extends RowData>({
                         header.column.getCanSort() ? styles.sortable : ''
                       } ${header.column.getIsSorted() ? styles.sorted : ''} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`}
                       onClick={header.column.getToggleSortingHandler()}
-                      style={{ cursor: header.column.getCanSort() ? 'pointer' : 'default' }}
+                      style={{
+                        cursor: header.column.getCanSort() ? 'pointer' : 'default',
+                        width: header.getSize(),
+                        position: 'relative'
+                      }}
                     >
                       <div className={styles.thContent}>
                         {header.isPlaceholder
@@ -1421,6 +1445,14 @@ export function DataTable<TData extends RowData>({
                           )}
                         </div>
                       </div>
+                      {/* Resize handle - Phase 10.3 */}
+                      {enableColumnResizing && header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={`${styles.resizeHandle} ${header.column.getIsResizing() ? styles.isResizing : ''}`}
+                        />
+                      )}
                     </th>
                   );
                 })}

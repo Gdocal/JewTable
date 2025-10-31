@@ -275,6 +275,7 @@ function App() {
             enableRowReordering={false}
             enableVirtualization={true}
             enableRowExpanding={true}
+            enableColumnResizing={true}
             renderExpandedContent={(row) => (
               <div style={{ padding: '16px', backgroundColor: '#f8f9fa' }}>
                 <h4 style={{ marginTop: 0 }}>Employee Details</h4>

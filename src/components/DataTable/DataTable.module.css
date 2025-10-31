@@ -438,6 +438,29 @@
   font-weight: 600;
 }
 
+/* ===== Column Resizing (Phase 10.3) ===== */
+.resizeHandle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 5px;
+  background: transparent;
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+  z-index: 1;
+}
+
+.resizeHandle:hover {
+  background: rgba(0, 123, 255, 0.3);
+}
+
+.resizeHandle.isResizing {
+  background: rgba(0, 123, 255, 0.5);
+  width: 3px;
+}
+
 /* ===== Row Expanding (Phase 10.5) ===== */
 .expandedRow {
   background-color: var(--color-expanded-bg, #f8f9fa);
