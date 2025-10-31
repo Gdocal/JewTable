@@ -1161,11 +1161,12 @@ export function DataTable<TData extends RowData>({
           <thead ref={theadRef} className={styles.thead}>
             {table.getHeaderGroups().map((headerGroup) => (
               <SortableContext
+                key={headerGroup.id}
                 items={columnOrder}
                 strategy={horizontalListSortingStrategy}
                 disabled={!enableColumnReordering}
               >
-              <tr key={headerGroup.id} className={styles.headerRow}>
+              <tr className={styles.headerRow}>
                 {headerGroup.headers.map((header) => {
                   // Find the original column definition by matching id or accessorKey
                   const columnDef = columns.find(
@@ -1507,11 +1508,12 @@ export function DataTable<TData extends RowData>({
           <thead ref={theadRef} className={styles.thead}>
             {table.getHeaderGroups().map((headerGroup) => (
               <SortableContext
+                key={headerGroup.id}
                 items={columnOrder}
                 strategy={horizontalListSortingStrategy}
                 disabled={!enableColumnReordering}
               >
-              <tr key={headerGroup.id} className={styles.headerRow}>
+              <tr className={styles.headerRow}>
                 {headerGroup.headers.map((header) => {
                   // Find the original column definition by matching id or accessorKey
                   const columnDef = columns.find(
