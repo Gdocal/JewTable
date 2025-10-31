@@ -12,6 +12,7 @@ interface RowActionsProps {
   onCopy: (rowId: string) => void;
   onInsert: (rowId: string) => void;
   onDelete: (rowId: string) => void;
+  onViewDetails?: (rowId: string) => void; // Phase 10.8: View details modal
   isNewRow?: boolean;
   enableCopy?: boolean;
   enableInsert?: boolean;
@@ -23,6 +24,7 @@ export function RowActions({
   onCopy,
   onInsert,
   onDelete,
+  onViewDetails, // Phase 10.8
   isNewRow = false,
   enableCopy = true,
   enableInsert = true,
@@ -56,6 +58,13 @@ export function RowActions({
     onInsert(rowId);
   };
 
+  const handleViewDetailsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onViewDetails) {
+      onViewDetails(rowId);
+    }
+  };
+
   if (showDeleteConfirm) {
     return (
       <div className={styles.confirmContainer}>
@@ -87,6 +96,22 @@ export function RowActions({
 
   return (
     <div className={styles.container}>
+      {onViewDetails && (
+        <Tooltip text="View details" position="top">
+          <button
+            className={styles.actionButton}
+            onMouseDown={handleViewDetailsClick}
+            type="button"
+            aria-label="View details"
+          >
+            <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        </Tooltip>
+      )}
+
       {enableCopy && (
         <Tooltip text="Copy row below" position="top">
           <button

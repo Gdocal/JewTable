@@ -62,6 +62,7 @@ import { SelectionCell } from './cells/SelectionCell';
 import { ExpandIcon } from './components/ExpandIcon';
 import { BatchActionsToolbar } from './components/BatchActionsToolbar';
 import { ColumnVisibilityMenu } from './components/ColumnVisibilityMenu/ColumnVisibilityMenu';
+import { RowDetailsModal } from './components/RowDetailsModal/RowDetailsModal';
 import {
   applyTextFilter,
   applyNumberFilter,
@@ -219,6 +220,9 @@ export function DataTable<TData extends RowData>({
 
   // Column visibility state (Phase 10.7 - Column visibility toggle)
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+
+  // Row details modal state (Phase 10.8 - Row details modal)
+  const [detailsRowId, setDetailsRowId] = useState<string | null>(null);
 
   // Horizontal scroll shadows state (Phase 10.2 - Horizontal scroll)
   const [showLeftShadow, setShowLeftShadow] = useState(false);
@@ -858,6 +862,7 @@ export function DataTable<TData extends RowData>({
             onCopy={handleCopyRow}
             onInsert={handleInsertRow}
             onDelete={handleDeleteRow}
+            onViewDetails={setDetailsRowId} // Phase 10.8: Row details modal
             isNewRow={newRows.has(info.row.original.id)}
             enableCopy={enableRowCopy}
             enableInsert={enableRowInsertion}
@@ -1746,6 +1751,16 @@ export function DataTable<TData extends RowData>({
         isCapped={isVirtualizationCapped}
         maxVirtualRows={VIRTUALIZATION.MAX_VIRTUAL_ROWS}
       />
+
+      {/* Row details modal - Phase 10.8 */}
+      {detailsRowId && (
+        <RowDetailsModal
+          row={displayData.find((row) => row.id === detailsRowId) as TData}
+          columns={columns}
+          onClose={() => setDetailsRowId(null)}
+          isOpen={!!detailsRowId}
+        />
+      )}
     </div>
   );
 }
