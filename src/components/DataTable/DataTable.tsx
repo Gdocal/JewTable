@@ -63,6 +63,7 @@ import { ExpandIcon } from './components/ExpandIcon';
 import { BatchActionsToolbar } from './components/BatchActionsToolbar';
 import { ColumnVisibilityMenu } from './components/ColumnVisibilityMenu/ColumnVisibilityMenu';
 import { RowDetailsModal } from './components/RowDetailsModal/RowDetailsModal';
+import { ImportExportButtons } from './components/ImportExportButtons/ImportExportButtons';
 import {
   applyTextFilter,
   applyNumberFilter,
@@ -1072,13 +1073,26 @@ export function DataTable<TData extends RowData>({
         isReadOnly={isReadOnly}
       />
 
-      {/* Global search and column visibility - Phase 3 & 10.7 */}
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
+      {/* Global search, column visibility, and import/export - Phase 3, 10.7 & 10.9 */}
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
         <GlobalSearch
           value={globalFilter}
           onChange={setGlobalFilter}
         />
         <ColumnVisibilityMenu table={table} />
+        <ImportExportButtons
+          data={displayData}
+          columns={columns}
+          tableId={tableId}
+          onImport={(importedData) => {
+            // Add imported rows as new rows
+            importedData.forEach((row) => {
+              const newId = `import_${Date.now()}_${Math.random()}`;
+              setModifiedData((prev) => new Map(prev).set(newId, row as any));
+              setNewRows((prev) => new Set(prev).add(newId));
+            });
+          }}
+        />
       </div>
 
       {/* Active filter chips - Phase 3 */}
