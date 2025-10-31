@@ -54,6 +54,7 @@ import { DragHandleCell } from './components/DragHandleCell/DragHandleCell';
 import { PaginationControls } from './components/PaginationControls/PaginationControls';
 import { SelectionCell } from './cells/SelectionCell';
 import { BatchActionsToolbar } from './components/BatchActionsToolbar';
+import { ExpandIcon } from './components/ExpandIcon/ExpandIcon';
 import {
   applyTextFilter,
   applyNumberFilter,
@@ -143,6 +144,8 @@ export function DataTable<TData extends RowData>({
   enableRowReordering = false,
   enableVirtualization = false,
   enableStickyFirstColumn = false,
+  enableRowExpanding = false,
+  renderExpandedContent,
   rowHeight = 53,
   pageSizeOptions,
   onRowReorder,
@@ -195,6 +198,9 @@ export function DataTable<TData extends RowData>({
 
   // Row selection state (Phase 10.1 - Row selection & batch editing)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
+  // Expanded rows state (Phase 10.5 - Row expanding)
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   // Horizontal scroll shadows state (Phase 10.2 - Horizontal scroll)
   const [showLeftShadow, setShowLeftShadow] = useState(false);
@@ -756,7 +762,42 @@ export function DataTable<TData extends RowData>({
       enableColumnFilter: false,
       enableResizing: false,
       meta: { isSelectionColumn: true },
-    } as ColumnDef<TData>);
+    } as any);
+
+    // Add expand column if row expanding is enabled (Phase 10.5)
+    if (enableRowExpanding && renderExpandedContent) {
+      userColumns.unshift({
+        id: '_expand',
+        header: '',
+        cell: ({ row }) => {
+          const rowId = row.original.id;
+          const isExpanded = expandedRows.has(rowId);
+          return (
+            <ExpandIcon
+              isExpanded={isExpanded}
+              onClick={() => {
+                setExpandedRows((prev) => {
+                  const newSet = new Set(prev);
+                  if (newSet.has(rowId)) {
+                    newSet.delete(rowId);
+                  } else {
+                    newSet.add(rowId);
+                  }
+                  return newSet;
+                });
+              }}
+            />
+          );
+        },
+        size: 40,
+        minSize: 40,
+        maxSize: 40,
+        enableSorting: false,
+        enableColumnFilter: false,
+        enableResizing: false,
+        meta: { isExpandColumn: true },
+      } as any);
+    }
 
     // Add drag handle column if row reordering is enabled (Phase 6)
     if (enableRowReordering) {
@@ -768,7 +809,7 @@ export function DataTable<TData extends RowData>({
         enableSorting: false,
         enableColumnFilter: false,
         meta: { isDragColumn: true },
-      } as ColumnDef<TData>);
+      } as any);
     }
 
     // Add actions column if any row actions are enabled
@@ -791,11 +832,11 @@ export function DataTable<TData extends RowData>({
         ),
         enableSorting: false,
         enableColumnFilter: false,
-      } as ColumnDef<TData>);
+      } as any);
     }
 
     return userColumns;
-  }, [columns, enableSorting, editingCell, enableInlineEditing, enableRowCreation, enableRowCopy, enableRowInsertion, enableRowDeletion, enableRowReordering, newRows]);
+  }, [columns, enableSorting, editingCell, enableInlineEditing, enableRowCreation, enableRowCopy, enableRowInsertion, enableRowDeletion, enableRowReordering, enableRowExpanding, renderExpandedContent, expandedRows, newRows]);
 
   // Determine if using manual pagination (Phase 8.3)
   const useManualPagination = mode === TableMode.SERVER && paginationType === PaginationType.TRADITIONAL;
@@ -1336,39 +1377,50 @@ export function DataTable<TData extends RowData>({
                 const shouldAnimate = animationOrder !== undefined;
                 const animationDuration = shouldAnimate ? `${2 + (animationOrder * 0.1)}s` : '2s';
                 const rowStyle = shouldAnimate ? { '--animation-duration': animationDuration } as React.CSSProperties : undefined;
+                const isExpanded = enableRowExpanding && expandedRows.has(row.original.id);
 
-                return enableRowReordering ? (
-                  <DraggableRow
-                    key={row.id}
-                    id={row.original.id}
-                    className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
-                    style={rowStyle}
-                    isDragDisabled={!!sorting.length || !!columnFilters.length || !!globalFilter}
-                  >
-                    {row.getVisibleCells().map((cell) => {
-                      const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
-                      return (
-                        <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''}`}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                return (
+                  <React.Fragment key={row.id}>
+                    {enableRowReordering ? (
+                      <DraggableRow
+                        id={row.original.id}
+                        className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
+                        style={rowStyle}
+                        isDragDisabled={!!sorting.length || !!columnFilters.length || !!globalFilter}
+                      >
+                        {row.getVisibleCells().map((cell) => {
+                          const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
+                          return (
+                            <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''}`}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </td>
+                          );
+                        })}
+                      </DraggableRow>
+                    ) : (
+                      <tr
+                        className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
+                        style={rowStyle}
+                      >
+                        {row.getVisibleCells().map((cell) => {
+                          const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
+                          return (
+                            <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''}`}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    )}
+                    {/* Expanded row content */}
+                    {isExpanded && renderExpandedContent && (
+                      <tr className={styles.expandedRow}>
+                        <td colSpan={row.getVisibleCells().length} className={styles.expandedContent}>
+                          {renderExpandedContent(row.original)}
                         </td>
-                      );
-                    })}
-                  </DraggableRow>
-                ) : (
-                  <tr
-                    key={row.id}
-                    className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
-                    style={rowStyle}
-                  >
-                    {row.getVisibleCells().map((cell) => {
-                      const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
-                      return (
-                        <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''}`}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </td>
-                      );
-                    })}
-                  </tr>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </tbody>

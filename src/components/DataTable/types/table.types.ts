@@ -79,12 +79,16 @@ export interface DataTableProps<TData extends RowData = RowData> {
   enableRowInsertion?: boolean;
   enableVirtualization?: boolean;
   enableStickyFirstColumn?: boolean; // Phase 10.2: Sticky first column for horizontal scroll
+  enableRowExpanding?: boolean; // Phase 10.5: Row expanding
 
   // UI customization
   pageSize?: number;
   pageSizeOptions?: number[]; // Options for page size selector
   minRows?: number; // Minimum rows to display (for empty states)
   rowHeight?: number; // For virtualization
+
+  // Row expanding (Phase 10.5)
+  renderExpandedContent?: (row: TData) => React.ReactNode;
 
   // Validation
   rowValidationSchema?: unknown; // Zod schema for cross-field validation

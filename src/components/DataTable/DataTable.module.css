@@ -430,3 +430,25 @@
 .warningContent strong {
   font-weight: 600;
 }
+
+/* ===== Row Expanding (Phase 10.5) ===== */
+.expandedRow {
+  background-color: var(--color-expanded-bg, #f8f9fa);
+  border-top: none;
+}
+
+.expandedContent {
+  padding: 16px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,43 @@
+/**
+ * ExpandIcon Styles
+ * Phase 10.5: Row Expanding
+ */
+
+.expandButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary, #666);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.expandButton:hover:not(:disabled) {
+  background-color: var(--color-hover-bg, rgba(0, 0, 0, 0.05));
+  color: var(--color-text-primary, #333);
+}
+
+.expandButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.expandButton:focus-visible {
+  outline: 2px solid var(--color-primary, #007bff);
+  outline-offset: 2px;
+}
+
+.chevron {
+  transition: transform 0.2s ease;
+  transform-origin: center;
+}
+
+.expandButton.expanded .chevron {
+  transform: rotate(180deg);
+}

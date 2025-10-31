@@ -274,6 +274,21 @@ function App() {
             isFetching={paginationType === 'traditional' ? isFetchingTraditional : false}
             enableRowReordering={false}
             enableVirtualization={true}
+            enableRowExpanding={true}
+            renderExpandedContent={(row) => (
+              <div style={{ padding: '16px', backgroundColor: '#f8f9fa' }}>
+                <h4 style={{ marginTop: 0 }}>Employee Details</h4>
+                <p><strong>ID:</strong> {row.id}</p>
+                <p><strong>Name:</strong> {row.name}</p>
+                <p><strong>Position:</strong> {row.position}</p>
+                <p><strong>Department:</strong> {row.department}</p>
+                <p><strong>Salary:</strong> ${row.salary?.toLocaleString()}</p>
+                <p><strong>Commission:</strong> {((row.commission || 0) * 100).toFixed(2)}%</p>
+                <p><strong>Start Date:</strong> {row.startDate ? new Date(row.startDate).toLocaleDateString() : 'N/A'}</p>
+                <p><strong>Active:</strong> {row.active ? 'Yes' : 'No'}</p>
+                <p><strong>Performance:</strong> {row.performance}%</p>
+              </div>
+            )}
             rowHeight={53}
             onRowReorder={handleRowReorder}
           />
