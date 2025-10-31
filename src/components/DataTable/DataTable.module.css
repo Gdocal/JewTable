@@ -37,6 +37,7 @@
   min-width: 100%; /* Allow table to expand beyond container for horizontal scroll */
   border-collapse: collapse;
   font-size: 14px;
+  table-layout: fixed; /* Enforce column widths */
 }
 
 /* Sticky first column - Phase 10.2 */
@@ -181,6 +182,8 @@
 .row {
   border-bottom: 1px solid #e9ecef;
   transition: background-color 150ms ease;
+  /* Optimize layout calculations for row expanding (Phase 10.5) */
+  contain: layout style;
 }
 
 .row:hover {
@@ -220,18 +223,22 @@
   vertical-align: middle;
 }
 
-/* Selection column - minimal padding (Phase 10.1) */
-.th:first-child,
-.td:first-child {
-  padding-left: 8px !important;
-  padding-right: 0 !important;
-  width: 40px;
+/* Expand column - minimal padding (Phase 10.5) */
+.expandColumn {
+  padding: 4px 2px !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  text-align: center;
 }
 
-/* Second column (after checkbox) - reduce left padding to remove gap */
-.th:nth-child(2),
-.td:nth-child(2) {
-  padding-left: 8px !important;
+/* Selection column - minimal padding (Phase 10.1) */
+.selectionColumn {
+  padding: 8px 4px !important;
+  width: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  text-align: center;
 }
 
 /* Drag handle column - minimal padding (Phase 6) */
@@ -435,11 +442,20 @@
 .expandedRow {
   background-color: var(--color-expanded-bg, #f8f9fa);
   border-top: none;
+  /* Optimize rendering performance */
+  contain: layout style paint;
 }
 
 .expandedContent {
   padding: 16px;
-  animation: slideDown 0.2s ease-out;
+  animation: slideDown 0.15s ease-out;
+  /* Optimize rendering with GPU acceleration */
+  will-change: opacity, transform;
+}
+
+.expandedContent > * {
+  /* Isolate expanded content to reduce layout recalculation */
+  contain: layout style;
 }
 
 @keyframes slideDown {
