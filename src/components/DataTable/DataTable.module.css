@@ -33,11 +33,11 @@
 }
 
 .table {
-  width: 100%;
-  min-width: 100%; /* Allow table to expand beyond container for horizontal scroll */
+  width: max-content; /* Expand to fit all columns */
+  min-width: 100%; /* At minimum, fill the container */
   border-collapse: collapse;
   font-size: 14px;
-  table-layout: auto; /* Allow table to expand to fit all columns */
+  table-layout: auto; /* Auto layout works better with max-content */
 }
 
 /* Sticky first column - Phase 10.2 */
