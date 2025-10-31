@@ -217,7 +217,8 @@ export function DataTable<TData extends RowData>({
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
   // Column order state (Phase 10.6 - Column reordering)
-  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() => []);
+  // Initialize with empty array - will be set after tableColumns are computed
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
 
   // Column visibility state (Phase 10.7 - Column visibility toggle)
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -704,6 +705,9 @@ export function DataTable<TData extends RowData>({
     }
   }, [displayData, enableRowReordering]);
 
+  // Column order initialization ref to track if we've set it (Phase 10.6)
+  const columnOrderInitialized = useRef(false);
+
   // Memoize columns to prevent unnecessary re-renders
   const tableColumns = useMemo<ColumnDef<TData>[]>(() => {
     const userColumns = columns.map((col) => {
@@ -879,11 +883,14 @@ export function DataTable<TData extends RowData>({
   }, [columns, enableSorting, editingCell, enableInlineEditing, enableRowCreation, enableRowCopy, enableRowInsertion, enableRowDeletion, enableRowReordering, newRows]);
 
   // Initialize column order (Phase 10.6 - Column reordering)
-  useEffect(() => {
-    if (columnOrder.length === 0 && tableColumns.length > 0) {
-      setColumnOrder(tableColumns.map((col) => (col as any).id || (col as any).accessorKey));
+  // Use useLayoutEffect to initialize synchronously before paint
+  React.useLayoutEffect(() => {
+    if (!columnOrderInitialized.current && tableColumns.length > 0) {
+      const initialOrder = tableColumns.map((col) => (col as any).id || (col as any).accessorKey);
+      setColumnOrder(initialOrder);
+      columnOrderInitialized.current = true;
     }
-  }, [tableColumns, columnOrder.length]);
+  }, [tableColumns]);
 
   // Determine if using manual pagination (Phase 8.3)
   const useManualPagination = mode === TableMode.SERVER && paginationType === PaginationType.TRADITIONAL;
@@ -901,7 +908,7 @@ export function DataTable<TData extends RowData>({
       columnFilters,
       rowSelection, // Phase 10.1: Row selection state
       columnSizing, // Phase 10.3: Column sizing state
-      ...(columnOrder.length > 0 ? { columnOrder } : {}), // Phase 10.6: Only set order if initialized
+      ...(columnOrder.length > 0 ? { columnOrder } : {}), // Phase 10.6: Only set if initialized
       columnVisibility, // Phase 10.7: Column visibility state
       ...(useManualPagination ? { pagination } : {}),
     },
