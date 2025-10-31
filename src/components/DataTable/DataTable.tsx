@@ -19,6 +19,7 @@ import {
   RowSelectionState,
   ColumnSizingState,
   ColumnOrderState,
+  VisibilityState,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
@@ -60,6 +61,7 @@ import { PaginationControls } from './components/PaginationControls/PaginationCo
 import { SelectionCell } from './cells/SelectionCell';
 import { ExpandIcon } from './components/ExpandIcon';
 import { BatchActionsToolbar } from './components/BatchActionsToolbar';
+import { ColumnVisibilityMenu } from './components/ColumnVisibilityMenu/ColumnVisibilityMenu';
 import {
   applyTextFilter,
   applyNumberFilter,
@@ -214,6 +216,9 @@ export function DataTable<TData extends RowData>({
 
   // Column order state (Phase 10.6 - Column reordering)
   const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
+
+  // Column visibility state (Phase 10.7 - Column visibility toggle)
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
   // Horizontal scroll shadows state (Phase 10.2 - Horizontal scroll)
   const [showLeftShadow, setShowLeftShadow] = useState(false);
@@ -891,6 +896,7 @@ export function DataTable<TData extends RowData>({
       rowSelection, // Phase 10.1: Row selection state
       columnSizing, // Phase 10.3: Column sizing state
       columnOrder, // Phase 10.6: Column order state
+      columnVisibility, // Phase 10.7: Column visibility state
       ...(useManualPagination ? { pagination } : {}),
     },
     onSortingChange: setSorting,
@@ -899,6 +905,7 @@ export function DataTable<TData extends RowData>({
     onRowSelectionChange: setRowSelection, // Phase 10.1: Row selection handler
     onColumnSizingChange: setColumnSizing, // Phase 10.3: Column sizing handler
     onColumnOrderChange: setColumnOrder, // Phase 10.6: Column order handler
+    onColumnVisibilityChange: setColumnVisibility, // Phase 10.7: Column visibility handler
     enableRowSelection: true, // Phase 10.1: Enable row selection
     columnResizeMode: 'onChange', // Phase 10.3: Update column size on drag
     ...(useManualPagination ? { onPaginationChange: setPagination } : {}),
@@ -1060,11 +1067,14 @@ export function DataTable<TData extends RowData>({
         isReadOnly={isReadOnly}
       />
 
-      {/* Global search - Phase 3 */}
-      <GlobalSearch
-        value={globalFilter}
-        onChange={setGlobalFilter}
-      />
+      {/* Global search and column visibility - Phase 3 & 10.7 */}
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
+        <GlobalSearch
+          value={globalFilter}
+          onChange={setGlobalFilter}
+        />
+        <ColumnVisibilityMenu table={table} />
+      </div>
 
       {/* Active filter chips - Phase 3 */}
       <FilterChips
