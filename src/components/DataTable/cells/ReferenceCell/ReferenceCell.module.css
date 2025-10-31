@@ -73,7 +73,9 @@
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
-  right: 0;
+  min-width: 100%; /* Match cell width as minimum */
+  width: max-content; /* Allow to grow for longer content */
+  max-width: 400px; /* Cap at reasonable width */
   background: white;
   border: 1px solid #dee2e6;
   border-radius: 4px;
@@ -253,4 +255,92 @@
   font-weight: 500;
   padding: 0 2px;
   border-radius: 2px;
+}
+
+/* ========== MINIMAL VARIANT STYLES ========== */
+
+/* Dropdown - more compact */
+.dropdownMinimal {
+  max-height: 280px; /* Slightly smaller */
+}
+
+/* Search container - inline with refresh button */
+.dropdownMinimal .searchContainer {
+  padding: 6px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.dropdownMinimal .searchInput {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+/* Refresh icon button in header */
+.refreshIconButton {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.refreshIconButton:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.refreshIconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Options list - more compact */
+.dropdownMinimal .optionsList {
+  max-height: 220px;
+}
+
+.dropdownMinimal .option {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+/* Create button at bottom of list - minimalist style */
+.createButtonMinimal {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-top: 1px solid #dee2e6;
+  background: #f8f9fa;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: center;
+  transition: all 0.15s;
+  color: #0d6efd;
+  font-weight: 500;
+  position: sticky;
+  bottom: 0;
+}
+
+.createButtonMinimal:hover {
+  background: #e7f3ff;
+  color: #0b5ed7;
+}
+
+/* Loading/Error/Empty states - more compact */
+.dropdownMinimal .loadingState,
+.dropdownMinimal .errorState,
+.dropdownMinimal .emptyState {
+  padding: 12px;
+  font-size: 13px;
 }

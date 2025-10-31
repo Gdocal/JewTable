@@ -30,9 +30,26 @@ function generateLargeDataset(count = 5000) {
     'Data Analyst', 'Customer Support', 'Tech Lead', 'Financial Analyst', 'System Administrator',
   ];
 
-  const departments = [
-    'Engineering', 'Product', 'Design', 'Marketing', 'Sales', 'Human Resources',
-    'Analytics', 'Support', 'Finance', 'IT',
+  // Map to match mock API departments (id: 1-8)
+  const departmentMap = [
+    { id: 1, name: 'Engineering' },
+    { id: 2, name: 'Sales' },
+    { id: 3, name: 'Marketing' },
+    { id: 4, name: 'Human Resources' },
+    { id: 5, name: 'Finance' },
+    { id: 6, name: 'Operations' },
+    { id: 7, name: 'Customer Support' },
+    { id: 8, name: 'Research & Development' },
+  ];
+
+  const statuses = [
+    { label: 'Active', variant: 'success', icon: '✓' },
+    { label: 'On Leave', variant: 'warning', icon: '⏸' },
+    { label: 'Training', variant: 'info', icon: '📚' },
+    { label: 'Probation', variant: 'warning', icon: '⚠' },
+    { label: 'New Hire', variant: 'primary', icon: '🆕' },
+    { label: 'Lead', variant: 'info', icon: '★' },
+    { label: 'Inactive', variant: 'secondary', icon: '○' },
   ];
 
   const result = [];
@@ -43,7 +60,11 @@ function generateLargeDataset(count = 5000) {
     const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
     const position = positions[Math.floor(Math.random() * positions.length)];
-    const department = departments[Math.floor(Math.random() * departments.length)];
+
+    // Pick random department with ID
+    const departmentData = departmentMap[Math.floor(Math.random() * departmentMap.length)];
+
+    const isActive = Math.random() > 0.1; // 90% active
 
     // Generate random date between startYear and endYear
     const startDate = new Date(
@@ -52,15 +73,35 @@ function generateLargeDataset(count = 5000) {
       Math.floor(Math.random() * 28) + 1
     );
 
+    // Generate random status (favor Active for active employees)
+    let status;
+    let statusId;
+    if (!isActive) {
+      status = { label: 'Inactive', variant: 'secondary', icon: '○' };
+      statusId = 2; // Inactive ID
+    } else {
+      const statusIndex = Math.floor(Math.random() * (statuses.length - 1)); // Exclude Inactive
+      status = statuses[statusIndex];
+      // Map to reference status IDs (mostly Active)
+      statusId = Math.random() > 0.8 ? 3 : 1; // 80% Active (1), 20% Pending (3)
+    }
+
+    // Generate random performance (0-100, favor 60-90 range)
+    const performance = Math.floor(Math.random() * 40 + 60); // 60-100 range
+
     result.push({
       id: `${i + 1}`,
       name: `${firstName} ${lastName}`,
       position,
-      department,
+      department: departmentData.name,
+      departmentId: departmentData.id,
       salary: Math.floor(Math.random() * (150000 - 50000) + 50000),
       commission: Math.random() * 0.3,
       startDate: startDate.toISOString(),
-      active: Math.random() > 0.1, // 90% active
+      active: isActive,
+      status,
+      statusId,
+      performance,
     });
   }
 

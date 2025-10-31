@@ -12,7 +12,7 @@ export interface SelectFilterValue {
 
 interface SelectFilterProps {
   value: SelectFilterValue | null;
-  onChange: (value: SelectFilterValue | null) => void;
+  onChange: (value: SelectFilterValue | null | undefined) => void;
   options: string[]; // Available options for this column
 }
 
@@ -41,7 +41,7 @@ export function SelectFilter({ value, onChange, options }: SelectFilterProps) {
     if (newSelected.size > 0) {
       onChange({ selectedValues: Array.from(newSelected) });
     } else {
-      onChange(null);
+      onChange(undefined);
     }
   };
 
@@ -53,7 +53,7 @@ export function SelectFilter({ value, onChange, options }: SelectFilterProps) {
 
   const handleClearAll = () => {
     setSelectedValues(new Set());
-    onChange(null);
+    onChange(undefined);
   };
 
   return (

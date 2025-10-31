@@ -59,10 +59,18 @@ import {
   applyNumberFilter,
   applyDateFilter,
   applySelectFilter,
+  applyBooleanFilter,
+  applyBadgeFilter,
+  applyProgressFilter,
+  applyReferenceFilter,
   TextFilterValue,
   NumberFilterValue,
   DateFilterValue,
   SelectFilterValue,
+  BooleanFilterValue,
+  BadgeFilterValue,
+  ProgressFilterValue,
+  ReferenceFilterValue,
 } from './components/filters';
 import { CellType } from './types/cell.types';
 import { VIRTUALIZATION } from './utils/constants';
@@ -89,12 +97,32 @@ const selectFilterFn: FilterFn<any> = (row, columnId, filterValue) => {
   return applySelectFilter(value, filterValue as SelectFilterValue);
 };
 
+const booleanFilterFn: FilterFn<any> = (row, columnId, filterValue) => {
+  const value = row.getValue(columnId);
+  return applyBooleanFilter(value, filterValue as BooleanFilterValue);
+};
+
+const badgeFilterFn: FilterFn<any> = (row, columnId, filterValue) => {
+  const value = row.getValue(columnId);
+  return applyBadgeFilter(value, filterValue as BadgeFilterValue);
+};
+
+const progressFilterFn: FilterFn<any> = (row, columnId, filterValue) => {
+  const value = row.getValue(columnId);
+  return applyProgressFilter(value, filterValue as ProgressFilterValue);
+};
+
+const referenceFilterFn: FilterFn<any> = (row, columnId, filterValue) => {
+  const value = row.getValue(columnId);
+  return applyReferenceFilter(value, filterValue as ReferenceFilterValue);
+};
+
 export function DataTable<TData extends RowData>({
   tableId,
   columns,
   data = [],
   className,
-  mode = 'client' as const,
+  mode = TableMode.CLIENT,
   paginationType = PaginationType.INFINITE,
   onFetchNextPage,
   hasNextPage,
@@ -104,6 +132,8 @@ export function DataTable<TData extends RowData>({
   isLoading = false,
   isFetching = false,
   onPaginationChange,
+  onSortChange,
+  onFilterChange,
   enableSorting = true,
   enableInlineEditing = true,
   enableRowCreation = true,
@@ -206,6 +236,31 @@ export function DataTable<TData extends RowData>({
     setColumnFilters([]);
     setGlobalFilter('');
   };
+
+  // Phase 8.4: Notify parent of sorting changes (server mode only)
+  useEffect(() => {
+    if (mode === TableMode.SERVER && onSortChange) {
+      onSortChange(sorting);
+    }
+  }, [sorting, mode, onSortChange]);
+
+  // Phase 8.4: Notify parent of filter changes (server mode only)
+  useEffect(() => {
+    if (mode === TableMode.SERVER && onFilterChange) {
+      // Convert TanStack Table filter format to simple key-value format for API
+      const filterParams: Record<string, any> = {};
+
+      columnFilters.forEach((filter) => {
+        filterParams[filter.id] = filter.value;
+      });
+
+      if (globalFilter) {
+        filterParams.q = globalFilter; // Use 'q' for json-server full-text search
+      }
+
+      onFilterChange(filterParams);
+    }
+  }, [columnFilters, globalFilter, mode, onFilterChange]);
 
   // Edit handlers (Phase 4)
   const handleStartEdit = (rowId: string, columnId: string) => {
@@ -624,8 +679,19 @@ export function DataTable<TData extends RowData>({
           case CellType.SELECT:
             filterFn = selectFilterFn as FilterFn<TData>;
             break;
-          case CellType.TEXT:
           case CellType.CHECKBOX:
+            filterFn = booleanFilterFn as FilterFn<TData>;
+            break;
+          case CellType.BADGE:
+            filterFn = badgeFilterFn as FilterFn<TData>;
+            break;
+          case CellType.PROGRESS:
+            filterFn = progressFilterFn as FilterFn<TData>;
+            break;
+          case CellType.REFERENCE:
+            filterFn = referenceFilterFn as FilterFn<TData>;
+            break;
+          case CellType.TEXT:
           default:
             filterFn = textFilterFn as FilterFn<TData>;
             break;
@@ -637,9 +703,11 @@ export function DataTable<TData extends RowData>({
         enableSorting: col.sortable !== false && enableSorting,
         enableColumnFilter: col.filterable !== false,
         filterFn,
-        cell: (info) => {
+        cell: (info: any) => {
           const rowId = info.row.original.id;
           const columnId = info.column.id;
+          // Use accessorKey for saving (the actual data field), not column.id
+          const dataField = ('accessorKey' in col ? (col.accessorKey as string) : null) || columnId;
           const isEditing = editingCell?.rowId === rowId && editingCell?.columnId === columnId;
           // Cell is editable if: global editing is enabled AND column is not explicitly disabled
           const isEditable = enableInlineEditing && columnDef.editable !== false;
@@ -654,8 +722,10 @@ export function DataTable<TData extends RowData>({
               isEditing={isEditing}
               isEditable={isEditable}
               onStartEdit={() => handleStartEdit(rowId, columnId)}
-              onSave={(newValue) => handleSaveEdit(rowId, columnId, newValue)}
+              onSave={(newValue) => handleSaveEdit(rowId, dataField, newValue)}
               onCancel={handleCancelEdit}
+              referenceType={columnDef.cellOptions?.referenceType}
+              onCreateSuccess={columnDef.cellOptions?.onReferenceCreateSuccess}
             />
           );
         },
@@ -751,8 +821,11 @@ export function DataTable<TData extends RowData>({
     enableRowSelection: true, // Phase 10.1: Enable row selection
     ...(useManualPagination ? { onPaginationChange: setPagination } : {}),
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    // Phase 8.4: Only use client-side sorting/filtering in client mode
+    getSortedRowModel: mode === TableMode.CLIENT ? getSortedRowModel() : undefined,
+    getFilteredRowModel: mode === TableMode.CLIENT ? getFilteredRowModel() : undefined,
+    manualSorting: mode === TableMode.SERVER,
+    manualFiltering: mode === TableMode.SERVER,
     // Manual pagination for server mode with traditional pagination
     ...(useManualPagination
       ? {
@@ -902,6 +975,7 @@ export function DataTable<TData extends RowData>({
         onRemoveGlobalFilter={handleRemoveGlobalFilter}
         onClearAll={handleClearAllFilters}
         columnNames={columnNames}
+        columns={columns}
       />
 
       {/* Virtualization cap warning - Phase 8.2 */}
@@ -982,6 +1056,7 @@ export function DataTable<TData extends RowData>({
                             <ColumnFilter
                               column={header.column}
                               cellType={cellType}
+                              cellOptions={columnDef?.cellOptions}
                               selectOptions={columnDef?.cellOptions?.options || []}
                               headerElement={theadRef.current}
                             />
@@ -1236,6 +1311,7 @@ export function DataTable<TData extends RowData>({
                             <ColumnFilter
                               column={header.column}
                               cellType={cellType}
+                              cellOptions={columnDef?.cellOptions}
                               selectOptions={columnDef?.cellOptions?.options || []}
                               headerElement={theadRef.current}
                             />

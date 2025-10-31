@@ -15,7 +15,7 @@ export interface TextFilterValue {
 
 interface TextFilterProps {
   value: TextFilterValue | null;
-  onChange: (value: TextFilterValue | null) => void;
+  onChange: (value: TextFilterValue | null | undefined) => void;
 }
 
 const OPERATORS: { value: TextFilterOperator; label: string }[] = [
@@ -44,7 +44,7 @@ export function TextFilter({ value, onChange }: TextFilterProps) {
     if (newValue) {
       onChange({ operator, value: newValue });
     } else {
-      onChange(null);
+      onChange(undefined);
     }
   };
 

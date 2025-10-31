@@ -142,17 +142,19 @@ function parsePaginationParams(params: PaginationParams): Record<string, any> {
 }
 
 /**
- * Parse sorting params for json-server
+ * Parse sorting params for json-server 1.x
+ * json-server 1.x uses prefix notation: _sort=field (asc) or _sort=-field (desc)
+ * This is different from 0.x which used _sort=field&_order=asc/desc
  */
 export function parseSortingParams(sorting: SortingState): Record<string, any> {
   if (!sorting || sorting.length === 0) {
     return {};
   }
 
-  const sort = sorting[0]; // json-server supports single column sort
+  const sort = sorting[0]!; // json-server supports single column sort
+  // json-server 1.x: use minus prefix for descending sort
   return {
-    _sort: sort.id,
-    _order: sort.desc ? 'desc' : 'asc',
+    _sort: sort.desc ? `-${sort.id}` : sort.id,
   };
 }
 
@@ -163,10 +165,64 @@ export interface FilterParams {
   [key: string]: any;
 }
 
+/**
+ * Parse filter params for json-server 1.x
+ *
+ * IMPORTANT: json-server 1.x only supports basic equality filtering (field=value)
+ * It does NOT support operators like _lt, _gt, _gte, _lte, _ne (removed in 1.x)
+ *
+ * For production apps, use a real backend that supports complex filtering.
+ * For this demo:
+ * - Equality filters: ✅ Supported
+ * - Text search (q param): ✅ Supported
+ * - Comparison operators (>, <, >=, <=): ❌ NOT supported (client-side only)
+ * - Between: ❌ NOT supported (client-side only)
+ */
 function parseFilterParams(filters: FilterParams): Record<string, any> {
-  // json-server supports direct field filtering
-  // Example: { department: 'Engineering', active: true }
-  return filters;
+  console.log('[API] Raw filters:', filters);
+
+  const params: Record<string, any> = {};
+
+  Object.entries(filters).forEach(([key, value]) => {
+    // Skip empty/undefined values
+    if (value === undefined || value === null || value === '') {
+      return;
+    }
+
+    // Handle complex filter objects (NumberFilter, TextFilter, DateFilter)
+    if (typeof value === 'object' && !Array.isArray(value) && 'operator' in value) {
+      const filterValue = value as { operator: string; value: any };
+
+      console.log(`[API] Converting filter for ${key}:`, filterValue);
+
+      // json-server 1.x limitation: only 'equals' is supported
+      // Other operators (lessThan, greaterThan, etc.) are ignored
+      if (filterValue.operator === 'equals') {
+        params[key] = filterValue.value;
+      } else {
+        console.warn(
+          `[API] Filter operator '${filterValue.operator}' not supported by json-server 1.x.`,
+          `Only 'equals' is supported. For production, use a real backend.`
+        );
+        // Don't send unsupported filters to avoid confusion
+      }
+    }
+    // Handle array values (SelectFilter)
+    else if (Array.isArray(value)) {
+      // For multiple values, json-server doesn't have great support
+      // We'll just use the first value for now
+      if (value.length > 0) {
+        params[key] = value[0];
+      }
+    }
+    // Handle simple values (direct equality)
+    else {
+      params[key] = value;
+    }
+  });
+
+  console.log('[API] Converted filter params:', params);
+  return params;
 }
 
 /**

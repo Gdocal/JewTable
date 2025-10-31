@@ -136,9 +136,15 @@
   white-space: nowrap;
 }
 
-/* Only add padding for columns with icons */
-.th:not(:first-child):not(:last-child) .thContent {
-  padding-right: 32px; /* Reserve space for sort/filter icons */
+/* Add padding for all columns except first (checkbox) and actions column */
+/* This ensures sort/filter icons never overlap with column text */
+.th:not(:first-child) .thContent {
+  padding-right: 48px; /* Increased space for sort + filter icons */
+}
+
+/* First column (checkbox) has no icons */
+.th:first-child .thContent {
+  padding-right: 0;
 }
 
 .headerIcons {

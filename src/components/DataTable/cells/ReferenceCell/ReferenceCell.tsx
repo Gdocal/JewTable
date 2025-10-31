@@ -22,6 +22,10 @@ export function setReferenceRegistry(registry: any) {
   globalRegistry = registry;
 }
 
+export function getReferenceRegistry() {
+  return globalRegistry;
+}
+
 /**
  * ReferenceCell - Smart dropdown for reference data
  *
@@ -42,12 +46,18 @@ export function ReferenceCell({
   filter,
   disabled = false,
   placeholder,
+  variant = 'default',
   onCreateSuccess,
   onSearchChange,
 }: ReferenceCellProps) {
   // Get config from registry
   const baseConfig = getReferenceConfig(globalRegistry, type);
   const config = mergeReferenceConfig(baseConfig, configOverride);
+
+  // Validate config
+  if (!config.label || !config.value) {
+    console.error('[ReferenceCell] Missing label or value field in config!', config);
+  }
 
   // State
   const [isOpen, setIsOpen] = useState(false);
@@ -56,11 +66,13 @@ export function ReferenceCell({
   const [showInlineCreate, setShowInlineCreate] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch data (lazy - only when dropdown opens)
+  // Fetch data (lazy - only when dropdown opens OR when there's a value to display)
+  const shouldFetch = isOpen || !!value;
+
   const { data: options, isLoading, isError, error, refetch } = useReferenceData(
     config,
     {
-      enabled: isOpen,
+      enabled: shouldFetch, // Load data if dropdown is open OR if we have a value to display
       filter,
       searchQuery: config.search?.type === 'server' ? searchQuery : undefined,
     }
@@ -195,8 +207,8 @@ export function ReferenceCell({
 
       {/* Dropdown */}
       {isOpen && (
-        <div className={styles.dropdown}>
-          {/* Search input */}
+        <div className={`${styles.dropdown} ${variant === 'minimal' ? styles.dropdownMinimal : ''}`}>
+          {/* Search input with refresh button (for minimal variant) */}
           {config.search?.enabled && (
             <div className={styles.searchContainer}>
               <input
@@ -207,6 +219,17 @@ export function ReferenceCell({
                 onChange={(e) => handleSearchChange(e.target.value)}
                 autoFocus
               />
+              {variant === 'minimal' && (
+                <button
+                  type="button"
+                  className={styles.refreshIconButton}
+                  onClick={() => refetch()}
+                  disabled={isLoading}
+                  title="Refresh"
+                >
+                  🔄
+                </button>
+              )}
             </div>
           )}
 
@@ -267,6 +290,17 @@ export function ReferenceCell({
                 </button>
               );
             })}
+
+            {/* Add New button at bottom (minimal variant only) */}
+            {variant === 'minimal' && config.create?.enabled && !showInlineCreate && !isLoading && !isError && (
+              <button
+                type="button"
+                className={styles.createButtonMinimal}
+                onClick={handleCreateClick}
+              >
+                + Add New
+              </button>
+            )}
           </div>
 
           {/* Inline creation form */}
@@ -278,28 +312,30 @@ export function ReferenceCell({
             />
           )}
 
-          {/* Footer actions */}
-          <div className={styles.footer}>
-            <button
-              type="button"
-              className={styles.refreshButton}
-              onClick={() => refetch()}
-              disabled={isLoading}
-            >
-              🔄 Refresh
-            </button>
-
-            {/* Create button */}
-            {config.create?.enabled && !showInlineCreate && (
+          {/* Footer actions (default variant only) */}
+          {variant === 'default' && (
+            <div className={styles.footer}>
               <button
                 type="button"
-                className={styles.createButton}
-                onClick={handleCreateClick}
+                className={styles.refreshButton}
+                onClick={() => refetch()}
+                disabled={isLoading}
               >
-                + Add New
+                🔄 Refresh
               </button>
-            )}
-          </div>
+
+              {/* Create button */}
+              {config.create?.enabled && !showInlineCreate && (
+                <button
+                  type="button"
+                  className={styles.createButton}
+                  onClick={handleCreateClick}
+                >
+                  + Add New
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 

@@ -5,7 +5,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { format, parseISO, isValid } from 'date-fns';
-import { formatDate, DateFormat } from '../../utils/formatters';
+import { formatDate } from '../../utils/formatters';
 import styles from './EditableDateCell.module.css';
 
 interface EditableDateCellProps {

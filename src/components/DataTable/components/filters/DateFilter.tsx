@@ -17,7 +17,7 @@ export interface DateFilterValue {
 
 interface DateFilterProps {
   value: DateFilterValue | null;
-  onChange: (value: DateFilterValue | null) => void;
+  onChange: (value: DateFilterValue | null | undefined) => void;
 }
 
 const OPERATORS: { value: DateFilterOperator; label: string }[] = [
@@ -61,13 +61,13 @@ export function DateFilter({ value, onChange }: DateFilterProps) {
       if (date && isValid(date) && date2 && isValid(date2)) {
         onChange({ operator: op, date, date2 });
       } else {
-        onChange(null);
+        onChange(undefined);
       }
     } else {
       if (date && isValid(date)) {
         onChange({ operator: op, date });
       } else {
-        onChange(null);
+        onChange(undefined);
       }
     }
   };

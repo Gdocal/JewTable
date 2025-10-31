@@ -14,6 +14,11 @@ interface TableToolbarProps {
 export function TableToolbar({
   isReadOnly = false,
 }: TableToolbarProps) {
+  // Don't render the toolbar if it has no content
+  if (!isReadOnly) {
+    return null;
+  }
+
   return (
     <div className={styles.toolbar}>
       <div className={styles.leftSection}>
@@ -21,11 +26,9 @@ export function TableToolbar({
       </div>
 
       <div className={styles.rightSection}>
-        {isReadOnly && (
-          <span className={styles.readOnlyBadge} title="This table is read-only">
-            Read-only
-          </span>
-        )}
+        <span className={styles.readOnlyBadge} title="This table is read-only">
+          Read-only
+        </span>
       </div>
     </div>
   );

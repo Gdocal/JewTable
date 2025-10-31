@@ -56,8 +56,8 @@ export interface DataTableProps<TData extends RowData = RowData> {
   onRowDelete?: (rowId: string) => Promise<void>;
   onRowReorder?: (rowIds: string[]) => Promise<void>;
 
-  // State callbacks
-  onFilterChange?: (filters: FilterState) => void;
+  // State callbacks (Phase 8.4: Server-side sorting/filtering)
+  onFilterChange?: (filters: Record<string, any>) => void; // Simple key-value for API
   onSortChange?: (sorting: SortingState) => void;
   onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
 

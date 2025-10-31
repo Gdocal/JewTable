@@ -17,8 +17,18 @@ export function useInfiniteData<TData extends RowData>(
 ) {
   const { resource, enabled = true, ...fetchOptions } = options;
 
+  // Build a stable query key by extracting individual params
+  const queryKey = [
+    resource,
+    'infinite',
+    fetchOptions.pageSize,
+    JSON.stringify(fetchOptions.sorting || []), // Serialize sorting for stable key
+    JSON.stringify(fetchOptions.filters || {}), // Serialize filters for stable key
+    fetchOptions.search,
+  ];
+
   return useInfiniteQuery<FetchDataResponse<TData>, Error>({
-    queryKey: [resource, fetchOptions],
+    queryKey,
     queryFn: ({ pageParam = 1 }) =>
       fetchData<TData>(resource, {
         ...fetchOptions,

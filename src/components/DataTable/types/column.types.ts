@@ -7,9 +7,7 @@ import { z } from 'zod';
 import { CellType, SelectOption } from './cell.types';
 import { FilterType } from './filter.types';
 
-export interface DataTableColumnDef<TData = unknown, TValue = unknown>
-  extends Omit<ColumnDef<TData, TValue>, 'id'> {
-  id?: string;
+export type DataTableColumnDef<TData = unknown, TValue = unknown> = ColumnDef<TData, TValue> & {
   // Cell type configuration
   cellType?: CellType;
   editable?: boolean;
@@ -36,7 +34,7 @@ export interface DataTableColumnDef<TData = unknown, TValue = unknown>
   // Visibility
   hideable?: boolean; // Can user hide this column?
   defaultHidden?: boolean;
-}
+};
 
 export interface CellOptions {
   // For number cells
@@ -64,6 +62,11 @@ export interface CellOptions {
     success?: number; // Above warning is green
   };
   animatedProgress?: boolean;
+
+  // For reference data cells (Phase 11)
+  referenceType?: string; // Reference type from registry (e.g., 'departments', 'statuses')
+  referenceVariant?: 'default' | 'minimal'; // UI variant (default: 'default')
+  onReferenceCreateSuccess?: (item: any) => void; // Callback when new item is created
 
   // For custom cells
   customRenderer?: React.ComponentType<unknown>;

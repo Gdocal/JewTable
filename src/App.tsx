@@ -3,7 +3,7 @@
  * Phase 8: Server Integration
  */
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { DataTable, TableMode, PaginationType } from './components/DataTable';
 import { employeeColumns, generateLargeDataset } from './data/sampleData';
 import { useInfiniteData } from './hooks/useInfiniteData';
@@ -15,6 +15,7 @@ import { referenceRegistry } from './config/references';
 import { setupMockReferenceApi } from './utils/mockReferenceApi';
 import { CellType } from './components/DataTable/types/cell.types';
 import type { DataTableColumnDef } from './components/DataTable/types/column.types';
+import { SortingState } from '@tanstack/react-table';
 import styles from './App.module.css';
 
 // Initialize mock reference API and registry (Phase 11)
@@ -32,6 +33,10 @@ function App() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  // Phase 8.4: Sorting and filtering state (for server mode)
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [filters, setFilters] = useState<Record<string, any>>({});
+
   // Available page size options
   const pageSizeOptions = [10, 25, 50, 100, 200];
 
@@ -39,10 +44,19 @@ function App() {
   const datasetSize = 5000;
   const largeDataset = useMemo(() => generateLargeDataset(datasetSize), []);
 
-  // Reset to page 1 when mode, pagination type, or page size changes
+  // Reset to page 1 when mode, pagination type, page size, sorting, or filtering changes
   useEffect(() => {
     setPage(1);
-  }, [mode, paginationType, pageSize]);
+  }, [mode, paginationType, pageSize, sorting, filters]);
+
+  // Phase 8.4: Handlers for sorting and filtering changes
+  const handleSortChange = useCallback((newSorting: SortingState) => {
+    setSorting(newSorting);
+  }, []);
+
+  const handleFilterChange = useCallback((newFilters: Record<string, any>) => {
+    setFilters(newFilters);
+  }, []);
 
   // Phase 8.2: Server-side infinite query
   const {
@@ -56,6 +70,8 @@ function App() {
   } = useInfiniteData<Employee>({
     resource: 'employees',
     pageSize: pageSize,
+    sorting, // Phase 8.4: Server-side sorting
+    filters, // Phase 8.4: Server-side filtering
     enabled: mode === 'server' && paginationType === 'infinite',
   });
 
@@ -76,6 +92,8 @@ function App() {
     resource: 'employees',
     page,
     pageSize,
+    sorting, // Phase 8.4: Server-side sorting
+    filters, // Phase 8.4: Server-side filtering
     enabled: mode === 'server' && paginationType === 'traditional',
   });
 
@@ -123,11 +141,11 @@ function App() {
     ? (paginationType === 'infinite' ? isLoadingInfinite : isLoadingTraditional)
     : false;
 
-  const handleRowReorder = (newOrder: string[]) => {
+  const handleRowReorder = useCallback(async (newOrder: string[]) => {
     console.log('Row order changed:', newOrder);
-  };
+  }, []);
 
-  const handlePaginationChange = (pagination: { pageIndex: number; pageSize: number }) => {
+  const handlePaginationChange = useCallback((pagination: { pageIndex: number; pageSize: number }) => {
     // Update page state when pagination changes (pageIndex is 0-based, page is 1-based)
     // Note: Buttons are disabled during fetch to prevent double-active state
     setPage(pagination.pageIndex + 1);
@@ -136,31 +154,40 @@ function App() {
     if (pagination.pageSize !== pageSize) {
       setPageSize(pagination.pageSize);
     }
-  };
+  }, [pageSize]);
 
-  // Phase 11: Add ReferenceCell column for testing cache behavior across rows
+  // Phase 11: Add ReferenceCell columns for testing cache behavior across rows
   const columnsWithReference: DataTableColumnDef<Employee>[] = useMemo(() => {
-    // Insert reference column after position column (index 1)
+    // Insert reference columns after position column (index 1)
     const columns = [...employeeColumns];
+
+    // Item 3: Default variant (declarative approach)
     columns.splice(2, 0, {
       id: 'departmentRef',
       header: 'Department (Ref)',
-      accessorKey: 'departmentId',
+      accessorKey: 'departmentId' as keyof Employee,
       cellType: CellType.REFERENCE,
-      cell: (info: any) => (
-        <ReferenceCell
-          type="departments"
-          value={info.getValue()}
-          onChange={(newValue) => {
-            console.log(`Row ${info.row.id}: Department changed to ${newValue}`);
-            // In real app: update data here
-          }}
-          onCreateSuccess={(newItem) => {
-            console.log('New department created:', newItem);
-          }}
-        />
-      ),
-    });
+      cellOptions: {
+        referenceType: 'departments',
+        onReferenceCreateSuccess: (newItem: any) => {
+          console.log('New department created:', newItem);
+        },
+      },
+      // NO custom cell function - let CellRenderer handle it!
+    } as DataTableColumnDef<Employee>);
+
+    // Item 4: Minimal variant with declarative approach
+    columns.splice(3, 0, {
+      id: 'statusRef',
+      header: 'Status (Minimal)',
+      accessorKey: 'statusId' as keyof Employee,
+      cellType: CellType.REFERENCE,
+      cellOptions: {
+        referenceType: 'statuses',
+        referenceVariant: 'minimal', // Use minimal variant
+      },
+    } as DataTableColumnDef<Employee>);
+
     return columns;
   }, []);
 
@@ -168,7 +195,7 @@ function App() {
     <div className={styles.app}>
       <header className={styles.header}>
         <h1>JewTable Development</h1>
-        <p>Phase 8: Server Integration</p>
+        <p>Phase 8: Server Integration (with sorting & filtering)</p>
       </header>
 
       <main className={styles.main}>
@@ -239,6 +266,9 @@ function App() {
             pageCount={totalPages}
             pageSizeOptions={pageSizeOptions}
             onPaginationChange={handlePaginationChange}
+            // Phase 8.4: Server-side sorting & filtering
+            onSortChange={handleSortChange}
+            onFilterChange={handleFilterChange}
             // Common props
             isLoading={isLoading}
             isFetching={paginationType === 'traditional' ? isFetchingTraditional : false}
@@ -332,7 +362,7 @@ function App() {
 
           <h3 className={styles.phaseNext}>Phase 8 Features ✅</h3>
           <ul>
-            <li>✅ Mock API server with json-server</li>
+            <li>✅ Mock API server with json-server 1.x</li>
             <li>✅ API client with retry logic</li>
             <li>✅ TanStack Query integration</li>
             <li>✅ Infinite scroll with useInfiniteQuery</li>
@@ -342,7 +372,10 @@ function App() {
             <li>✅ Client/Server mode toggle</li>
             <li>✅ Infinite/Traditional pagination toggle</li>
             <li>✅ Loading indicators</li>
-            <li>⏳ Server-side sorting/filtering (future)</li>
+            <li>✅ Server-side sorting (asc/desc)</li>
+            <li>✅ Server-side filtering (equality only*)</li>
+            <li>✅ Auto-reset to page 1 on sort/filter change</li>
+            <li>⚠️ *json-server 1.x limits: no &lt;, &gt;, between filters</li>
           </ul>
         </div>
       </main>

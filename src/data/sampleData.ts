@@ -26,17 +26,20 @@ export const employeeColumns: DataTableColumnDef<Employee>[] = [
     accessorKey: 'name',
     header: 'Name',
     cellType: CellType.TEXT,
-  },
+  } as DataTableColumnDef<Employee>,
   {
     accessorKey: 'position',
     header: 'Position',
     cellType: CellType.TEXT,
   },
   {
-    accessorKey: 'department',
+    accessorKey: 'departmentId' as keyof Employee,
     header: 'Department',
-    cellType: CellType.TEXT,
-  },
+    cellType: CellType.REFERENCE,
+    cellOptions: {
+      referenceType: 'departments',
+    },
+  } as DataTableColumnDef<Employee>,
   {
     accessorKey: 'salary',
     header: 'Salary',
@@ -146,11 +149,13 @@ export const employeeData: Employee[] = [
     name: 'Dmytro Lysenko',
     position: 'Junior Developer',
     department: 'Engineering',
+    departmentId: 1,
     salary: 62000,
     commission: 0.05,
     startDate: new Date('2022-06-01'),
     active: true,
     status: { label: 'Training', variant: 'info', icon: '📚' },
+    statusId: 4,
     performance: 65,
   },
   {
@@ -326,12 +331,12 @@ export function generateLargeDataset(count: number = 5000): Employee[] {
   const endYear = 2024;
 
   for (let i = 0; i < count; i++) {
-    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const position = positions[Math.floor(Math.random() * positions.length)];
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)]!;
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)]!;
+    const position = positions[Math.floor(Math.random() * positions.length)]!;
 
     // Pick random department with ID
-    const departmentData = departmentMap[Math.floor(Math.random() * departmentMap.length)];
+    const departmentData = departmentMap[Math.floor(Math.random() * departmentMap.length)]!;
 
     const isActive = Math.random() > 0.1; // 90% active
 
@@ -350,7 +355,7 @@ export function generateLargeDataset(count: number = 5000): Employee[] {
       statusId = 2; // Inactive ID
     } else {
       const statusIndex = Math.floor(Math.random() * (statuses.length - 1)); // Exclude Inactive
-      status = statuses[statusIndex];
+      status = statuses[statusIndex]!;
       // Map to reference status IDs (mostly Active)
       statusId = Math.random() > 0.8 ? 3 : 1; // 80% Active (1), 20% Pending (3)
     }

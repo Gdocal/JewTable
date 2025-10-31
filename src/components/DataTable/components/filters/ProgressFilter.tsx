@@ -1,27 +1,26 @@
 /**
- * NumberFilter - Number column filter with multiple operators
- * Phase 3: Filtering
+ * ProgressFilter - Progress/Performance column filter with operators (0-100%)
+ * Similar to NumberFilter but specifically for percentage values
  */
 
 import React, { useState } from 'react';
-import { CellOptions } from '../../types/column.types';
-import styles from './NumberFilter.module.css';
+import styles from './NumberFilter.module.css'; // Reuse number filter styles
 
-export type NumberFilterOperator = 'equals' | 'notEquals' | 'greaterThan' | 'lessThan' | 'between';
+export type ProgressFilterOperator = 'equals' | 'notEquals' | 'greaterThan' | 'lessThan' | 'between';
 
-export interface NumberFilterValue {
-  operator: NumberFilterOperator;
-  value: number;
-  value2?: number; // For 'between' operator
+export interface ProgressFilterValue {
+  type: 'progress'; // Discriminator to distinguish from NumberFilter
+  operator: ProgressFilterOperator;
+  value: number; // Stored as decimal (0-1)
+  value2?: number; // For 'between' operator, stored as decimal (0-1)
 }
 
-interface NumberFilterProps {
-  value: NumberFilterValue | null;
-  onChange: (value: NumberFilterValue | null | undefined) => void;
-  cellOptions?: CellOptions;
+interface ProgressFilterProps {
+  value: ProgressFilterValue | null;
+  onChange: (value: ProgressFilterValue | null | undefined) => void;
 }
 
-const OPERATORS: { value: NumberFilterOperator; label: string }[] = [
+const OPERATORS: { value: ProgressFilterOperator; label: string }[] = [
   { value: 'equals', label: 'Equals' },
   { value: 'notEquals', label: 'Not equals' },
   { value: 'greaterThan', label: 'Greater than' },
@@ -29,30 +28,20 @@ const OPERATORS: { value: NumberFilterOperator; label: string }[] = [
   { value: 'between', label: 'Between' },
 ];
 
-export function NumberFilter({ value, onChange, cellOptions }: NumberFilterProps) {
-  const isPercentage = cellOptions?.numberFormat === 'percent';
-
-  const [operator, setOperator] = useState<NumberFilterOperator>(
+export function ProgressFilter({ value, onChange }: ProgressFilterProps) {
+  const [operator, setOperator] = useState<ProgressFilterOperator>(
     value?.operator || 'equals'
   );
 
-  // Display values as percentages if needed (multiply by 100)
+  // Display values as percentages (multiply by 100)
   const [filterValue, setFilterValue] = useState<string>(
-    value?.value !== undefined
-      ? isPercentage
-        ? (value.value * 100).toString()
-        : value.value.toString()
-      : ''
+    value?.value !== undefined ? (value.value * 100).toString() : ''
   );
   const [filterValue2, setFilterValue2] = useState<string>(
-    value?.value2 !== undefined
-      ? isPercentage
-        ? (value.value2 * 100).toString()
-        : value.value2.toString()
-      : ''
+    value?.value2 !== undefined ? (value.value2 * 100).toString() : ''
   );
 
-  const handleOperatorChange = (newOperator: NumberFilterOperator) => {
+  const handleOperatorChange = (newOperator: ProgressFilterOperator) => {
     setOperator(newOperator);
     updateFilter(newOperator, filterValue, filterValue2);
   };
@@ -67,32 +56,28 @@ export function NumberFilter({ value, onChange, cellOptions }: NumberFilterProps
     }
   };
 
-  const updateFilter = (op: NumberFilterOperator, val: string, val2: string) => {
+  const updateFilter = (op: ProgressFilterOperator, val: string, val2: string) => {
     let num = parseFloat(val);
     let num2 = parseFloat(val2);
 
-    // Convert percentage input to decimal (e.g., 5% -> 0.05)
-    if (isPercentage) {
-      if (!isNaN(num)) {
-        num = num / 100;
-      }
-      if (!isNaN(num2)) {
-        num2 = num2 / 100;
-      }
+    // Convert percentage input to decimal (e.g., 50% -> 0.5)
+    if (!isNaN(num)) {
+      num = Math.max(0, Math.min(100, num)) / 100; // Clamp to 0-100 and convert
+    }
+    if (!isNaN(num2)) {
+      num2 = Math.max(0, Math.min(100, num2)) / 100; // Clamp to 0-100 and convert
     }
 
     if (op === 'between') {
       if (!isNaN(num) && !isNaN(num2)) {
-        onChange({ operator: op, value: num, value2: num2 });
+        onChange({ type: 'progress', operator: op, value: num, value2: num2 });
       } else {
-        // Use undefined instead of null to properly clear the filter
         onChange(undefined);
       }
     } else {
       if (!isNaN(num)) {
-        onChange({ operator: op, value: num });
+        onChange({ type: 'progress', operator: op, value: num });
       } else {
-        // Use undefined instead of null to properly clear the filter
         onChange(undefined);
       }
     }
@@ -104,7 +89,7 @@ export function NumberFilter({ value, onChange, cellOptions }: NumberFilterProps
       <select
         className={styles.select}
         value={operator}
-        onChange={(e) => handleOperatorChange(e.target.value as NumberFilterOperator)}
+        onChange={(e) => handleOperatorChange(e.target.value as ProgressFilterOperator)}
       >
         {OPERATORS.map((op) => (
           <option key={op.value} value={op.value}>
@@ -113,25 +98,31 @@ export function NumberFilter({ value, onChange, cellOptions }: NumberFilterProps
         ))}
       </select>
 
-      <label className={styles.label}>Value</label>
+      <label className={styles.label}>Value (%)</label>
       <input
         type="number"
         className={styles.input}
-        placeholder={isPercentage ? "Enter percentage..." : "Enter number..."}
+        placeholder="Enter percentage (0-100)..."
         value={filterValue}
         onChange={(e) => handleValueChange(e.target.value)}
+        min="0"
+        max="100"
+        step="1"
         autoFocus
       />
 
       {operator === 'between' && (
         <>
-          <label className={styles.label}>And</label>
+          <label className={styles.label}>And (%)</label>
           <input
             type="number"
             className={styles.input}
-            placeholder={isPercentage ? "Enter second percentage..." : "Enter second number..."}
+            placeholder="Enter second percentage (0-100)..."
             value={filterValue2}
             onChange={(e) => handleValueChange(e.target.value, true)}
+            min="0"
+            max="100"
+            step="1"
           />
         </>
       )}
@@ -140,11 +131,12 @@ export function NumberFilter({ value, onChange, cellOptions }: NumberFilterProps
 }
 
 /**
- * Apply number filter logic
+ * Apply progress filter logic
+ * Values are stored as decimals (0-1) but displayed as percentages (0-100)
  */
-export function applyNumberFilter(
+export function applyProgressFilter(
   cellValue: any,
-  filterValue: NumberFilterValue | null | undefined
+  filterValue: ProgressFilterValue | null | undefined
 ): boolean {
   if (!filterValue) return true; // No filter applied
 

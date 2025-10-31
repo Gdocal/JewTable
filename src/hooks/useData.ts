@@ -17,8 +17,19 @@ export function useData<TData extends RowData>(
 ) {
   const { resource, enabled = true, ...fetchOptions } = options;
 
+  // Build a stable query key by extracting individual params
+  const queryKey = [
+    resource,
+    'paginated',
+    fetchOptions.page,
+    fetchOptions.pageSize,
+    JSON.stringify(fetchOptions.sorting || []), // Serialize sorting for stable key
+    JSON.stringify(fetchOptions.filters || {}), // Serialize filters for stable key
+    fetchOptions.search,
+  ];
+
   return useQuery<FetchDataResponse<TData>, Error>({
-    queryKey: [resource, fetchOptions],
+    queryKey,
     queryFn: () => fetchData<TData>(resource, fetchOptions),
     enabled,
     placeholderData: keepPreviousData, // Keep previous data while loading new page

@@ -18,6 +18,7 @@ import { EditableSelectCell } from './EditableSelectCell/EditableSelectCell';
 import { EditableCheckboxCell } from './EditableCheckboxCell/EditableCheckboxCell';
 import { BadgeCell } from './BadgeCell'; // Phase 10.4: Badge cell
 import { ProgressCell } from './ProgressCell'; // Phase 10.10: Progress bar cell
+import { ReferenceCell } from './ReferenceCell'; // Phase 11: Reference data cell
 
 interface CellRendererProps {
   value: unknown;
@@ -31,6 +32,9 @@ interface CellRendererProps {
   onSave?: (value: any) => void;
   onCancel?: () => void;
   error?: string;
+  // Phase 11: Reference cell props
+  referenceType?: string;
+  onCreateSuccess?: (item: any) => void;
 }
 
 export function CellRenderer({
@@ -45,6 +49,8 @@ export function CellRenderer({
   onSave = () => {},
   onCancel = () => {},
   error,
+  referenceType,
+  onCreateSuccess,
 }: CellRendererProps) {
   // If cell is editable, use editable components
   if (isEditable) {
@@ -85,7 +91,7 @@ export function CellRenderer({
             onCancel={onCancel}
             isEditing={isEditing}
             onStartEdit={onStartEdit}
-            options={cellOptions?.options || []}
+            options={(cellOptions?.options || []).map(opt => typeof opt === 'string' ? opt : opt.value)}
             error={error}
           />
         );
@@ -96,6 +102,22 @@ export function CellRenderer({
           <EditableCheckboxCell
             value={value as boolean}
             onSave={onSave}
+          />
+        );
+
+      case CellType.REFERENCE:
+        // ReferenceCell handles its own editing state internally
+        if (!referenceType) {
+          console.warn('[CellRenderer] ReferenceCell requires referenceType prop');
+          return <TextCell value={value as string} />;
+        }
+        return (
+          <ReferenceCell
+            type={referenceType}
+            value={value}
+            onChange={onSave}
+            onCreateSuccess={onCreateSuccess}
+            variant={cellOptions?.referenceVariant || 'default'}
           />
         );
 
@@ -154,6 +176,21 @@ export function CellRenderer({
           label={cellOptions?.progressLabel}
           thresholds={cellOptions?.progressThresholds}
           animated={cellOptions?.animatedProgress}
+        />
+      );
+
+    case CellType.REFERENCE:
+      if (!referenceType) {
+        console.warn('[CellRenderer] ReferenceCell requires referenceType prop');
+        return <TextCell value={value as string} />;
+      }
+      return (
+        <ReferenceCell
+          type={referenceType}
+          value={value}
+          onChange={onSave}
+          onCreateSuccess={onCreateSuccess}
+          variant={cellOptions?.referenceVariant || 'default'}
         />
       );
 

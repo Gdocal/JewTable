@@ -192,6 +192,7 @@ export interface ReferenceCellProps {
   filter?: Record<string, any>;                // Filter context (for dependent refs)
   disabled?: boolean;
   placeholder?: string;
+  variant?: 'default' | 'minimal';             // UI variant (default: 'default')
 
   // Callbacks
   onCreateSuccess?: (item: any) => void;
