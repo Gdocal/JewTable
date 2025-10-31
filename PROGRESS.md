@@ -1163,6 +1163,36 @@ This table is being developed for an in-house ERP system with reference data (д
   - Or begin Phase 9: Mobile Adaptation
   - Or begin Phase 12: Testing & Documentation
 
+#### Session 10: Bug Fixes and Filter Enhancements
+- **Date:** 2025-10-31
+- **Action:** Fix reference filter chips to display labels instead of IDs
+- **Duration:** ~1 hour
+
+**Issues Fixed:**
+- **Reference Filter Chips:** FilterChips component now fetches reference data from endpoints and maps IDs to display labels
+- **Server Compatibility:** Fixed browser compatibility issue (removed require() usage)
+- **API Server:** Restarted servers after port conflicts
+
+**Files Updated:**
+- FilterChips.tsx (added reference data fetching with useEffect, ID-to-label mapping)
+- FilterChips.module.css (no changes)
+- DataTable.tsx (removed unused table prop)
+
+**Features Implemented:**
+- Reference data fetching in FilterChips component
+- ID-to-label mapping for reference columns
+- Display reference labels (e.g., "Engineering", "Marketing") instead of IDs (1, 2) in filter chips
+- Proper error handling for failed reference data fetches
+
+**Git Commit:** 5f6a9c9 - "fix: Display reference labels instead of IDs in filter chips"
+
+**Status:** ✅ COMPLETE & COMMITTED
+
+**Next Steps:**
+  - Continue Phase 10: Additional features (Column resizing, row expanding, etc.)
+  - Or begin Phase 9: Mobile Adaptation
+  - Or begin Phase 12: Testing & Documentation
+
 ---
 
 ## Notes & Decisions
