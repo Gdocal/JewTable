@@ -80,6 +80,8 @@ export interface DataTableProps<TData extends RowData = RowData> {
   enableVirtualization?: boolean;
   enableStickyFirstColumn?: boolean; // Phase 10.2: Sticky first column for horizontal scroll
   enableRowExpanding?: boolean; // Phase 10.5: Row expanding
+  enableColumnResizing?: boolean; // Phase 10.3: Column resizing
+  enableColumnReordering?: boolean; // Phase 10.6: Column reordering
 
   // UI customization
   pageSize?: number;

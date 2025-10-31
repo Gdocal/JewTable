@@ -18,6 +18,7 @@ import {
   FilterFn,
   RowSelectionState,
   ColumnSizingState,
+  ColumnOrderState,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
@@ -35,9 +36,11 @@ import {
   arrayMove,
   SortableContext,
   verticalListSortingStrategy,
+  horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
   restrictToVerticalAxis,
+  restrictToHorizontalAxis,
   restrictToParentElement,
 } from '@dnd-kit/modifiers';
 import { DataTableProps, RowData, TableMode, PaginationType } from './types/table.types';
@@ -51,6 +54,7 @@ import { TableFooter } from './components/TableFooter/TableFooter';
 import { EmptyState } from './components/EmptyState/EmptyState';
 import { RowActions } from './components/RowActions/RowActions';
 import { DraggableRow } from './components/DraggableRow/DraggableRow';
+import { DraggableColumnHeader } from './components/DraggableColumnHeader/DraggableColumnHeader';
 import { DragHandleCell } from './components/DragHandleCell/DragHandleCell';
 import { PaginationControls } from './components/PaginationControls/PaginationControls';
 import { SelectionCell } from './cells/SelectionCell';
@@ -147,6 +151,7 @@ export function DataTable<TData extends RowData>({
   enableStickyFirstColumn = false,
   enableRowExpanding = false,
   enableColumnResizing = false,
+  enableColumnReordering = false,
   renderExpandedContent,
   rowHeight = 53,
   pageSizeOptions,
@@ -206,6 +211,9 @@ export function DataTable<TData extends RowData>({
 
   // Column sizing state (Phase 10.3 - Column resizing)
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
+
+  // Column order state (Phase 10.6 - Column reordering)
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
 
   // Horizontal scroll shadows state (Phase 10.2 - Horizontal scroll)
   const [showLeftShadow, setShowLeftShadow] = useState(false);
@@ -596,6 +604,22 @@ export function DataTable<TData extends RowData>({
     setActiveId(null); // Clear active ID
   };
 
+  // Handle column drag end (Phase 10.6 - Column reordering)
+  const handleColumnDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = columnOrder.indexOf(active.id as string);
+    const newIndex = columnOrder.indexOf(over.id as string);
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      setColumnOrder(arrayMove(columnOrder, oldIndex, newIndex));
+    }
+  };
+
   // Get display data - merge original data with modifications, filter out deleted
   const displayData = useMemo(() => {
     // Start with original data (excluding deleted rows)
@@ -843,6 +867,13 @@ export function DataTable<TData extends RowData>({
     return userColumns;
   }, [columns, enableSorting, editingCell, enableInlineEditing, enableRowCreation, enableRowCopy, enableRowInsertion, enableRowDeletion, enableRowReordering, newRows]);
 
+  // Initialize column order (Phase 10.6 - Column reordering)
+  useEffect(() => {
+    if (columnOrder.length === 0 && tableColumns.length > 0) {
+      setColumnOrder(tableColumns.map((col) => (col as any).id || (col as any).accessorKey));
+    }
+  }, [tableColumns, columnOrder.length]);
+
   // Determine if using manual pagination (Phase 8.3)
   const useManualPagination = mode === TableMode.SERVER && paginationType === PaginationType.TRADITIONAL;
 
@@ -859,6 +890,7 @@ export function DataTable<TData extends RowData>({
       columnFilters,
       rowSelection, // Phase 10.1: Row selection state
       columnSizing, // Phase 10.3: Column sizing state
+      columnOrder, // Phase 10.6: Column order state
       ...(useManualPagination ? { pagination } : {}),
     },
     onSortingChange: setSorting,
@@ -866,6 +898,7 @@ export function DataTable<TData extends RowData>({
     onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection, // Phase 10.1: Row selection handler
     onColumnSizingChange: setColumnSizing, // Phase 10.3: Column sizing handler
+    onColumnOrderChange: setColumnOrder, // Phase 10.6: Column order handler
     enableRowSelection: true, // Phase 10.1: Enable row selection
     columnResizeMode: 'onChange', // Phase 10.3: Update column size on drag
     ...(useManualPagination ? { onPaginationChange: setPagination } : {}),
@@ -1083,8 +1116,19 @@ export function DataTable<TData extends RowData>({
             modifiers={[restrictToVerticalAxis, restrictToParentElement]}
           >
             <table className={`${styles.table} ${enableStickyFirstColumn ? styles.stickyFirstColumn : ''}`}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleColumnDragEnd}
+            modifiers={[restrictToHorizontalAxis]}
+          >
           <thead ref={theadRef} className={styles.thead}>
             {table.getHeaderGroups().map((headerGroup) => (
+              <SortableContext
+                items={columnOrder}
+                strategy={horizontalListSortingStrategy}
+                disabled={!enableColumnReordering}
+              >
               <tr key={headerGroup.id} className={styles.headerRow}>
                 {headerGroup.headers.map((header) => {
                   // Find the original column definition by matching id or accessorKey
@@ -1098,19 +1142,11 @@ export function DataTable<TData extends RowData>({
                   const isSelectionColumn = (header.column.columnDef.meta as any)?.isSelectionColumn;
                   const isExpandColumn = (header.column.columnDef.meta as any)?.isExpandColumn;
 
-                  return (
-                    <th
-                      key={header.id}
-                      className={`${styles.th} ${
-                        header.column.getCanSort() ? styles.sortable : ''
-                      } ${header.column.getIsSorted() ? styles.sorted : ''} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`}
-                      onClick={header.column.getToggleSortingHandler()}
-                      style={{
-                        cursor: header.column.getCanSort() ? 'pointer' : 'default',
-                        width: header.getSize(),
-                        position: 'relative'
-                      }}
-                    >
+                  // Don't make special columns (drag, selection, expand) reorderable
+                  const isReorderable = enableColumnReordering && !isDragColumn && !isSelectionColumn && !isExpandColumn;
+
+                  const headerContent = (
+                    <>
                       <div className={styles.thContent}>
                         {header.isPlaceholder
                           ? null
@@ -1143,12 +1179,45 @@ export function DataTable<TData extends RowData>({
                           className={`${styles.resizeHandle} ${header.column.getIsResizing() ? styles.isResizing : ''}`}
                         />
                       )}
+                    </>
+                  );
+
+                  const headerClassName = `${styles.th} ${
+                    header.column.getCanSort() ? styles.sortable : ''
+                  } ${header.column.getIsSorted() ? styles.sorted : ''} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`;
+
+                  const headerStyle = {
+                    cursor: header.column.getCanSort() ? 'pointer' : 'default',
+                    width: header.getSize(),
+                    position: 'relative' as const,
+                  };
+
+                  return isReorderable ? (
+                    <DraggableColumnHeader
+                      key={header.id}
+                      id={header.id}
+                      className={headerClassName}
+                      style={headerStyle}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      {headerContent}
+                    </DraggableColumnHeader>
+                  ) : (
+                    <th
+                      key={header.id}
+                      className={headerClassName}
+                      style={headerStyle}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      {headerContent}
                     </th>
                   );
                 })}
               </tr>
+              </SortableContext>
             ))}
           </thead>
+          </DndContext>
           <SortableContext
             items={rowOrder}
             strategy={verticalListSortingStrategy}
@@ -1393,8 +1462,19 @@ export function DataTable<TData extends RowData>({
             modifiers={[restrictToVerticalAxis, restrictToParentElement]}
           >
             <table className={`${styles.table} ${enableStickyFirstColumn ? styles.stickyFirstColumn : ''}`}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleColumnDragEnd}
+            modifiers={[restrictToHorizontalAxis]}
+          >
           <thead ref={theadRef} className={styles.thead}>
             {table.getHeaderGroups().map((headerGroup) => (
+              <SortableContext
+                items={columnOrder}
+                strategy={horizontalListSortingStrategy}
+                disabled={!enableColumnReordering}
+              >
               <tr key={headerGroup.id} className={styles.headerRow}>
                 {headerGroup.headers.map((header) => {
                   // Find the original column definition by matching id or accessorKey
@@ -1408,19 +1488,11 @@ export function DataTable<TData extends RowData>({
                   const isSelectionColumn = (header.column.columnDef.meta as any)?.isSelectionColumn;
                   const isExpandColumn = (header.column.columnDef.meta as any)?.isExpandColumn;
 
-                  return (
-                    <th
-                      key={header.id}
-                      className={`${styles.th} ${
-                        header.column.getCanSort() ? styles.sortable : ''
-                      } ${header.column.getIsSorted() ? styles.sorted : ''} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`}
-                      onClick={header.column.getToggleSortingHandler()}
-                      style={{
-                        cursor: header.column.getCanSort() ? 'pointer' : 'default',
-                        width: header.getSize(),
-                        position: 'relative'
-                      }}
-                    >
+                  // Don't make special columns (drag, selection, expand) reorderable
+                  const isReorderable = enableColumnReordering && !isDragColumn && !isSelectionColumn && !isExpandColumn;
+
+                  const headerContent = (
+                    <>
                       <div className={styles.thContent}>
                         {header.isPlaceholder
                           ? null
@@ -1453,12 +1525,45 @@ export function DataTable<TData extends RowData>({
                           className={`${styles.resizeHandle} ${header.column.getIsResizing() ? styles.isResizing : ''}`}
                         />
                       )}
+                    </>
+                  );
+
+                  const headerClassName = `${styles.th} ${
+                    header.column.getCanSort() ? styles.sortable : ''
+                  } ${header.column.getIsSorted() ? styles.sorted : ''} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`;
+
+                  const headerStyle = {
+                    cursor: header.column.getCanSort() ? 'pointer' : 'default',
+                    width: header.getSize(),
+                    position: 'relative' as const,
+                  };
+
+                  return isReorderable ? (
+                    <DraggableColumnHeader
+                      key={header.id}
+                      id={header.id}
+                      className={headerClassName}
+                      style={headerStyle}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      {headerContent}
+                    </DraggableColumnHeader>
+                  ) : (
+                    <th
+                      key={header.id}
+                      className={headerClassName}
+                      style={headerStyle}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      {headerContent}
                     </th>
                   );
                 })}
               </tr>
+              </SortableContext>
             ))}
           </thead>
+          </DndContext>
           <SortableContext
             items={rowOrder}
             strategy={verticalListSortingStrategy}
