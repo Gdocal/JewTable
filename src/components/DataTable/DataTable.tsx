@@ -217,7 +217,7 @@ export function DataTable<TData extends RowData>({
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
   // Column order state (Phase 10.6 - Column reordering)
-  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() => []);
 
   // Column visibility state (Phase 10.7 - Column visibility toggle)
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -901,7 +901,7 @@ export function DataTable<TData extends RowData>({
       columnFilters,
       rowSelection, // Phase 10.1: Row selection state
       columnSizing, // Phase 10.3: Column sizing state
-      columnOrder, // Phase 10.6: Column order state
+      ...(columnOrder.length > 0 ? { columnOrder } : {}), // Phase 10.6: Only set order if initialized
       columnVisibility, // Phase 10.7: Column visibility state
       ...(useManualPagination ? { pagination } : {}),
     },
