@@ -887,7 +887,6 @@ export function DataTable<TData extends RowData>({
   // Sync columnOrder when tableColumns change (e.g., columns added/removed)
   React.useEffect(() => {
     if (initialColumnOrder.length > 0 && initialColumnOrder.join(',') !== columnOrder.join(',')) {
-      console.log('Syncing columnOrder with new tableColumns');
       setColumnOrder(initialColumnOrder);
     }
   }, [initialColumnOrder]);
@@ -898,11 +897,6 @@ export function DataTable<TData extends RowData>({
   // Determine if using traditional pagination (any mode) - for CSS styling
   const isTraditionalPagination = paginationType === PaginationType.TRADITIONAL;
 
-  // Debug column visibility and sizing
-  React.useEffect(() => {
-    console.log('Column visibility state:', columnVisibility);
-    console.log('Column sizing state:', columnSizing);
-  }, [columnVisibility, columnSizing]);
 
   // Initialize TanStack Table
   const table = useReactTable({
@@ -1165,9 +1159,7 @@ export function DataTable<TData extends RowData>({
             modifiers={[restrictToHorizontalAxis]}
           >
           <thead ref={theadRef} className={styles.thead}>
-            {table.getHeaderGroups().map((headerGroup) => {
-              console.log('Rendering headers:', headerGroup.headers.map(h => ({ id: h.id, colId: h.column.id })));
-              return (
+            {table.getHeaderGroups().map((headerGroup) => (
               <SortableContext
                 key={headerGroup.id}
                 items={columnOrder}
@@ -1260,8 +1252,7 @@ export function DataTable<TData extends RowData>({
                 })}
               </tr>
               </SortableContext>
-            );
-            })}
+            ))}
           </thead>
           </DndContext>
           <SortableContext
@@ -1515,9 +1506,7 @@ export function DataTable<TData extends RowData>({
             modifiers={[restrictToHorizontalAxis]}
           >
           <thead ref={theadRef} className={styles.thead}>
-            {table.getHeaderGroups().map((headerGroup) => {
-              console.log('Rendering headers:', headerGroup.headers.map(h => ({ id: h.id, colId: h.column.id })));
-              return (
+            {table.getHeaderGroups().map((headerGroup) => (
               <SortableContext
                 key={headerGroup.id}
                 items={columnOrder}
@@ -1610,8 +1599,7 @@ export function DataTable<TData extends RowData>({
                 })}
               </tr>
               </SortableContext>
-            );
-            })}
+            ))}
           </thead>
           </DndContext>
           <SortableContext
