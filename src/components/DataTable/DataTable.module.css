@@ -37,7 +37,7 @@
   min-width: 100%; /* Allow table to expand beyond container for horizontal scroll */
   border-collapse: collapse;
   font-size: 14px;
-  table-layout: fixed; /* Enforce column widths */
+  table-layout: auto; /* Allow table to expand to fit all columns */
 }
 
 /* Sticky first column - Phase 10.2 */
@@ -91,7 +91,7 @@
   position: relative;
   max-height: 600px;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: visible; /* Allow horizontal scroll to work */
 }
 
 /* Virtual scroll content wrapper - holds total height for proper scrollbar sizing */
