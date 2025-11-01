@@ -1327,7 +1327,7 @@ export function DataTable<TData extends RowData>({
 
                   const headerStyle = {
                     cursor: header.column.getCanSort() && !isAnyColumnResizing ? 'pointer' : 'default',
-                    width: header.getSize(),
+                    width: `${header.getSize()}px`,
                     position: 'relative' as const,
                   };
 
@@ -1711,7 +1711,7 @@ export function DataTable<TData extends RowData>({
 
                   const headerStyle = {
                     cursor: header.column.getCanSort() && !isAnyColumnResizing ? 'pointer' : 'default',
-                    width: header.getSize(),
+                    width: `${header.getSize()}px`,
                     position: 'relative' as const,
                   };
 

@@ -133,13 +133,13 @@
 }
 
 .thContent {
-  display: block;
   position: relative;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   /* Add padding to prevent text from going under icons */
   padding-right: 48px;
+  /* Don't use display:block as it interferes with table-layout:fixed width calculations */
 }
 
 /* First column (checkbox) has no icons - remove padding */
