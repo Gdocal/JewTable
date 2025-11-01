@@ -1778,7 +1778,7 @@ export function DataTable<TData extends RowData>({
                       <DraggableRow
                         id={row.original.id}
                         className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
-                        style={rowStyle}
+                        style={{ ...rowStyle, width: `${totalTableWidth}px` }}
                         isDragDisabled={!!sorting.length || !!columnFilters.length || !!globalFilter}
                       >
                         {row.getVisibleCells().map((cell) => {
@@ -1800,7 +1800,7 @@ export function DataTable<TData extends RowData>({
                     ) : (
                       <tr
                         className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
-                        style={rowStyle}
+                        style={{ ...rowStyle, width: `${totalTableWidth}px` }}
                       >
                         {row.getVisibleCells().map((cell) => {
                           const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
