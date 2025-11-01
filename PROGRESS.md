@@ -18,11 +18,11 @@
 - [x] **Phase 7:** Virtualization (2-3h) ✅ COMPLETE
 - [x] **Phase 8:** Server Integration (3-4h) ✅ COMPLETE
 - [ ] **Phase 9:** Mobile Adaptation (4-5h)
-- [~] **Phase 10:** Additional Features (8-10h) ⏳ IN PROGRESS (6/10 features done, 60%)
+- [~] **Phase 10:** Additional Features (8-10h) ⏳ IN PROGRESS (7/10 features done, 70%)
 - [x] **Phase 11:** ERP Integration Features (6h) ✅ COMPLETE
 - [ ] **Phase 12:** Testing & Documentation (2-3h)
 
-**Total Progress:** 9/13 phases complete (69%), Phase 10 in progress (60%)
+**Total Progress:** 9/13 phases complete (69%), Phase 10 in progress (70%)
 
 ---
 
@@ -504,7 +504,7 @@
 
 ### Phase 10: Additional Features ⏳ In Progress
 **Estimated Time:** 8-10 hours
-**Status:** In Progress (6/10 major features complete, 60%)
+**Status:** In Progress (7/10 major features complete, 70%)
 **Started:** 2025-10-29
 **Completed:** -
 
@@ -523,14 +523,17 @@
   - [x] Sticky first column (optional prop)
   - [x] Scroll shadows for visual feedback (left/right)
   - [x] Automatic shadow detection
-- [ ] 10.3: Column resizing
-  - [ ] Resize handles on column headers
-  - [ ] Drag to resize columns
-  - [ ] Double-click to auto-fit content
-  - [ ] Min/max width constraints
-  - [ ] Save column widths to user preferences
-  - [ ] Storage strategy: localStorage (browser) or API (server)
-  - [ ] Device-specific preferences (desktop vs tablet)
+- [x] 10.3: Column resizing ✅
+  - [x] Resize handles on column headers
+  - [x] Drag to resize columns
+  - [x] Min width constraints (5px minimum)
+  - [x] Fixed z-index layering for proper clickability
+  - [x] Solid icon backgrounds for visibility
+  - [x] Tooltips for truncated column names
+  - [ ] Double-click to auto-fit content (deferred)
+  - [ ] Save column widths to user preferences (deferred)
+  - [ ] Storage strategy: localStorage (browser) or API (server) (deferred)
+  - [ ] Device-specific preferences (desktop vs tablet) (deferred)
 - [x] 10.4: Badge columns (Status & Command labels) ✅
   - [x] Create BadgeCell component
   - [x] Color badge cell type (status labels with colors)
@@ -599,6 +602,7 @@
 - ✅ Row selection with batch operations (delete, clear)
 - ✅ Horizontal scroll with shadow indicators
 - ✅ Sticky first column option
+- ✅ Column resizing with proper z-index layering
 - ✅ Badge columns with 8 color variants
 - ✅ Row expanding with CSS containment performance optimization
 - ✅ Progress bar column with color thresholds
@@ -1196,7 +1200,55 @@ This table is being developed for an in-house ERP system with reference data (д
   - Or begin Phase 9: Mobile Adaptation
   - Or begin Phase 12: Testing & Documentation
 
-#### Session 11: Phase 10.5 - Row Expanding with Performance Optimization
+#### Session 11: Phase 10.3 - Column Resizing
+- **Date:** 2025-10-31
+- **Action:** Implement column resizing with proper z-index layering
+- **Duration:** ~2 hours
+
+**Issues Fixed:**
+- **Column Header Icons Overlapping:** Moved sort/filter icons outside .thContent to prevent overflow issues
+- **Resize Handle Not Clickable:** Fixed z-index conflict (resize handle now z-index: 3, above icons at z-index: 2)
+- **Icon Bleeding:** Added solid background to header icons with proper layering
+- **Text Truncation:** Added tooltips to truncated column header text
+- **Minimum Column Size:** Set minSize to 5px so users can still restore very small columns
+
+**Files Updated:**
+- DataTable.tsx (restructured header content rendering, added tooltips)
+- DataTable.module.css (fixed z-index layering, added icon backgrounds)
+
+**Features Implemented:**
+- **Column Resizing:** Drag handles on column headers with visual feedback
+- **Icon Protection:** Sort/filter icons always visible with solid backgrounds
+- **Smart Layering:** Proper z-index hierarchy (resize: 3, icons: 2, content: 1)
+- **Tooltips:** Hover to see full column name when text is truncated
+- **Minimum Size:** 5px minimum allows columns to be very small but still recoverable
+
+**Technical Details:**
+- Header icons positioned absolutely outside .thContent
+- Solid background (match header color) overlays text for visibility
+- Resize handle positioned at z-index: 3 for guaranteed clickability
+- Box-sizing: border-box for consistent width calculations
+- Touch-friendly handles with proper event handling
+
+**Git Commit:** 4c826c9 - "fix: Resolve column header icon/resize conflicts and add mobile view option"
+
+**Status:** ✅ COMPLETE & COMMITTED
+
+**Phase 10 Progress:** 6.5/10 features complete (65%)
+- ✅ 10.1: Row selection & batch editing
+- ✅ 10.2: Horizontal scroll
+- ✅ 10.3: Column resizing ⬅️ NEW
+- ✅ 10.4: Badge columns
+- ✅ 10.5: Row expanding
+- ✅ 10.10: Progress bar column
+- ✅ Bonus: Page size selector
+
+**Notes:**
+- Mobile card view feature added but may be disabled for ERP use cases
+- Set `enableMobileView={false}` to keep table view on all devices
+- Mobile view suitable for consumer apps, not optimal for data-heavy ERP systems
+
+#### Session 12: Phase 10.5 - Row Expanding with Performance Optimization
 - **Date:** 2025-10-31
 - **Action:** Implement row expanding feature with CSS containment performance optimization
 - **Duration:** ~3 hours
@@ -1290,5 +1342,5 @@ This table is being developed for an in-house ERP system with reference data (д
 
 ---
 
-**Last Updated:** 2025-10-29
+**Last Updated:** 2025-11-01
 **Updated By:** Development Team
