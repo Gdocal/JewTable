@@ -1248,6 +1248,37 @@ This table is being developed for an in-house ERP system with reference data (д
 - Set `enableMobileView={false}` to keep table view on all devices
 - Mobile view suitable for consumer apps, not optimal for data-heavy ERP systems
 
+#### Session 11.1: Regression Fix - Column Width Alignment
+- **Date:** 2025-11-01
+- **Action:** Fixed column width alignment regression after header restructuring
+- **Duration:** ~30 minutes
+
+**Issue:**
+- After the header icon/resize handle restructuring in Session 11, column data widths stopped following header widths during resize operations
+- Headers and body cells had misaligned widths, breaking the table-layout: fixed behavior
+
+**Root Causes:**
+1. **Inconsistent width formats:** Header cells used numeric width values (e.g., `150`) while body cells used string values with units (e.g., `"150px"`)
+2. **CSS interference:** The `.thContent` div had `display: block` which interfered with table-layout: fixed width calculations
+
+**Fixes Applied:**
+- Changed header cell width from `width: header.getSize()` to `width: \`\${header.getSize()}px\`` for consistency with body cells
+- Removed `display: block` from `.thContent` CSS to prevent interference with table-layout: fixed width calculations
+- All inline width styles now use consistent format (string with "px" units)
+
+**Files Updated:**
+- DataTable.tsx (header width format consistency)
+- DataTable.module.css (removed display: block from .thContent)
+
+**Technical Details:**
+- With table-layout: fixed, browsers expect consistent width formats for proper column alignment
+- Nested elements with display: block can affect how browsers calculate table cell widths
+- String format with units (e.g., "150px") is more explicit and reliable than numeric values
+
+**Git Commit:** 0b6e730 - "fix: Column width alignment regression after header restructuring"
+
+**Status:** ✅ FIXED & COMMITTED
+
 #### Session 12: Phase 10.5 - Row Expanding with Performance Optimization
 - **Date:** 2025-10-31
 - **Action:** Implement row expanding feature with CSS containment performance optimization
