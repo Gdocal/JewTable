@@ -1,0 +1,265 @@
+/* MobileCard Styles - Optimized for touch interfaces */
+
+.card {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 150ms ease;
+  position: relative;
+  /* Optimize for touch interactions */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card:active {
+  transform: scale(0.98);
+}
+
+.card.selected {
+  border-color: #0d6efd;
+  background-color: #f8f9ff;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.15);
+}
+
+.card.expanded {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Header */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.checkbox {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #0d6efd;
+}
+
+.cardTitle {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actionsButton {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: #495057;
+  font-size: 14px;
+  transition: all 150ms ease;
+  /* Larger touch target */
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionsButton:active {
+  background-color: #e9ecef;
+  transform: scale(0.95);
+}
+
+.expandButton {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 6px;
+  cursor: pointer;
+  color: #495057;
+  transition: all 150ms ease;
+  /* Larger touch target */
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.expandButton:active {
+  background-color: #e9ecef;
+}
+
+.expandButton.expanded {
+  transform: rotate(90deg);
+}
+
+/* Card Body */
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.fieldValue {
+  font-size: 14px;
+  color: #212529;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.field.inline .fieldLabel {
+  flex-shrink: 0;
+  min-width: 100px;
+}
+
+.field.inline .fieldValue {
+  flex: 1;
+}
+
+/* Expanded Content */
+.expandedContent {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e9ecef;
+  animation: slideDown 200ms ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading State */
+.cardSkeleton {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.skeletonHeader {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.skeletonCheckbox {
+  width: 20px;
+  height: 20px;
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.skeletonTitle {
+  flex: 1;
+  height: 20px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeletonBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skeletonLabel {
+  width: 80px;
+  height: 12px;
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.skeletonValue {
+  width: 100%;
+  height: 16px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 48px 24px;
+  color: #6c757d;
+}
+
+.emptyStateIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.emptyStateText {
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Responsive adjustments */
+@media (min-width: 769px) {
+  /* On larger screens, cards can be in a grid */
+  .card {
+    margin-bottom: 16px;
+  }
+}

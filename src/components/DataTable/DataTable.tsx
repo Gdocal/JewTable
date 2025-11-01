@@ -64,6 +64,8 @@ import { BatchActionsToolbar } from './components/BatchActionsToolbar';
 import { ColumnVisibilityMenu } from './components/ColumnVisibilityMenu/ColumnVisibilityMenu';
 import { RowDetailsModal } from './components/RowDetailsModal/RowDetailsModal';
 import { ImportExportButtons } from './components/ImportExportButtons/ImportExportButtons';
+import { MobileCard, MobileCardSkeleton, MobileEmptyState } from './components/Mobile';
+import { useIsMobile } from './hooks/useIsMobile';
 import {
   applyTextFilter,
   applyNumberFilter,
@@ -156,11 +158,15 @@ export function DataTable<TData extends RowData>({
   enableRowExpanding = false,
   enableColumnResizing = false,
   enableColumnReordering = false,
+  enableMobileView = true,
   renderExpandedContent,
   rowHeight = 53,
   pageSizeOptions,
   onRowReorder,
 }: DataTableProps<TData>) {
+  // Detect mobile viewport
+  const isMobile = useIsMobile();
+
   // Ref for table header (used for filter popover positioning)
   const theadRef = React.useRef<HTMLTableSectionElement>(null);
 
@@ -921,6 +927,9 @@ export function DataTable<TData extends RowData>({
     onColumnVisibilityChange: setColumnVisibility, // Phase 10.7: Column visibility handler
     enableRowSelection: true, // Phase 10.1: Enable row selection
     columnResizeMode: 'onChange', // Phase 10.3: Update column size on drag
+    defaultColumn: {
+      minSize: 5, // Phase 10.3: Allow columns to be very small (5px) so users can restore later
+    },
     ...(useManualPagination ? { onPaginationChange: setPagination } : {}),
     getCoreRowModel: getCoreRowModel(),
     // Phase 8.4: Only use client-side sorting/filtering in client mode
@@ -978,6 +987,41 @@ export function DataTable<TData extends RowData>({
       rowVirtualizer.measure();
     }
   }, [expandedRows, shouldUseVirtualization, enableRowExpanding, rowVirtualizer]);
+
+  // Calculate total table width from all visible columns (Phase 10.3 - Column resizing)
+  // This ensures the table maintains its full width even when wider than viewport
+  const totalTableWidth = useMemo(() => {
+    return table.getAllColumns()
+      .filter(col => col.getIsVisible())
+      .reduce((sum, col) => {
+        const meta = col.columnDef.meta as any;
+        const isDragCol = meta?.isDragColumn;
+        const isExpandCol = meta?.isExpandColumn;
+        const isSelectCol = meta?.isSelectionColumn;
+
+        if (isDragCol) return sum + 32;
+        if (isExpandCol) return sum + 32;
+        if (isSelectCol) return sum + 48;
+
+        return sum + col.getSize();
+      }, 0);
+  }, [table, columnSizing, columnVisibility]);
+
+  // Track if any column is being resized (Phase 10.3)
+  // This prevents column reordering from interfering with resize operations
+  const isAnyColumnResizing = table.getState().columnSizingInfo.isResizingColumn !== null;
+
+  // Calculate scrollbar width for header alignment (Phase 10.3 - Virtualization fix)
+  // The tbody scrollbar consumes space, making body narrower than header
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
+
+  useEffect(() => {
+    if (!tbodyRef.current || !shouldUseVirtualization) return;
+
+    // Measure scrollbar width by comparing offsetWidth to clientWidth
+    const scrollbarSize = tbodyRef.current.offsetWidth - tbodyRef.current.clientWidth;
+    setScrollbarWidth(scrollbarSize);
+  }, [shouldUseVirtualization, table.getRowModel().rows.length, columnSizing]);
 
   // Pagination change callback (Phase 8.3 - Traditional pagination)
   useEffect(() => {
@@ -1141,7 +1185,56 @@ export function DataTable<TData extends RowData>({
         }}
       />
 
-      {enableVirtualization ? (
+      {/* Mobile card view - automatically switches on mobile devices */}
+      {isMobile && enableMobileView ? (
+        <div style={{ marginTop: '16px' }}>
+          {/* Loading state */}
+          {isLoading && table.getRowModel().rows.length === 0 ? (
+            <>
+              {[1, 2, 3].map((i) => (
+                <MobileCardSkeleton key={i} />
+              ))}
+            </>
+          ) : table.getRowModel().rows.length === 0 ? (
+            /* Empty state */
+            <MobileEmptyState message="No data to display" />
+          ) : (
+            /* Card list */
+            <>
+              {table.getRowModel().rows.map((row) => (
+                <MobileCard
+                  key={row.id}
+                  row={row}
+                  enableRowSelection={true}
+                  enableRowExpanding={enableRowExpanding}
+                  renderExpandedContent={renderExpandedContent}
+                />
+              ))}
+
+              {/* Infinite scroll loading indicator */}
+              {isFetchingNextPage && (
+                <>
+                  {[1, 2].map((i) => (
+                    <MobileCardSkeleton key={`loading-${i}`} />
+                  ))}
+                </>
+              )}
+
+              {/* Traditional pagination controls */}
+              {isTraditionalPagination && (
+                <div style={{ marginTop: '16px' }}>
+                  <PaginationControls
+                    table={table}
+                    isLoading={isLoading}
+                    isFetching={isFetching}
+                    pageSizeOptions={pageSizeOptions}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      ) : enableVirtualization ? (
         <div ref={scrollContainerRef} className={`${styles.virtualizationContainer} ${isTraditionalPagination ? styles.paginationMode : ''} ${showLoadingOverlay ? styles.loadingOverlay : ''}`}>
           <DndContext
             sensors={sensors}
@@ -1151,7 +1244,10 @@ export function DataTable<TData extends RowData>({
             onDragCancel={() => setActiveId(null)}
             modifiers={[restrictToVerticalAxis, restrictToParentElement]}
           >
-            <table className={`${styles.table} ${enableStickyFirstColumn ? styles.stickyFirstColumn : ''}`}>
+            <table
+              className={`${styles.table} ${enableStickyFirstColumn ? styles.stickyFirstColumn : ''}`}
+              style={{ width: `${totalTableWidth}px` }}
+            >
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -1164,9 +1260,9 @@ export function DataTable<TData extends RowData>({
                 key={headerGroup.id}
                 items={columnOrder}
                 strategy={horizontalListSortingStrategy}
-                disabled={!enableColumnReordering}
+                disabled={!enableColumnReordering || isAnyColumnResizing}
               >
-              <tr className={styles.headerRow}>
+              <tr className={styles.headerRow} style={{ width: `${totalTableWidth}px` }}>
                 {headerGroup.headers.map((header) => {
                   // Find the original column definition by matching id or accessorKey
                   const columnDef = columns.find(
@@ -1182,31 +1278,37 @@ export function DataTable<TData extends RowData>({
                   // Don't make special columns (drag, selection, expand) reorderable
                   const isReorderable = enableColumnReordering && !isDragColumn && !isSelectionColumn && !isExpandColumn;
 
+                  // Get the header text for tooltip
+                  const headerText = typeof header.column.columnDef.header === 'string'
+                    ? header.column.columnDef.header
+                    : header.column.id;
+
                   const headerContent = (
                     <>
-                      <div className={styles.thContent}>
+                      <div className={styles.thContent} title={headerText}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
                               header.getContext()
                             )}
-                        <div className={styles.headerIcons}>
-                          {header.column.getCanSort() && (
-                            <SortIndicator
-                              isSorted={header.column.getIsSorted()}
-                            />
-                          )}
-                          {canFilter && (
-                            <ColumnFilter
-                              column={header.column}
-                              cellType={cellType}
-                              cellOptions={columnDef?.cellOptions}
-                              selectOptions={columnDef?.cellOptions?.options || []}
-                              headerElement={theadRef.current}
-                            />
-                          )}
-                        </div>
+                      </div>
+                      {/* Icons positioned outside thContent to prevent being hidden by overflow */}
+                      <div className={styles.headerIcons}>
+                        {header.column.getCanSort() && (
+                          <SortIndicator
+                            isSorted={header.column.getIsSorted()}
+                          />
+                        )}
+                        {canFilter && (
+                          <ColumnFilter
+                            column={header.column}
+                            cellType={cellType}
+                            cellOptions={columnDef?.cellOptions}
+                            selectOptions={columnDef?.cellOptions?.options || []}
+                            headerElement={theadRef.current}
+                          />
+                        )}
                       </div>
                       {/* Resize handle - Phase 10.3 */}
                       {enableColumnResizing && header.column.getCanResize() && (
@@ -1224,9 +1326,19 @@ export function DataTable<TData extends RowData>({
                   } ${header.column.getIsSorted() ? styles.sorted : ''} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`;
 
                   const headerStyle = {
-                    cursor: header.column.getCanSort() ? 'pointer' : 'default',
+                    cursor: header.column.getCanSort() && !isAnyColumnResizing ? 'pointer' : 'default',
                     width: header.getSize(),
                     position: 'relative' as const,
+                  };
+
+                  // Prevent sorting when resizing is active
+                  const handleHeaderClick = (e: React.MouseEvent) => {
+                    if (isAnyColumnResizing) {
+                      e.stopPropagation();
+                      return;
+                    }
+                    const handler = header.column.getToggleSortingHandler();
+                    if (handler) handler(e);
                   };
 
                   return isReorderable ? (
@@ -1235,7 +1347,7 @@ export function DataTable<TData extends RowData>({
                       id={header.id}
                       className={headerClassName}
                       style={headerStyle}
-                      onClick={header.column.getToggleSortingHandler()}
+                      onClick={handleHeaderClick}
                     >
                       {headerContent}
                     </DraggableColumnHeader>
@@ -1244,12 +1356,16 @@ export function DataTable<TData extends RowData>({
                       key={header.id}
                       className={headerClassName}
                       style={headerStyle}
-                      onClick={header.column.getToggleSortingHandler()}
+                      onClick={handleHeaderClick}
                     >
                       {headerContent}
                     </th>
                   );
                 })}
+                {/* Dummy cell to reserve space for scrollbar */}
+                {shouldUseVirtualization && scrollbarWidth > 0 && (
+                  <th style={{ width: `${scrollbarWidth}px`, padding: 0, border: 'none' }}></th>
+                )}
               </tr>
               </SortableContext>
             ))}
@@ -1286,11 +1402,18 @@ export function DataTable<TData extends RowData>({
 
                       return (
                         <tr key={`skeleton-${virtualRow.index}`} className={styles.row} style={skeletonStyle}>
-                          {table.getAllColumns().map((column) => (
-                            <td key={column.id} className={styles.td}>
-                              <div className={styles.skeleton} />
-                            </td>
-                          ))}
+                          {table.getAllColumns().map((column) => {
+                            const meta = column.columnDef.meta as any;
+                            const isDragCol = meta?.isDragColumn;
+                            const isExpandCol = meta?.isExpandColumn;
+                            const isSelectCol = meta?.isSelectionColumn;
+                            const cellWidth = isDragCol ? 32 : (isExpandCol ? 32 : (isSelectCol ? 48 : column.getSize()));
+                            return (
+                              <td key={column.id} className={styles.td} style={{ width: `${cellWidth}px` }}>
+                                <div className={styles.skeleton} />
+                              </td>
+                            );
+                          })}
                         </tr>
                       );
                     }
@@ -1322,15 +1445,20 @@ export function DataTable<TData extends RowData>({
                             <DraggableRow
                               id={row.original.id}
                               className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
-                              style={rowStyle}
+                              style={{ ...rowStyle, width: `${totalTableWidth}px` }}
                               isDragDisabled={!!sorting.length || !!columnFilters.length || !!globalFilter}
                             >
                               {row.getVisibleCells().map((cell) => {
                                 const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
                                 const isSelectionColumn = (cell.column.columnDef.meta as any)?.isSelectionColumn;
                                 const isExpandColumn = (cell.column.columnDef.meta as any)?.isExpandColumn;
+                                const cellWidth = isDragColumn ? 32 : (isExpandColumn ? 32 : (isSelectionColumn ? 48 : cell.column.getSize()));
                                 return (
-                                  <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`}>
+                                  <td
+                                    key={cell.id}
+                                    className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`}
+                                    style={{ width: `${cellWidth}px` }}
+                                  >
                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                   </td>
                                 );
@@ -1339,14 +1467,19 @@ export function DataTable<TData extends RowData>({
                           ) : (
                             <tr
                               className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`}
-                              style={rowStyle}
+                              style={{ ...rowStyle, width: `${totalTableWidth}px` }}
                             >
                               {row.getVisibleCells().map((cell) => {
                                 const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
                                 const isSelectionColumn = (cell.column.columnDef.meta as any)?.isSelectionColumn;
                                 const isExpandColumn = (cell.column.columnDef.meta as any)?.isExpandColumn;
+                                const cellWidth = isDragColumn ? 32 : (isExpandColumn ? 32 : (isSelectionColumn ? 48 : cell.column.getSize()));
                                 return (
-                                  <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`}>
+                                  <td
+                                    key={cell.id}
+                                    className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`}
+                                    style={{ width: `${cellWidth}px` }}
+                                  >
                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                   </td>
                                 );
@@ -1511,9 +1644,9 @@ export function DataTable<TData extends RowData>({
                 key={headerGroup.id}
                 items={columnOrder}
                 strategy={horizontalListSortingStrategy}
-                disabled={!enableColumnReordering}
+                disabled={!enableColumnReordering || isAnyColumnResizing}
               >
-              <tr className={styles.headerRow}>
+              <tr className={styles.headerRow} style={{ width: `${totalTableWidth}px` }}>
                 {headerGroup.headers.map((header) => {
                   // Find the original column definition by matching id or accessorKey
                   const columnDef = columns.find(
@@ -1529,31 +1662,37 @@ export function DataTable<TData extends RowData>({
                   // Don't make special columns (drag, selection, expand) reorderable
                   const isReorderable = enableColumnReordering && !isDragColumn && !isSelectionColumn && !isExpandColumn;
 
+                  // Get the header text for tooltip
+                  const headerText = typeof header.column.columnDef.header === 'string'
+                    ? header.column.columnDef.header
+                    : header.column.id;
+
                   const headerContent = (
                     <>
-                      <div className={styles.thContent}>
+                      <div className={styles.thContent} title={headerText}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
                               header.getContext()
                             )}
-                        <div className={styles.headerIcons}>
-                          {header.column.getCanSort() && (
-                            <SortIndicator
-                              isSorted={header.column.getIsSorted()}
-                            />
-                          )}
-                          {canFilter && (
-                            <ColumnFilter
-                              column={header.column}
-                              cellType={cellType}
-                              cellOptions={columnDef?.cellOptions}
-                              selectOptions={columnDef?.cellOptions?.options || []}
-                              headerElement={theadRef.current}
-                            />
-                          )}
-                        </div>
+                      </div>
+                      {/* Icons positioned outside thContent to prevent being hidden by overflow */}
+                      <div className={styles.headerIcons}>
+                        {header.column.getCanSort() && (
+                          <SortIndicator
+                            isSorted={header.column.getIsSorted()}
+                          />
+                        )}
+                        {canFilter && (
+                          <ColumnFilter
+                            column={header.column}
+                            cellType={cellType}
+                            cellOptions={columnDef?.cellOptions}
+                            selectOptions={columnDef?.cellOptions?.options || []}
+                            headerElement={theadRef.current}
+                          />
+                        )}
                       </div>
                       {/* Resize handle - Phase 10.3 */}
                       {enableColumnResizing && header.column.getCanResize() && (
@@ -1571,9 +1710,19 @@ export function DataTable<TData extends RowData>({
                   } ${header.column.getIsSorted() ? styles.sorted : ''} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`;
 
                   const headerStyle = {
-                    cursor: header.column.getCanSort() ? 'pointer' : 'default',
+                    cursor: header.column.getCanSort() && !isAnyColumnResizing ? 'pointer' : 'default',
                     width: header.getSize(),
                     position: 'relative' as const,
+                  };
+
+                  // Prevent sorting when resizing is active
+                  const handleHeaderClick = (e: React.MouseEvent) => {
+                    if (isAnyColumnResizing) {
+                      e.stopPropagation();
+                      return;
+                    }
+                    const handler = header.column.getToggleSortingHandler();
+                    if (handler) handler(e);
                   };
 
                   return isReorderable ? (
@@ -1582,7 +1731,7 @@ export function DataTable<TData extends RowData>({
                       id={header.id}
                       className={headerClassName}
                       style={headerStyle}
-                      onClick={header.column.getToggleSortingHandler()}
+                      onClick={handleHeaderClick}
                     >
                       {headerContent}
                     </DraggableColumnHeader>
@@ -1591,12 +1740,16 @@ export function DataTable<TData extends RowData>({
                       key={header.id}
                       className={headerClassName}
                       style={headerStyle}
-                      onClick={header.column.getToggleSortingHandler()}
+                      onClick={handleHeaderClick}
                     >
                       {headerContent}
                     </th>
                   );
                 })}
+                {/* Dummy cell to reserve space for scrollbar */}
+                {shouldUseVirtualization && scrollbarWidth > 0 && (
+                  <th style={{ width: `${scrollbarWidth}px`, padding: 0, border: 'none' }}></th>
+                )}
               </tr>
               </SortableContext>
             ))}
@@ -1629,8 +1782,13 @@ export function DataTable<TData extends RowData>({
                           const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
                           const isSelectionColumn = (cell.column.columnDef.meta as any)?.isSelectionColumn;
                           const isExpandColumn = (cell.column.columnDef.meta as any)?.isExpandColumn;
+                          const cellWidth = isDragColumn ? 32 : (isExpandColumn ? 32 : (isSelectionColumn ? 48 : cell.column.getSize()));
                           return (
-                            <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`}>
+                            <td
+                              key={cell.id}
+                              className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`}
+                              style={{ width: `${cellWidth}px` }}
+                            >
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </td>
                           );
@@ -1645,8 +1803,13 @@ export function DataTable<TData extends RowData>({
                           const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
                           const isSelectionColumn = (cell.column.columnDef.meta as any)?.isSelectionColumn;
                           const isExpandColumn = (cell.column.columnDef.meta as any)?.isExpandColumn;
+                          const cellWidth = isDragColumn ? 32 : (isExpandColumn ? 32 : (isSelectionColumn ? 48 : cell.column.getSize()));
                           return (
-                            <td key={cell.id} className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`}>
+                            <td
+                              key={cell.id}
+                              className={`${styles.td} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`}
+                              style={{ width: `${cellWidth}px` }}
+                            >
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </td>
                           );

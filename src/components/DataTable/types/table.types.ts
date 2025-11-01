@@ -82,6 +82,7 @@ export interface DataTableProps<TData extends RowData = RowData> {
   enableRowExpanding?: boolean; // Phase 10.5: Row expanding
   enableColumnResizing?: boolean; // Phase 10.3: Column resizing
   enableColumnReordering?: boolean; // Phase 10.6: Column reordering
+  enableMobileView?: boolean; // Automatically switch to card view on mobile devices
 
   // UI customization
   pageSize?: number;
