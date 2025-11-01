@@ -1314,6 +1314,55 @@ This table is being developed for an in-house ERP system with reference data (д
 - ✅ Virtualized (infinite scroll) mode
 - ✅ Non-virtualized (traditional pagination) mode
 
+**Note:** This fix added table width but rows still needed width - see Session 11.3
+
+#### Session 11.3: Critical Fix - Missing Row Widths in Pagination Mode
+- **Date:** 2025-11-01
+- **Action:** Added missing row width styles that were preventing column resizing in pagination mode
+- **Duration:** ~15 minutes
+
+**Issue:**
+- After Sessions 11.1 and 11.2 fixes, column resizing STILL didn't work in pagination mode
+- User correctly identified that the issue was still present and requested deeper analysis
+
+**Root Cause - THE REAL ISSUE:**
+After comparing virtualized mode vs pagination mode line-by-line:
+- **Virtualized mode rows** (lines 1448, 1470): `style={{ ...rowStyle, width: \`\${totalTableWidth}px\` }}`
+- **Pagination mode rows** (lines 1781, 1803): `style={rowStyle}` ❌ **Missing width!**
+
+The individual row elements were missing the explicit width declaration. Even with:
+- ✅ Table element width (Session 11.2)
+- ✅ Header row width (already present)
+- ❌ Body row widths (THIS was the problem!)
+
+Without row widths, the table cells couldn't properly align with headers during resize operations, even with `table-layout: fixed`.
+
+**Fixes Applied:**
+- Line 1781: Added `width: \`\${totalTableWidth}px\`` to DraggableRow in pagination mode
+- Line 1803: Added `width: \`\${totalTableWidth}px\`` to regular tr in pagination mode
+- Both row types now match the virtualized mode structure exactly
+
+**Complete Width Hierarchy (All Three Levels Fixed):**
+1. ✅ Table element: `style={{ width: \`\${totalTableWidth}px\` }}` (Session 11.2)
+2. ✅ Header row: `style={{ width: \`\${totalTableWidth}px\` }}` (already present)
+3. ✅ Body rows: `style={{ ...rowStyle, width: \`\${totalTableWidth}px\` }}` ⬅️ **THIS FIX**
+
+**Files Updated:**
+- DataTable.tsx (added row widths to both DraggableRow and tr in pagination mode)
+
+**Technical Details:**
+- With `table-layout: fixed`, browsers need explicit widths at ALL levels for proper column sizing
+- Missing the row width meant cells could shift independently from the fixed column sizes
+- Now pagination mode structure exactly matches virtualized mode for consistent behavior
+
+**Git Commit:** 6cd3b33 - "fix: Add missing row widths in pagination mode for column resizing"
+
+**Status:** ✅ FIXED & COMMITTED
+
+**Final Verification:** Column resizing NOW works correctly in both modes:
+- ✅ Virtualized (infinite scroll) mode
+- ✅ Non-virtualized (traditional pagination) mode - **REALLY FIXED NOW**
+
 #### Session 12: Phase 10.5 - Row Expanding with Performance Optimization
 - **Date:** 2025-10-31
 - **Action:** Implement row expanding feature with CSS containment performance optimization
