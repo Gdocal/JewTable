@@ -1631,7 +1631,10 @@ export function DataTable<TData extends RowData>({
             onDragCancel={() => setActiveId(null)}
             modifiers={[restrictToVerticalAxis, restrictToParentElement]}
           >
-            <table className={`${styles.table} ${enableStickyFirstColumn ? styles.stickyFirstColumn : ''}`}>
+            <table
+              className={`${styles.table} ${enableStickyFirstColumn ? styles.stickyFirstColumn : ''}`}
+              style={{ width: `${totalTableWidth}px` }}
+            >
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
