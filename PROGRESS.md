@@ -1279,6 +1279,41 @@ This table is being developed for an in-house ERP system with reference data (д
 
 **Status:** ✅ FIXED & COMMITTED
 
+#### Session 11.2: Pagination Mode - Missing Table Width
+- **Date:** 2025-11-01
+- **Action:** Fixed column resizing for pagination mode by adding missing table width
+- **Duration:** ~10 minutes
+
+**Issue:**
+- After Session 11.1 fix, column resizing worked in infinite scroll mode but NOT in pagination mode
+- Headers and body cells still had misaligned widths during resize in traditional pagination
+
+**Root Cause:**
+- The table element in pagination mode (line 1634) was missing the width style
+- Virtualized mode (line 1249) had `style={{ width: \`\${totalTableWidth}px\` }}`
+- Pagination mode only had `<table className={...}>` with no width
+- Without explicit table width, browser doesn't respect column sizing constraints
+
+**Fix:**
+- Added `style={{ width: \`\${totalTableWidth}px\` }}` to pagination mode table element
+- Now both rendering modes have consistent table width declarations
+
+**Files Updated:**
+- DataTable.tsx (added table width style to pagination mode)
+
+**Technical Details:**
+- Both virtualized and non-virtualized modes now set explicit table width
+- The `totalTableWidth` calculation is shared between both modes
+- This ensures column resizing works consistently regardless of pagination type
+
+**Git Commit:** fc56a51 - "fix: Add missing table width style for pagination mode column resizing"
+
+**Status:** ✅ FIXED & COMMITTED
+
+**Verification:** Column resizing now works correctly in both modes:
+- ✅ Virtualized (infinite scroll) mode
+- ✅ Non-virtualized (traditional pagination) mode
+
 #### Session 12: Phase 10.5 - Row Expanding with Performance Optimization
 - **Date:** 2025-10-31
 - **Action:** Implement row expanding feature with CSS containment performance optimization
