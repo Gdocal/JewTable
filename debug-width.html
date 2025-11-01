@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DataTable Width Debug</title>
+  <style>
+    body { font-family: monospace; padding: 20px; }
+    .info { margin: 10px 0; padding: 10px; background: #f0f0f0; }
+    .error { background: #fee; }
+    .success { background: #efe; }
+  </style>
+</head>
+<body>
+  <h1>DataTable Column Resizing Debug</h1>
+  <button onclick="runDebug()">Run Debug Check</button>
+  <div id="output"></div>
+
+  <script>
+    function runDebug() {
+      const output = document.getElementById('output');
+      output.innerHTML = '';
+
+      // Check if table exists
+      const table = document.querySelector('table');
+      if (!table) {
+        output.innerHTML = '<div class="info error">No table found on page</div>';
+        return;
+      }
+
+      const results = [];
+
+      // Check table width
+      const tableWidth = window.getComputedStyle(table).width;
+      const tableInlineWidth = table.style.width;
+      results.push(`<div class="info ${tableInlineWidth ? 'success' : 'error'}">
+        Table element width: ${tableWidth} (inline: ${tableInlineWidth || 'NOT SET'})
+      </div>`);
+
+      // Check header row width
+      const headerRow = table.querySelector('thead tr');
+      if (headerRow) {
+        const headerRowWidth = window.getComputedStyle(headerRow).width;
+        const headerRowInlineWidth = headerRow.style.width;
+        results.push(`<div class="info ${headerRowInlineWidth ? 'success' : 'error'}">
+          Header row width: ${headerRowWidth} (inline: ${headerRowInlineWidth || 'NOT SET'})
+        </div>`);
+      }
+
+      // Check first body row width
+      const bodyRow = table.querySelector('tbody tr');
+      if (bodyRow) {
+        const bodyRowWidth = window.getComputedStyle(bodyRow).width;
+        const bodyRowInlineWidth = bodyRow.style.width;
+        results.push(`<div class="info ${bodyRowInlineWidth ? 'success' : 'error'}">
+          First body row width: ${bodyRowWidth} (inline: ${bodyRowInlineWidth || 'NOT SET'})
+        </div>`);
+      }
+
+      // Check first header cell width
+      const headerCell = table.querySelector('thead th:nth-child(2)'); // Skip checkbox
+      if (headerCell) {
+        const headerCellWidth = window.getComputedStyle(headerCell).width;
+        const headerCellInlineWidth = headerCell.style.width;
+        results.push(`<div class="info ${headerCellInlineWidth ? 'success' : 'error'}">
+          First header cell width: ${headerCellWidth} (inline: ${headerCellInlineWidth || 'NOT SET'})
+        </div>`);
+      }
+
+      // Check first body cell width
+      const bodyCell = table.querySelector('tbody td:nth-child(2)'); // Skip checkbox
+      if (bodyCell) {
+        const bodyCellWidth = window.getComputedStyle(bodyCell).width;
+        const bodyCellInlineWidth = bodyCell.style.width;
+        results.push(`<div class="info ${bodyCellInlineWidth ? 'success' : 'error'}">
+          First body cell width: ${bodyCellWidth} (inline: ${bodyCellInlineWidth || 'NOT SET'})
+        </div>`);
+      }
+
+      // Check table-layout
+      const tableLayout = window.getComputedStyle(table).tableLayout;
+      results.push(`<div class="info ${tableLayout === 'fixed' ? 'success' : 'error'}">
+        Table layout: ${tableLayout} (should be 'fixed')
+      </div>`);
+
+      output.innerHTML = results.join('');
+    }
+  </script>
+</body>
+</html>

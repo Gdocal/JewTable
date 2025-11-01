@@ -903,6 +903,18 @@ export function DataTable<TData extends RowData>({
   // Determine if using traditional pagination (any mode) - for CSS styling
   const isTraditionalPagination = paginationType === PaginationType.TRADITIONAL;
 
+  // DEBUG: Log which code path is being used
+  React.useEffect(() => {
+    console.log('[DEBUG] Pagination Config:', {
+      mode,
+      paginationType,
+      enableVirtualization,
+      isTraditionalPagination,
+      shouldUseVirtualization,
+      useManualPagination,
+      totalTableWidth,
+    });
+  }, [mode, paginationType, enableVirtualization, isTraditionalPagination, shouldUseVirtualization, useManualPagination, totalTableWidth]);
 
   // Initialize TanStack Table
   const table = useReactTable({
@@ -1623,6 +1635,8 @@ export function DataTable<TData extends RowData>({
         </div>
       ) : (
         <div className={showLoadingOverlay ? styles.loadingOverlay : ''}>
+          {/* DEBUG: Non-virtualized mode (pagination) */}
+          {console.log('[DEBUG] Rendering NON-VIRTUALIZED mode (pagination), totalTableWidth:', totalTableWidth)}
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
