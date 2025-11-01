@@ -903,19 +903,6 @@ export function DataTable<TData extends RowData>({
   // Determine if using traditional pagination (any mode) - for CSS styling
   const isTraditionalPagination = paginationType === PaginationType.TRADITIONAL;
 
-  // DEBUG: Log which code path is being used
-  React.useEffect(() => {
-    console.log('[DEBUG] Pagination Config:', {
-      mode,
-      paginationType,
-      enableVirtualization,
-      isTraditionalPagination,
-      shouldUseVirtualization,
-      useManualPagination,
-      totalTableWidth,
-    });
-  }, [mode, paginationType, enableVirtualization, isTraditionalPagination, shouldUseVirtualization, useManualPagination, totalTableWidth]);
-
   // Initialize TanStack Table
   const table = useReactTable({
     data: displayData,
@@ -965,6 +952,17 @@ export function DataTable<TData extends RowData>({
   // Client infinite scroll: virtualize with all data in memory
   const isServerInfinite = mode === TableMode.SERVER && paginationType === PaginationType.INFINITE;
   const shouldUseVirtualization = enableVirtualization && !isTraditionalPagination;
+
+  // DEBUG: Log configuration after variables are defined
+  console.log('[DEBUG] Rendering Config:', {
+    mode,
+    paginationType,
+    enableVirtualization,
+    isTraditionalPagination,
+    shouldUseVirtualization,
+    useManualPagination,
+    totalTableWidth,
+  });
 
   // For server infinite scroll, use total count so scrollbar represents full dataset
   // Cap at MAX_VIRTUAL_ROWS to prevent browser scroll height limits (17-33M pixels)
