@@ -160,6 +160,14 @@
   padding-right: 48px;
 }
 
+/* Override hover padding for selection column (checkbox) - must come after :hover */
+.th.selectionColumn:hover .thContent,
+.th.selectionColumn.sorted .thContent,
+.th:first-child:hover .thContent,
+.th:first-child.sorted .thContent {
+  padding-right: 0 !important;
+}
+
 /* Header icons positioned absolutely, hidden by default, visible on hover */
 .headerIcons {
   position: absolute;
