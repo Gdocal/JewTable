@@ -49,6 +49,13 @@ export function DraggableColumnHeader({ id, children, className, style, isDragDi
     },
   });
 
+  console.log(`[${new Date().toLocaleTimeString()}] [DRAGGABLE COLUMN HEADER]`, id, {
+    hasListeners: !!listeners,
+    listenersKeys: listeners ? Object.keys(listeners) : 'none',
+    isDragDisabled,
+    isDragging
+  });
+
   const headerStyle: React.CSSProperties = {
     ...style,
     // Apply transform for column dragging

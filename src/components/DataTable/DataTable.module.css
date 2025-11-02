@@ -136,6 +136,10 @@
   position: relative;
   box-sizing: border-box; /* Ensure width includes padding and border */
   overflow: hidden; /* Prevent icons from bleeding into next column */
+  /* Enable drag on touch devices */
+  touch-action: pan-y;
+  /* Ensure header can receive pointer events for dragging */
+  cursor: grab;
 }
 
 .thContent {

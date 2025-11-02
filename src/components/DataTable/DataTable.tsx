@@ -280,7 +280,7 @@ export function DataTable<TData extends RowData>({
         distance: 5, // Shorter distance for better column drag UX
       },
       onActivation: (event) => {
-        console.log('[DEBUG] Column sensor activated!', event);
+        console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] ✅ COLUMN SENSOR ACTIVATED!`, event);
       },
     }),
     useSensor(KeyboardSensor)
@@ -662,11 +662,11 @@ export function DataTable<TData extends RowData>({
 
   // Handle column drag end (Phase 10.6 - Column reordering)
   const handleColumnDragEnd = (event: DragEndEvent) => {
-    console.log('[DEBUG] handleColumnDragEnd called', event);
+    console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] ✅ handleColumnDragEnd called`, event);
     const { active, over } = event;
 
-    console.log('[DEBUG] Active:', active?.id, 'Over:', over?.id);
-    console.log('[DEBUG] Current columnOrder:', columnOrder);
+    console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] Active:`, active?.id, 'Over:', over?.id);
+    console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] Current columnOrder:`, columnOrder);
 
     if (!over || active.id === over.id) {
       console.log('[DEBUG] No over or same column - returning');
@@ -1119,7 +1119,7 @@ export function DataTable<TData extends RowData>({
   // isResizingColumn is false when not resizing, or a string (column ID) when resizing
   const isAnyColumnResizing = typeof columnSizingInfo.isResizingColumn === 'string';
 
-  console.log('[COLUMN REORDER DEBUG] State:', {
+  console.log(`[${new Date().toLocaleTimeString()}] [COLUMN REORDER DEBUG] State:`, {
     enableColumnReordering,
     isAnyColumnResizing,
     columnSizingInfo: columnSizingInfo.isResizingColumn,
@@ -1404,7 +1404,7 @@ export function DataTable<TData extends RowData>({
 
                   // Don't make special columns (drag, selection, expand) reorderable
                   const isReorderable = enableColumnReordering && !isDragColumn && !isSelectionColumn && !isExpandColumn;
-                  console.log('[DEBUG] Column:', header.column.id, 'isReorderable:', isReorderable, 'enableColumnReordering:', enableColumnReordering, 'isDrag:', isDragColumn, 'isSelection:', isSelectionColumn, 'isExpand:', isExpandColumn);
+                  console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] Column:`, header.column.id, 'isReorderable:', isReorderable, 'enableColumnReordering:', enableColumnReordering, 'isDrag:', isDragColumn, 'isSelection:', isSelectionColumn, 'isExpand:', isExpandColumn);
 
                   // Get the header text for tooltip
                   const headerText = typeof header.column.columnDef.header === 'string'
@@ -1798,7 +1798,7 @@ export function DataTable<TData extends RowData>({
 
                   // Don't make special columns (drag, selection, expand) reorderable
                   const isReorderable = enableColumnReordering && !isDragColumn && !isSelectionColumn && !isExpandColumn;
-                  console.log('[DEBUG] Column:', header.column.id, 'isReorderable:', isReorderable, 'enableColumnReordering:', enableColumnReordering, 'isDrag:', isDragColumn, 'isSelection:', isSelectionColumn, 'isExpand:', isExpandColumn);
+                  console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] Column:`, header.column.id, 'isReorderable:', isReorderable, 'enableColumnReordering:', enableColumnReordering, 'isDrag:', isDragColumn, 'isSelection:', isSelectionColumn, 'isExpand:', isExpandColumn);
 
                   // Get the header text for tooltip
                   const headerText = typeof header.column.columnDef.header === 'string'
