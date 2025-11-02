@@ -347,6 +347,20 @@
   border-right: none;
 }
 
+/* ===== Dynamic Toolbar Zone (Phase 10.1) ===== */
+/* Container to minimize table jumping when toolbars appear/disappear */
+.toolbarZone {
+  /* Smooth transitions when content changes */
+  transition: margin-bottom 150ms ease;
+  /* Prevent margin collapse */
+  display: block;
+}
+
+/* Add spacing only when toolbars are visible */
+.toolbarZone:has(> *) {
+  margin-bottom: 8px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .tableContainer {

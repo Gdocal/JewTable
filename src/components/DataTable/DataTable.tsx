@@ -1259,16 +1259,35 @@ export function DataTable<TData extends RowData>({
         />
       </div>
 
-      {/* Active filter chips - Phase 3 */}
-      <FilterChips
-        columnFilters={columnFilters}
-        globalFilter={globalFilter}
-        onRemoveColumnFilter={handleRemoveColumnFilter}
-        onRemoveGlobalFilter={handleRemoveGlobalFilter}
-        onClearAll={handleClearAllFilters}
-        columnNames={columnNames}
-        columns={columns}
-      />
+      {/* Dynamic toolbar zone - prevents table jumping when toolbars appear/disappear */}
+      <div className={styles.toolbarZone}>
+        {/* Active filter chips - Phase 3 */}
+        <FilterChips
+          columnFilters={columnFilters}
+          globalFilter={globalFilter}
+          onRemoveColumnFilter={handleRemoveColumnFilter}
+          onRemoveGlobalFilter={handleRemoveGlobalFilter}
+          onClearAll={handleClearAllFilters}
+          columnNames={columnNames}
+          columns={columns}
+        />
+
+        {/* Batch actions toolbar - Phase 10.1 */}
+        <BatchActionsToolbar
+          selectedCount={Object.keys(rowSelection).length}
+          onClearSelection={() => setRowSelection({})}
+          onBatchDelete={() => {
+            // Get selected row IDs
+            const selectedRowIds = Object.keys(rowSelection);
+            // Delete each selected row
+            selectedRowIds.forEach((rowId) => {
+              handleDeleteRow(rowId);
+            });
+            // Clear selection after delete
+            setRowSelection({});
+          }}
+        />
+      </div>
 
       {/* Virtualization cap warning - Phase 8.2 */}
       {isVirtualizationCapped && (
@@ -1281,22 +1300,6 @@ export function DataTable<TData extends RowData>({
           </div>
         </div>
       )}
-
-      {/* Batch actions toolbar - Phase 10.1 */}
-      <BatchActionsToolbar
-        selectedCount={Object.keys(rowSelection).length}
-        onClearSelection={() => setRowSelection({})}
-        onBatchDelete={() => {
-          // Get selected row IDs
-          const selectedRowIds = Object.keys(rowSelection);
-          // Delete each selected row
-          selectedRowIds.forEach((rowId) => {
-            handleDeleteRow(rowId);
-          });
-          // Clear selection after delete
-          setRowSelection({});
-        }}
-      />
 
       {/* Mobile card view - automatically switches on mobile devices */}
       {isMobile && enableMobileView ? (

@@ -12,8 +12,8 @@
   border: 1px solid #cfe2ff;
   border-left: 3px solid #0d6efd;
   border-radius: 4px;
-  margin-bottom: 12px;
-  animation: slideDown 0.2s ease-out;
+  margin-bottom: 8px;
+  animation: slideDown 0.15s ease-out;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 

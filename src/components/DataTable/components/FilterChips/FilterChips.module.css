@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 8px; /* Reduced - spacing now handled by toolbarZone */
   padding: 10px 12px;
   background: #f8f9fa;
   border-radius: 6px;
