@@ -1,0 +1,37 @@
+/**
+ * ColumnDragHandle styles
+ * Phase 10.6: Column Reordering
+ */
+
+.handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  cursor: grab;
+  color: #6c757d;
+  opacity: 0.6;
+  transition: opacity 150ms ease, color 150ms ease;
+  flex-shrink: 0;
+  /* Re-enable pointer events for the handle itself */
+  pointer-events: auto;
+}
+
+.handle:hover {
+  opacity: 1;
+  color: #495057;
+}
+
+.handle:active,
+.handle.dragging {
+  cursor: grabbing;
+  opacity: 1;
+  color: #212529;
+}
+
+/* Show handle on header hover */
+th:hover .handle {
+  opacity: 1;
+}

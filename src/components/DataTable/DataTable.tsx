@@ -55,8 +55,8 @@ import { TableFooter } from './components/TableFooter/TableFooter';
 import { EmptyState } from './components/EmptyState/EmptyState';
 import { RowActions } from './components/RowActions/RowActions';
 import { DraggableRow } from './components/DraggableRow/DraggableRow';
-import { DraggableColumnHeader } from './components/DraggableColumnHeader/DraggableColumnHeader';
 import { DragHandleCell } from './components/DragHandleCell/DragHandleCell';
+import { ColumnDragHandle } from './components/ColumnDragHandle';
 import { PaginationControls } from './components/PaginationControls/PaginationControls';
 import { SelectionCell } from './cells/SelectionCell';
 import { ExpandIcon } from './components/ExpandIcon';
@@ -260,27 +260,16 @@ export function DataTable<TData extends RowData>({
   const containerRef = useRef<HTMLDivElement>(null);
   const tableScrollRef = useRef<HTMLDivElement>(null); // Ref for table scroll container
 
-  // DndKit sensors (Phase 6)
-  // Separate sensors for row reordering vs column reordering to prevent event conflicts
-  const rowSensors = useSensors(
+  // DndKit sensors (Phase 6 & 10.6)
+  // Unified sensors for both row and column reordering
+  // Both use drag handles so there's no conflict
+  const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 10, // Require 10px movement before drag starts
-      },
-      onActivation: () => {
-        console.log('[DEBUG] Row sensor activated');
-      },
-    }),
-    useSensor(KeyboardSensor)
-  );
-
-  const columnSensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5, // Shorter distance for better column drag UX
+        distance: 8, // Require 8px movement before drag starts
       },
       onActivation: (event) => {
-        console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] ✅ COLUMN SENSOR ACTIVATED!`, event);
+        console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] ✅ DRAG SENSOR ACTIVATED!`, event);
       },
     }),
     useSensor(KeyboardSensor)
@@ -633,58 +622,60 @@ export function DataTable<TData extends RowData>({
     setActiveId(event.active.id as string);
   };
 
-  // Handle drag end (Phase 6)
+  // Unified drag end handler (Phase 6 & 10.6)
+  // Handles both row and column reordering
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+
+    console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] handleDragEnd`, {
+      activeId: active.id,
+      overId: over?.id
+    });
 
     if (!over || active.id === over.id) {
       setActiveId(null); // Clear active ID
       return;
     }
 
-    setRowOrder((items) => {
-      const oldIndex = items.indexOf(active.id as string);
-      const newIndex = items.indexOf(over.id as string);
+    const activeIdStr = active.id as string;
+    const overIdStr = over.id as string;
 
-      const newOrder = arrayMove(items, oldIndex, newIndex);
+    // Check if this is a column drag (ID exists in columnOrder)
+    const isColumnDrag = columnOrder.includes(activeIdStr);
 
-      // Call onRowReorder callback if provided
-      if (onRowReorder) {
-        onRowReorder(newOrder);
+    if (isColumnDrag) {
+      // Column reordering
+      console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] Column drag detected`);
+      const oldIndex = columnOrder.indexOf(activeIdStr);
+      const newIndex = columnOrder.indexOf(overIdStr);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = arrayMove(columnOrder, oldIndex, newIndex);
+        console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] Reordered columns:`, newOrder);
+        setColumnOrder(newOrder);
       }
+    } else {
+      // Row reordering
+      console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] Row drag detected`);
+      setRowOrder((items) => {
+        const oldIndex = items.indexOf(activeIdStr);
+        const newIndex = items.indexOf(overIdStr);
 
-      console.log(`Reordered rows: ${active.id} moved from ${oldIndex} to ${newIndex}`);
-      return newOrder;
-    });
+        if (oldIndex === -1 || newIndex === -1) return items;
+
+        const newOrder = arrayMove(items, oldIndex, newIndex);
+
+        // Call onRowReorder callback if provided
+        if (onRowReorder) {
+          onRowReorder(newOrder);
+        }
+
+        console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] Reordered rows: ${active.id} moved from ${oldIndex} to ${newIndex}`);
+        return newOrder;
+      });
+    }
 
     setActiveId(null); // Clear active ID
-  };
-
-  // Handle column drag end (Phase 10.6 - Column reordering)
-  const handleColumnDragEnd = (event: DragEndEvent) => {
-    console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] ✅ handleColumnDragEnd called`, event);
-    const { active, over } = event;
-
-    console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] Active:`, active?.id, 'Over:', over?.id);
-    console.log(`[${new Date().toLocaleTimeString()}] [DEBUG] Current columnOrder:`, columnOrder);
-
-    if (!over || active.id === over.id) {
-      console.log('[DEBUG] No over or same column - returning');
-      return;
-    }
-
-    const oldIndex = columnOrder.indexOf(active.id as string);
-    const newIndex = columnOrder.indexOf(over.id as string);
-
-    console.log('[DEBUG] oldIndex:', oldIndex, 'newIndex:', newIndex);
-
-    if (oldIndex !== -1 && newIndex !== -1) {
-      const newOrder = arrayMove(columnOrder, oldIndex, newIndex);
-      console.log('[DEBUG] New columnOrder:', newOrder);
-      setColumnOrder(newOrder);
-    } else {
-      console.log('[DEBUG] Column not found in columnOrder');
-    }
   };
 
   // Get display data - merge original data with modifications, filter out deleted
