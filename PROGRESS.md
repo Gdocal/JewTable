@@ -1761,3 +1761,70 @@ Added two levels of modal customization to give developers complete control over
 - **Enhancements:** 2/2 complete
 - **Ready for:** Phase 12 (Testing & Documentation)
 
+---
+
+#### Session 15: Critical Bug Fixes - Scroll and Alignment
+- **Date:** 2025-11-02
+- **Action:** Fixed horizontal scroll structure and investigating alignment issues
+- **Status:** ⏳ In Progress
+
+**Issues Reported:**
+1. ✅ Default page size was 100 rows (should be 10)
+2. ⏳ Column header text not horizontally aligned with data text
+3. ✅ Horizontal scroll scrolling entire container (toolbar, pagination) instead of just table
+4. ✅ Row backgrounds/shadows stay fixed to viewport during horizontal scroll
+
+**Fixes Applied:**
+
+**Issue 1: Page Size Default** ✅ COMPLETE
+- Changed `pagination.pageSize` from 100 to 10 (line 193)
+- **Git Commit:** 35e3fb6
+
+**Issue 3 & 4: Horizontal Scroll Structure** ✅ COMPLETE
+- Created separate `.tableScrollContainer` wrapper that only wraps table element
+- Moved `overflow-x: auto` from `.tableContainer` to `.tableScrollContainer`
+- Updated scroll shadow detection to use `tableScrollRef` instead of `containerRef`
+- Shadow classes now apply to scroll container, not main container
+- Toolbar, search, and pagination controls now stay fixed during horizontal scroll
+- Row backgrounds and shadows now move with table content
+- **Git Commit:** 35e3fb6
+
+**Issue 2: Header/Data Text Alignment** ⏳ IN PROGRESS
+- Added comprehensive debug logging to diagnose:
+  - Total table width calculation
+  - Header column widths (th elements)
+  - Data cell widths (td elements)
+  - Row width comparison
+- Investigating potential causes:
+  - `.thContent` has `padding-right: 48px` for icons
+  - Special columns (drag, selection, expand) have custom widths
+  - Row width calculation differences between virtualization and pagination modes
+- **Git Commit:** f3d1456 (debug logging)
+
+**Technical Details:**
+
+The horizontal scroll fix restructured the container hierarchy:
+```
+Before:
+.tableContainer (scrollable) >
+  > toolbar
+  > search
+  > table
+  > pagination
+
+After:
+.tableContainer >
+  > toolbar
+  > search
+  > .tableScrollContainer (scrollable) >
+    > table
+  > pagination
+```
+
+**Next Steps:**
+1. Review debug console output from user
+2. Identify width calculation mismatch
+3. Apply fix for text alignment
+4. Remove debug logging
+5. Final testing and commit
+
