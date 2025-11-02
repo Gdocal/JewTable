@@ -1246,7 +1246,7 @@ export function DataTable<TData extends RowData>({
             </>
           )}
         </div>
-      ) : enableVirtualization ? (
+      ) : shouldUseVirtualization ? (
         <div ref={scrollContainerRef} className={`${styles.virtualizationContainer} ${isTraditionalPagination ? styles.paginationMode : ''} ${showLoadingOverlay ? styles.loadingOverlay : ''}`}>
           <DndContext
             sensors={sensors}
