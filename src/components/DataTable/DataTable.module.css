@@ -147,6 +147,8 @@
   padding-right: 0;
   transition: padding-right 200ms ease;
   /* Don't use display:block as it interferes with table-layout:fixed width calculations */
+  /* Allow drag events to pass through to parent header */
+  pointer-events: none;
 }
 
 /* First column (checkbox) has no icons - keep no padding */
@@ -186,6 +188,8 @@
   opacity: 0;
   visibility: hidden;
   transition: opacity 200ms ease, visibility 0ms 200ms, background 200ms ease;
+  /* Re-enable pointer events for the icons themselves */
+  pointer-events: auto;
 }
 
 /* Show icons on hover or when sorted */
