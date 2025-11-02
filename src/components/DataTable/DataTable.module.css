@@ -239,27 +239,53 @@
 
 /* Expand column - minimal padding (Phase 10.5) */
 .expandColumn {
-  padding: 4px 2px !important;
+  padding: 12px 4px !important; /* Match vertical padding for alignment */
   width: 32px !important;
   min-width: 32px !important;
   max-width: 32px !important;
   text-align: center;
+  vertical-align: middle;
+}
+
+/* Expand column button - ensure it's centered */
+.expandColumn button {
+  display: block;
+  margin: 0 auto;
 }
 
 /* Selection column - minimal padding (Phase 10.1) */
 .selectionColumn {
-  padding: 8px 4px !important;
+  padding: 12px 8px !important; /* Match header padding for vertical alignment */
   width: 48px !important;
   min-width: 48px !important;
   max-width: 48px !important;
   text-align: center;
+  vertical-align: middle;
+  /* Ensure checkbox is visible and not cut off */
+  overflow: visible !important;
+}
+
+/* Selection column in header - ensure checkbox is centered and visible */
+.th.selectionColumn {
+  overflow: visible !important; /* Don't cut off checkbox */
+  display: table-cell; /* Ensure proper table layout */
+}
+
+/* Center checkbox input in selection column */
+.selectionColumn input[type="checkbox"] {
+  display: block;
+  margin: 0 auto; /* Center horizontally */
+  cursor: pointer;
 }
 
 /* Drag handle column - minimal padding (Phase 6) */
 .dragColumn {
-  padding: 4px !important;
+  padding: 12px 4px !important; /* Match vertical padding for alignment */
   width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
   text-align: center;
+  vertical-align: middle;
 }
 
 /* DragOverlay styles (Phase 6) */
