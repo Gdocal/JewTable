@@ -9,9 +9,11 @@ import styles from './ColumnVisibilityMenu.module.css';
 
 interface ColumnVisibilityMenuProps<TData> {
   table: Table<TData>;
+  onResetColumnOrder?: () => void;
+  onResetColumnVisibility?: () => void;
 }
 
-export function ColumnVisibilityMenu<TData>({ table }: ColumnVisibilityMenuProps<TData>) {
+export function ColumnVisibilityMenu<TData>({ table, onResetColumnOrder, onResetColumnVisibility }: ColumnVisibilityMenuProps<TData>) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -79,6 +81,27 @@ export function ColumnVisibilityMenu<TData>({ table }: ColumnVisibilityMenuProps
             >
               Hide All
             </button>
+            {onResetColumnVisibility && (
+              <button
+                className={styles.actionButton}
+                onClick={() => {
+                  onResetColumnVisibility();
+                  table.resetColumnVisibility();
+                }}
+                title="Reset to default visibility"
+              >
+                Reset Visibility
+              </button>
+            )}
+            {onResetColumnOrder && (
+              <button
+                className={styles.actionButton}
+                onClick={onResetColumnOrder}
+                title="Reset column order to default"
+              >
+                Reset Order
+              </button>
+            )}
           </div>
 
           <div className={styles.columnList}>

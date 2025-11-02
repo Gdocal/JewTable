@@ -223,7 +223,31 @@ export function DataTable<TData extends RowData>({
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
   // Column visibility state (Phase 10.7 - Column visibility toggle)
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
+    // Try to load saved column visibility from localStorage
+    if (tableId) {
+      try {
+        const saved = localStorage.getItem(`${tableId}-columnVisibility`);
+        if (saved) {
+          return JSON.parse(saved);
+        }
+      } catch (e) {
+        console.warn('Failed to load column visibility from localStorage:', e);
+      }
+    }
+    return {};
+  });
+
+  // Save column visibility to localStorage when it changes
+  React.useEffect(() => {
+    if (tableId) {
+      try {
+        localStorage.setItem(`${tableId}-columnVisibility`, JSON.stringify(columnVisibility));
+      } catch (e) {
+        console.warn('Failed to save column visibility to localStorage:', e);
+      }
+    }
+  }, [columnVisibility, tableId]);
 
   // Row details modal state (Phase 10.8 - Row details modal)
   const [detailsRowId, setDetailsRowId] = useState<string | null>(null);
@@ -888,14 +912,67 @@ export function DataTable<TData extends RowData>({
   }, [tableColumns]);
 
   // Column order state (Phase 10.6 - Column reordering)
-  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() => initialColumnOrder);
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() => {
+    // Try to load saved column order from localStorage
+    if (tableId) {
+      try {
+        const saved = localStorage.getItem(`${tableId}-columnOrder`);
+        if (saved) {
+          const savedOrder = JSON.parse(saved);
+          // Validate that saved order contains all current columns
+          if (savedOrder.length === initialColumnOrder.length &&
+              savedOrder.every((id: string) => initialColumnOrder.includes(id))) {
+            return savedOrder;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to load column order from localStorage:', e);
+      }
+    }
+    return initialColumnOrder;
+  });
 
   // Sync columnOrder when tableColumns change (e.g., columns added/removed)
   React.useEffect(() => {
     if (initialColumnOrder.length > 0 && initialColumnOrder.join(',') !== columnOrder.join(',')) {
-      setColumnOrder(initialColumnOrder);
+      // Check if this is a structural change (columns added/removed) vs just reordering
+      const currentSet = new Set(columnOrder);
+      const initialSet = new Set(initialColumnOrder);
+      const hasStructuralChange = currentSet.size !== initialSet.size ||
+        initialColumnOrder.some(id => !currentSet.has(id));
+
+      if (hasStructuralChange) {
+        setColumnOrder(initialColumnOrder);
+      }
     }
   }, [initialColumnOrder]);
+
+  // Save column order to localStorage when it changes
+  React.useEffect(() => {
+    if (tableId && columnOrder.length > 0) {
+      try {
+        localStorage.setItem(`${tableId}-columnOrder`, JSON.stringify(columnOrder));
+      } catch (e) {
+        console.warn('Failed to save column order to localStorage:', e);
+      }
+    }
+  }, [columnOrder, tableId]);
+
+  // Reset column order to default
+  const handleResetColumnOrder = () => {
+    setColumnOrder(initialColumnOrder);
+    if (tableId) {
+      localStorage.removeItem(`${tableId}-columnOrder`);
+    }
+  };
+
+  // Reset column visibility to default (all visible)
+  const handleResetColumnVisibility = () => {
+    setColumnVisibility({});
+    if (tableId) {
+      localStorage.removeItem(`${tableId}-columnVisibility`);
+    }
+  };
 
   // Determine if using manual pagination (Phase 8.3)
   const useManualPagination = mode === TableMode.SERVER && paginationType === PaginationType.TRADITIONAL;
@@ -1129,7 +1206,11 @@ export function DataTable<TData extends RowData>({
           value={globalFilter}
           onChange={setGlobalFilter}
         />
-        <ColumnVisibilityMenu table={table} />
+        <ColumnVisibilityMenu
+          table={table}
+          onResetColumnOrder={handleResetColumnOrder}
+          onResetColumnVisibility={handleResetColumnVisibility}
+        />
         <ImportExportButtons
           data={displayData}
           columns={columns}
