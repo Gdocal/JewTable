@@ -16,19 +16,21 @@ interface ColumnDragHandleProps {
 }
 
 export function ColumnDragHandle({ columnId, disabled }: ColumnDragHandleProps) {
-  const { attributes, listeners, isDragging } = useSortable({
+  const { attributes, listeners, isDragging, setNodeRef } = useSortable({
     id: columnId,
     disabled,
   });
 
-  console.log(`[${new Date().toLocaleTimeString()}] [COLUMN DRAG HANDLE]`, columnId, {
+  console.log(`[${new Date().toLocaleTimeString()}] [✋ COLUMN DRAG HANDLE RENDERED]`, columnId, {
     hasListeners: !!listeners,
+    listenersKeys: listeners ? Object.keys(listeners) : [],
     disabled,
     isDragging
   });
 
   return (
     <div
+      ref={setNodeRef}
       className={`${styles.handle} ${isDragging ? styles.dragging : ''}`}
       {...attributes}
       {...listeners}
