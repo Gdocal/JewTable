@@ -1351,6 +1351,12 @@ export function DataTable<TData extends RowData>({
         >
         <div ref={scrollContainerRef} className={`${styles.virtualizationContainer} ${isTraditionalPagination ? styles.paginationMode : ''} ${showLoadingOverlay ? styles.loadingOverlay : ''}`}>
           <DndContext
+            sensors={columnSensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleColumnDragEnd}
+            modifiers={[restrictToHorizontalAxis]}
+          >
+          <DndContext
             sensors={rowSensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
@@ -1362,12 +1368,6 @@ export function DataTable<TData extends RowData>({
               className={`${styles.table} ${enableStickyFirstColumn ? styles.stickyFirstColumn : ''}`}
               style={{ width: `${totalTableWidth}px` }}
             >
-          <DndContext
-            sensors={columnSensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleColumnDragEnd}
-            modifiers={[restrictToHorizontalAxis]}
-          >
           <thead ref={theadRef} className={styles.thead}>
             {table.getHeaderGroups().map((headerGroup) => (
               <SortableContext
@@ -1486,7 +1486,6 @@ export function DataTable<TData extends RowData>({
               </SortableContext>
             ))}
           </thead>
-          </DndContext>
           <SortableContext
             items={rowOrder}
             strategy={verticalListSortingStrategy}
@@ -1675,6 +1674,7 @@ export function DataTable<TData extends RowData>({
             </tbody>
           </SortableContext>
         </table>
+          </DndContext>
 
         {/* DragOverlay for smooth drag animations (Phase 6 - Fix snap-back) */}
         <DragOverlay
@@ -1880,7 +1880,6 @@ export function DataTable<TData extends RowData>({
               </SortableContext>
             ))}
           </thead>
-          </DndContext>
           <SortableContext
             items={rowOrder}
             strategy={verticalListSortingStrategy}
@@ -1956,6 +1955,7 @@ export function DataTable<TData extends RowData>({
             </tbody>
           </SortableContext>
         </table>
+          </DndContext>
 
         {/* DragOverlay for smooth drag animations (Phase 6 - Fix snap-back) */}
         <DragOverlay
