@@ -143,17 +143,24 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  /* Add padding to prevent text from going under icons */
-  padding-right: 48px;
+  /* Dynamic padding - only when icons are visible */
+  padding-right: 0;
+  transition: padding-right 200ms ease;
   /* Don't use display:block as it interferes with table-layout:fixed width calculations */
 }
 
-/* First column (checkbox) has no icons - remove padding */
+/* First column (checkbox) has no icons - keep no padding */
 .th:first-child .thContent {
   padding-right: 0;
 }
 
-/* Header icons positioned absolutely, always visible */
+/* Add padding when hovering or when column is sorted */
+.th:hover .thContent,
+.sorted .thContent {
+  padding-right: 48px;
+}
+
+/* Header icons positioned absolutely, hidden by default, visible on hover */
 .headerIcons {
   position: absolute;
   right: 0;
@@ -163,21 +170,28 @@
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
-  /* Solid background to overlay text and ensure icons are always visible */
-  background: #f8f9fa;
+  /* Hidden by default */
+  background: transparent;
   padding: 4px;
   z-index: 2; /* Ensure icons stay on top of text */
   border-radius: 2px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms ease, visibility 0ms 200ms, background 200ms ease;
 }
 
-/* Update icon background on hover */
+/* Show icons on hover or when sorted */
+.th:hover .headerIcons,
+.sorted .headerIcons {
+  opacity: 1;
+  visibility: visible;
+  background: #f8f9fa;
+  transition: opacity 200ms ease, visibility 0ms, background 200ms ease;
+}
+
+/* Update icon background on hover when already visible */
 .sortable:hover .headerIcons {
   background: #f1f3f5;
-}
-
-/* Update icon background when sorted */
-.sorted .headerIcons {
-  background: #f8f9fa;
 }
 
 .sortable {
@@ -269,12 +283,17 @@
   vertical-align: middle;
   /* Ensure checkbox is visible and not cut off */
   overflow: visible !important;
+  font-weight: normal !important; /* Force normal weight to match data cells */
+  line-height: 1 !important; /* Consistent line height */
 }
 
 /* Selection column in header - ensure checkbox is centered and visible */
 .th.selectionColumn {
   overflow: visible !important; /* Don't cut off checkbox */
   display: table-cell; /* Ensure proper table layout */
+  font-weight: normal !important; /* Override bold header weight */
+  vertical-align: middle !important;
+  line-height: 1 !important;
 }
 
 /* Center checkbox input in selection column */
