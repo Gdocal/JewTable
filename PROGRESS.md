@@ -1832,3 +1832,48 @@ Changed shadows from `position: absolute` to `position: fixed` so they stay pinn
 - ✅ Code committed and documented
 - Total commits: 4 (35e3fb6, f3d1456, a72dada, da6160e)
 
+---
+
+#### Session 15 Continued: Four Additional Critical Fixes
+- **Date:** 2025-11-02
+- **Action:** Fixed remaining layout and functionality issues
+
+**Issues Fixed:**
+
+1. **Shadows Disappeared Completely** ✅ COMPLETE
+   - Root cause: Changed to `position: fixed` which uses viewport coordinates
+   - Fixed: Reverted to `position: absolute` (relative to parent container)
+   - Shadows now visible and properly positioned
+   - **Git Commit:** a6d65be
+
+2. **Right-Aligned Values Under Header Icons** ✅ COMPLETE
+   - Root cause: Header has `padding-right: 48px` for icons, cells didn't match
+   - Fixed: Added `padding: 0 48px 0 0` to EditableNumberCell .input and .viewContainer
+   - Right-aligned numbers (salary) now have proper spacing
+   - **Git Commit:** a6d65be
+
+3. **Modal Reference Fields Issues** ✅ COMPLETE
+   - Root cause: RowDetailsModal didn't handle `CellType.REFERENCE`
+   - Problems:
+     - Department showed as ID (5) instead of name ("Engineering")
+     - No selector in edit mode for reference fields
+   - Fixed:
+     - Imported ReferenceCell component
+     - Added REFERENCE case to formatValue (fallback)
+     - Added ReferenceCell rendering in edit mode (with dropdown)
+     - Added ReferenceCell rendering in view mode (shows resolved name)
+   - **Git Commit:** a6d65be
+
+4. **Checkbox Hover Animation Misalignment** ✅ COMPLETE
+   - Root cause: `transform: scale(1.1)` on hover changed element size
+   - Fixed: Replaced with `opacity: 0.8` (no layout shift)
+   - Added proper disabled state styling
+   - **Git Commit:** a6d65be
+
+**Session 15 Final Summary:**
+- Total issues fixed: 8
+- Initial batch: 4 issues (page size, scroll structure, text alignment, checkbox alignment)
+- Second batch: 4 issues (shadows, right-aligned values, modal references, checkbox hover)
+- Total commits: 5 (35e3fb6, f3d1456, a72dada, da6160e, a6d65be)
+- Status: ✅ ALL ISSUES RESOLVED
+
