@@ -953,16 +953,6 @@ export function DataTable<TData extends RowData>({
   const isServerInfinite = mode === TableMode.SERVER && paginationType === PaginationType.INFINITE;
   const shouldUseVirtualization = enableVirtualization && !isTraditionalPagination;
 
-  // DEBUG: Log configuration after variables are defined
-  console.log('[DEBUG] Rendering Config:', {
-    mode,
-    paginationType,
-    enableVirtualization,
-    isTraditionalPagination,
-    shouldUseVirtualization,
-    useManualPagination,
-  });
-
   // For server infinite scroll, use total count so scrollbar represents full dataset
   // Cap at MAX_VIRTUAL_ROWS to prevent browser scroll height limits (17-33M pixels)
   const rawVirtualCount = isServerInfinite && totalRows
@@ -1015,9 +1005,6 @@ export function DataTable<TData extends RowData>({
         return sum + col.getSize();
       }, 0);
   }, [table, columnSizing, columnVisibility]);
-
-  // DEBUG: Log total table width after calculation
-  console.log('[DEBUG] totalTableWidth:', totalTableWidth);
 
   // Track if any column is being resized (Phase 10.3)
   // This prevents column reordering from interfering with resize operations
@@ -1635,8 +1622,6 @@ export function DataTable<TData extends RowData>({
         </div>
       ) : (
         <div className={showLoadingOverlay ? styles.loadingOverlay : ''}>
-          {/* DEBUG: Non-virtualized mode (pagination) */}
-          {console.log('[DEBUG] Rendering NON-VIRTUALIZED mode (pagination), totalTableWidth:', totalTableWidth)}
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}

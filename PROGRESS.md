@@ -1363,6 +1363,69 @@ Without row widths, the table cells couldn't properly align with headers during 
 - ✅ Virtualized (infinite scroll) mode
 - ✅ Non-virtualized (traditional pagination) mode - **REALLY FIXED NOW**
 
+**Note:** Row widths were correct, but wrong code path was executing - see Session 11.4
+
+#### Session 11.4: THE ACTUAL ROOT CAUSE - Wrong Render Conditional
+- **Date:** 2025-11-02
+- **Action:** Fixed render conditional to use correct variable for code path selection
+- **Duration:** ~30 minutes
+
+**The Real Issue:**
+After Sessions 11.1-11.3, all the width fixes were in place but column resizing STILL didn't work in pagination mode. User insisted "it works!" wasn't true and asked me to "think harder."
+
+**Debug Discovery:**
+Added console logging which revealed:
+- ✅ `shouldUseVirtualization: false` (correct)
+- ✅ `totalTableWidth: 1880` (correct)
+- ❌ **NO "Rendering NON-VIRTUALIZED mode" message** (WRONG CODE PATH!)
+
+**The Smoking Gun - Line 1249:**
+```tsx
+// BEFORE (WRONG):
+) : enableVirtualization ? (
+  // Virtualized code path - lines with NO row width fixes
+
+// AFTER (CORRECT):
+) : shouldUseVirtualization ? (
+  // Correct code path selection
+```
+
+**Root Cause Explained:**
+The render conditional was checking `enableVirtualization` (the prop, always `true`) instead of `shouldUseVirtualization` (computed value that respects pagination type).
+
+- User set: `enableVirtualization={true}` (prop)
+- System calculated: `shouldUseVirtualization = enableVirtualization && !isTraditionalPagination`
+- With traditional pagination: `shouldUseVirtualization = true && !true = false`
+- But render logic checked `enableVirtualization` (true), so it ALWAYS went to virtualized path!
+- **Result:** The row width fixes at lines 1781 & 1803 NEVER executed!
+
+**The Complete Fix Journey:**
+1. ✅ Session 11.1: Header width format + CSS display:block removal
+2. ✅ Session 11.2: Table element width
+3. ✅ Session 11.3: Row widths (correct code, but never executed!)
+4. ✅ **Session 11.4: USE THE CORRECT CODE PATH!** ⬅️ **THIS WAS IT!**
+
+**Files Updated:**
+- DataTable.tsx (line 1249: changed enableVirtualization to shouldUseVirtualization)
+- DataTable.tsx (removed debug console.log statements)
+
+**Technical Lesson:**
+- All the width styles were correct and in the right places
+- But they were in the wrong code branch (pagination path)
+- The render was using the virtualized path instead
+- Debug logging was critical to discovering this
+
+**Git Commit:** a500fe2 - "fix: Use shouldUseVirtualization instead of enableVirtualization for render logic"
+
+**Status:** ✅ ACTUALLY FIXED NOW - USER CONFIRMED "it works!"
+
+**Final Verification:** Column resizing **REALLY** works now in both modes:
+- ✅ Virtualized (infinite scroll) mode
+- ✅ Non-virtualized (traditional pagination) mode
+
+**Key Takeaway:**
+Sometimes the fix is correct, but it's executing in the wrong place. Debug logging revealed the code path issue that code inspection alone didn't catch. User persistence in reporting "still not working" was crucial to finding the real issue.
+
 #### Session 12: Phase 10.5 - Row Expanding with Performance Optimization
 - **Date:** 2025-10-31
 - **Action:** Implement row expanding feature with CSS containment performance optimization
