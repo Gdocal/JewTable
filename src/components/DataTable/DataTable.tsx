@@ -1670,7 +1670,7 @@ export function DataTable<TData extends RowData>({
         </table>
           </DndContext>
 
-        {/* DragOverlay for smooth drag animations (Phase 6 - Fix snap-back) */}
+        {/* DragOverlay for smooth drag animations (Phase 6 & 10.6) */}
         <DragOverlay
           dropAnimation={{
             duration: 200,
@@ -1678,6 +1678,33 @@ export function DataTable<TData extends RowData>({
           }}
         >
           {activeId ? (() => {
+            // Check if this is a column drag or row drag
+            const isColumnDrag = columnOrder.includes(activeId as string);
+
+            if (isColumnDrag) {
+              // Column drag overlay
+              const activeHeader = table.getHeaderGroups()[0]?.headers.find((h) => h.id === activeId);
+              if (!activeHeader) return null;
+
+              return (
+                <div style={{
+                  padding: '12px 8px',
+                  background: 'white',
+                  border: '2px solid #0d6efd',
+                  borderRadius: '4px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  fontWeight: 600,
+                  color: '#495057',
+                  cursor: 'grabbing'
+                }}>
+                  {typeof activeHeader.column.columnDef.header === 'string'
+                    ? activeHeader.column.columnDef.header
+                    : activeHeader.column.id}
+                </div>
+              );
+            }
+
+            // Row drag overlay
             const activeRow = table.getRowModel().rows.find((row) => row.original.id === activeId);
             if (!activeRow) return null;
 
@@ -1940,7 +1967,7 @@ export function DataTable<TData extends RowData>({
         </table>
           </DndContext>
 
-        {/* DragOverlay for smooth drag animations (Phase 6 - Fix snap-back) */}
+        {/* DragOverlay for smooth drag animations (Phase 6 & 10.6) */}
         <DragOverlay
           dropAnimation={{
             duration: 200,
@@ -1948,6 +1975,33 @@ export function DataTable<TData extends RowData>({
           }}
         >
           {activeId ? (() => {
+            // Check if this is a column drag or row drag
+            const isColumnDrag = columnOrder.includes(activeId as string);
+
+            if (isColumnDrag) {
+              // Column drag overlay
+              const activeHeader = table.getHeaderGroups()[0]?.headers.find((h) => h.id === activeId);
+              if (!activeHeader) return null;
+
+              return (
+                <div style={{
+                  padding: '12px 8px',
+                  background: 'white',
+                  border: '2px solid #0d6efd',
+                  borderRadius: '4px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  fontWeight: 600,
+                  color: '#495057',
+                  cursor: 'grabbing'
+                }}>
+                  {typeof activeHeader.column.columnDef.header === 'string'
+                    ? activeHeader.column.columnDef.header
+                    : activeHeader.column.id}
+                </div>
+              );
+            }
+
+            // Row drag overlay
             const activeRow = table.getRowModel().rows.find((row) => row.original.id === activeId);
             if (!activeRow) return null;
 

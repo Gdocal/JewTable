@@ -272,7 +272,7 @@ function App() {
             // Common props
             isLoading={isLoading}
             isFetching={paginationType === 'traditional' ? isFetchingTraditional : false}
-            enableRowReordering={false}
+            enableRowReordering={true}
             enableVirtualization={true}
             enableRowExpanding={true}
             enableColumnResizing={true}
