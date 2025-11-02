@@ -58,14 +58,22 @@ export function DraggableColumnHeader({ id, children, className, style, isDragDi
     opacity: isDragging ? 0.5 : 1,
   };
 
+  // Prevent onClick from interfering with drag
+  const handleClick = (e: React.MouseEvent) => {
+    // Only trigger onClick if we're not dragging
+    if (!isDragging && onClick) {
+      onClick(e);
+    }
+  };
+
   return (
     <th
       ref={setNodeRef}
       className={`${className || ''} ${isDragging ? styles.dragging : ''}`}
       style={headerStyle}
-      onClick={onClick}
       {...attributes}
       {...listeners}
+      onClick={handleClick}
     >
       {children}
     </th>

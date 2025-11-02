@@ -1119,6 +1119,13 @@ export function DataTable<TData extends RowData>({
   // isResizingColumn is false when not resizing, or a string (column ID) when resizing
   const isAnyColumnResizing = typeof columnSizingInfo.isResizingColumn === 'string';
 
+  console.log('[COLUMN REORDER DEBUG] State:', {
+    enableColumnReordering,
+    isAnyColumnResizing,
+    columnSizingInfo: columnSizingInfo.isResizingColumn,
+    sortableDisabled: !enableColumnReordering || isAnyColumnResizing
+  });
+
 
   // Calculate scrollbar width for header alignment (Phase 10.3 - Virtualization fix)
   // The tbody scrollbar consumes space, making body narrower than header
