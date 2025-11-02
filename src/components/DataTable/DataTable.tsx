@@ -160,6 +160,8 @@ export function DataTable<TData extends RowData>({
   enableColumnReordering = false,
   enableMobileView = true,
   renderExpandedContent,
+  renderModal,
+  renderModalContent,
   rowHeight = 53,
   pageSizeOptions,
   onRowReorder,
@@ -2021,26 +2023,53 @@ export function DataTable<TData extends RowData>({
         maxVirtualRows={VIRTUALIZATION.MAX_VIRTUAL_ROWS}
       />
 
-      {/* Row details modal - Phase 10.8 */}
-      {detailsRowId && (
-        <RowDetailsModal
-          row={displayData.find((row) => row.id === detailsRowId) as TData}
-          columns={columns}
-          onClose={() => setDetailsRowId(null)}
-          isOpen={!!detailsRowId}
-          enableEditing={enableInlineEditing}
-          onSave={(rowId, updates) => {
-            // Update the modified data map
-            setModifiedData((prev) => {
-              const newMap = new Map(prev);
-              const existingChanges = newMap.get(rowId) || {};
-              newMap.set(rowId, { ...existingChanges, ...updates });
-              return newMap;
-            });
-            console.log(`Saved row ${rowId} from modal:`, updates);
-          }}
-        />
-      )}
+      {/* Row details modal - Phase 10.8 + Enhancement 2 */}
+      {detailsRowId && (() => {
+        const row = displayData.find((r) => r.id === detailsRowId) as TData;
+        const onClose = () => setDetailsRowId(null);
+
+        // Enhancement 2: Full modal customization
+        if (renderModal) {
+          return renderModal(row, onClose);
+        }
+
+        // Enhancement 2: Partial modal customization (content only)
+        if (renderModalContent) {
+          return (
+            <RowDetailsModal
+              row={row}
+              columns={columns}
+              onClose={onClose}
+              isOpen={true}
+              enableEditing={false} // Disable default editing when using custom content
+              renderCustomContent={(row, isEditing, onSave, onCancel) =>
+                renderModalContent(row, isEditing, onSave, onCancel, onClose)
+              }
+            />
+          );
+        }
+
+        // Default modal
+        return (
+          <RowDetailsModal
+            row={row}
+            columns={columns}
+            onClose={onClose}
+            isOpen={true}
+            enableEditing={enableInlineEditing}
+            onSave={(rowId, updates) => {
+              // Update the modified data map
+              setModifiedData((prev) => {
+                const newMap = new Map(prev);
+                const existingChanges = newMap.get(rowId) || {};
+                newMap.set(rowId, { ...existingChanges, ...updates });
+                return newMap;
+              });
+              console.log(`Saved row ${rowId} from modal:`, updates);
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }

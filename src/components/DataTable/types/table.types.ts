@@ -98,6 +98,16 @@ export interface DataTableProps<TData extends RowData = RowData> {
   // Row expanding (Phase 10.5)
   renderExpandedContent?: (row: TData) => React.ReactNode;
 
+  // Enhancement 2: Fully customizable modal window
+  renderModal?: (row: TData, onClose: () => void) => React.ReactNode; // Full modal customization
+  renderModalContent?: (
+    row: TData,
+    isEditing: boolean,
+    onSave: (updates: Partial<TData>) => void,
+    onCancel: () => void,
+    onClose: () => void
+  ) => React.ReactNode; // Partial customization (content only)
+
   // Validation
   rowValidationSchema?: unknown; // Zod schema for cross-field validation
 

@@ -15,6 +15,13 @@ interface RowDetailsModalProps<TData> {
   isOpen: boolean;
   onSave?: (rowId: string, updates: Partial<TData>) => void;
   enableEditing?: boolean;
+  // Enhancement 2: Custom content rendering
+  renderCustomContent?: (
+    row: TData,
+    isEditing: boolean,
+    onSave: (updates: Partial<TData>) => void,
+    onCancel: () => void
+  ) => React.ReactNode;
 }
 
 export function RowDetailsModal<TData extends Record<string, any>>({
@@ -24,6 +31,7 @@ export function RowDetailsModal<TData extends Record<string, any>>({
   isOpen,
   onSave,
   enableEditing = true,
+  renderCustomContent,
 }: RowDetailsModalProps<TData>) {
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
@@ -213,8 +221,20 @@ export function RowDetailsModal<TData extends Record<string, any>>({
         </div>
 
         <div className={styles.content}>
-          <div className={styles.fieldList}>
-            {dataColumns.map((column: any) => {
+          {/* Enhancement 2: Custom content rendering */}
+          {renderCustomContent ? (
+            renderCustomContent(
+              row,
+              isEditing,
+              (updates) => {
+                // Update edited data
+                setEditedData((prev) => ({ ...prev, ...updates }));
+              },
+              handleCancel
+            )
+          ) : (
+            <div className={styles.fieldList}>
+              {dataColumns.map((column: any) => {
               const columnId = column.id || column.accessorKey;
               const columnName = typeof column.header === 'string' ? column.header : columnId;
               const currentValue = editedData.hasOwnProperty(columnId) ? editedData[columnId] : row[columnId];
@@ -282,6 +302,7 @@ export function RowDetailsModal<TData extends Record<string, any>>({
               );
             })}
           </div>
+          )}
         </div>
 
         <div className={styles.footer}>
