@@ -1355,18 +1355,11 @@ export function DataTable<TData extends RowData>({
         >
         <div ref={scrollContainerRef} className={`${styles.virtualizationContainer} ${isTraditionalPagination ? styles.paginationMode : ''} ${showLoadingOverlay ? styles.loadingOverlay : ''}`}>
           <DndContext
-            sensors={columnSensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleColumnDragEnd}
-            modifiers={[restrictToHorizontalAxis]}
-          >
-          <DndContext
-            sensors={rowSensors}
+            sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             onDragCancel={() => setActiveId(null)}
-            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
           >
             <table
               className={`${styles.table} ${enableStickyFirstColumn ? styles.stickyFirstColumn : ''}`}
@@ -1404,6 +1397,13 @@ export function DataTable<TData extends RowData>({
 
                   const headerContent = (
                     <>
+                      {/* Column drag handle - Phase 10.6 */}
+                      {isReorderable && (
+                        <ColumnDragHandle
+                          columnId={header.id}
+                          disabled={isAnyColumnResizing}
+                        />
+                      )}
                       <div className={styles.thContent} title={headerText}>
                         {header.isPlaceholder
                           ? null
@@ -1461,17 +1461,7 @@ export function DataTable<TData extends RowData>({
                     if (handler) handler(e);
                   };
 
-                  return isReorderable ? (
-                    <DraggableColumnHeader
-                      key={header.id}
-                      id={header.id}
-                      className={headerClassName}
-                      style={headerStyle}
-                      onClick={handleHeaderClick}
-                    >
-                      {headerContent}
-                    </DraggableColumnHeader>
-                  ) : (
+                  return (
                     <th
                       key={header.id}
                       className={headerClassName}
@@ -1679,7 +1669,6 @@ export function DataTable<TData extends RowData>({
           </SortableContext>
         </table>
           </DndContext>
-          </DndContext>
 
         {/* DragOverlay for smooth drag animations (Phase 6 - Fix snap-back) */}
         <DragOverlay
@@ -1749,18 +1738,11 @@ export function DataTable<TData extends RowData>({
         >
         <div className={showLoadingOverlay ? styles.loadingOverlay : ''}>
           <DndContext
-            sensors={columnSensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleColumnDragEnd}
-            modifiers={[restrictToHorizontalAxis]}
-          >
-          <DndContext
-            sensors={rowSensors}
+            sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             onDragCancel={() => setActiveId(null)}
-            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
           >
             <table
               className={`${styles.table} ${enableStickyFirstColumn ? styles.stickyFirstColumn : ''}`}
@@ -1798,6 +1780,13 @@ export function DataTable<TData extends RowData>({
 
                   const headerContent = (
                     <>
+                      {/* Column drag handle - Phase 10.6 */}
+                      {isReorderable && (
+                        <ColumnDragHandle
+                          columnId={header.id}
+                          disabled={isAnyColumnResizing}
+                        />
+                      )}
                       <div className={styles.thContent} title={headerText}>
                         {header.isPlaceholder
                           ? null
@@ -1855,17 +1844,7 @@ export function DataTable<TData extends RowData>({
                     if (handler) handler(e);
                   };
 
-                  return isReorderable ? (
-                    <DraggableColumnHeader
-                      key={header.id}
-                      id={header.id}
-                      className={headerClassName}
-                      style={headerStyle}
-                      onClick={handleHeaderClick}
-                    >
-                      {headerContent}
-                    </DraggableColumnHeader>
-                  ) : (
+                  return (
                     <th
                       key={header.id}
                       className={headerClassName}
@@ -1959,7 +1938,6 @@ export function DataTable<TData extends RowData>({
             </tbody>
           </SortableContext>
         </table>
-          </DndContext>
           </DndContext>
 
         {/* DragOverlay for smooth drag animations (Phase 6 - Fix snap-back) */}
