@@ -2028,6 +2028,17 @@ export function DataTable<TData extends RowData>({
           columns={columns}
           onClose={() => setDetailsRowId(null)}
           isOpen={!!detailsRowId}
+          enableEditing={enableInlineEditing}
+          onSave={(rowId, updates) => {
+            // Update the modified data map
+            setModifiedData((prev) => {
+              const newMap = new Map(prev);
+              const existingChanges = newMap.get(rowId) || {};
+              newMap.set(rowId, { ...existingChanges, ...updates });
+              return newMap;
+            });
+            console.log(`Saved row ${rowId} from modal:`, updates);
+          }}
         />
       )}
     </div>

@@ -112,6 +112,11 @@
   letter-spacing: 0.5px;
 }
 
+.required {
+  color: #dc3545;
+  margin-left: 4px;
+}
+
 .fieldValue {
   font-size: 15px;
   color: #212529;
@@ -122,6 +127,52 @@
   min-height: 40px;
   display: flex;
   align-items: center;
+}
+
+.fieldInput {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input,
+.select {
+  padding: 10px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 15px;
+  color: #212529;
+  background: white;
+  transition: all 150ms ease;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.fieldError .input,
+.fieldError .select {
+  border-color: #dc3545;
+}
+
+.fieldError .input:focus,
+.fieldError .select:focus {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.errorMessage {
+  font-size: 13px;
+  color: #dc3545;
+  margin-top: 4px;
 }
 
 .footer {
@@ -148,6 +199,62 @@
   background: #f8f9fa;
   border-color: #0d6efd;
   color: #0d6efd;
+}
+
+.editButton {
+  padding: 10px 20px;
+  border: 1px solid #0d6efd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0d6efd;
+  transition: all 150ms ease;
+}
+
+.editButton:hover {
+  background: #0d6efd;
+  color: white;
+}
+
+.saveButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background: #0d6efd;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  transition: all 150ms ease;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: #0b5ed7;
+}
+
+.saveButton:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.cancelButton {
+  padding: 10px 20px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6c757d;
+  transition: all 150ms ease;
+}
+
+.cancelButton:hover {
+  background: #f8f9fa;
+  border-color: #6c757d;
 }
 
 /* Responsive */
