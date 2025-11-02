@@ -261,10 +261,20 @@ export function DataTable<TData extends RowData>({
   const tableScrollRef = useRef<HTMLDivElement>(null); // Ref for table scroll container
 
   // DndKit sensors (Phase 6)
-  const sensors = useSensors(
+  // Separate sensors for row reordering vs column reordering to prevent event conflicts
+  const rowSensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 10, // Require 10px movement before drag starts
+      },
+    }),
+    useSensor(KeyboardSensor)
+  );
+
+  const columnSensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // Shorter distance for better column drag UX
       },
     }),
     useSensor(KeyboardSensor)
@@ -1324,7 +1334,7 @@ export function DataTable<TData extends RowData>({
         >
         <div ref={scrollContainerRef} className={`${styles.virtualizationContainer} ${isTraditionalPagination ? styles.paginationMode : ''} ${showLoadingOverlay ? styles.loadingOverlay : ''}`}>
           <DndContext
-            sensors={sensors}
+            sensors={rowSensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
@@ -1336,7 +1346,7 @@ export function DataTable<TData extends RowData>({
               style={{ width: `${totalTableWidth}px` }}
             >
           <DndContext
-            sensors={sensors}
+            sensors={columnSensors}
             collisionDetection={closestCenter}
             onDragEnd={handleColumnDragEnd}
             modifiers={[restrictToHorizontalAxis]}
@@ -1717,7 +1727,7 @@ export function DataTable<TData extends RowData>({
         >
         <div className={showLoadingOverlay ? styles.loadingOverlay : ''}>
           <DndContext
-            sensors={sensors}
+            sensors={rowSensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
@@ -1729,7 +1739,7 @@ export function DataTable<TData extends RowData>({
               style={{ width: `${totalTableWidth}px` }}
             >
           <DndContext
-            sensors={sensors}
+            sensors={columnSensors}
             collisionDetection={closestCenter}
             onDragEnd={handleColumnDragEnd}
             modifiers={[restrictToHorizontalAxis]}

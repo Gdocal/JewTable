@@ -25,11 +25,6 @@
   opacity: 0.5;
 }
 
-.checkbox:hover:not(:disabled) {
-  /* Removed scale transform to prevent visual artifacts with table borders */
-  opacity: 0.8;
-}
-
 .checkbox:focus {
   outline: none;
 }
