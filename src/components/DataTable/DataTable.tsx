@@ -279,8 +279,8 @@ export function DataTable<TData extends RowData>({
       activationConstraint: {
         distance: 5, // Shorter distance for better column drag UX
       },
-      onActivation: () => {
-        console.log('[DEBUG] Column sensor activated');
+      onActivation: (event) => {
+        console.log('[DEBUG] Column sensor activated!', event);
       },
     }),
     useSensor(KeyboardSensor)
@@ -1115,7 +1115,10 @@ export function DataTable<TData extends RowData>({
 
   // Track if any column is being resized (Phase 10.3)
   // This prevents column reordering from interfering with resize operations
-  const isAnyColumnResizing = table.getState().columnSizingInfo.isResizingColumn !== null;
+  const columnSizingInfo = table.getState().columnSizingInfo;
+  // isResizingColumn is false when not resizing, or a string (column ID) when resizing
+  const isAnyColumnResizing = typeof columnSizingInfo.isResizingColumn === 'string';
+
 
   // Calculate scrollbar width for header alignment (Phase 10.3 - Virtualization fix)
   // The tbody scrollbar consumes space, making body narrower than header
