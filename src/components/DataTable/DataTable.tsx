@@ -1070,7 +1070,7 @@ export function DataTable<TData extends RowData>({
   // Calculate total table width from all visible columns (Phase 10.3 - Column resizing)
   // This ensures the table maintains its full width even when wider than viewport
   const totalTableWidth = useMemo(() => {
-    return table.getAllColumns()
+    const width = table.getAllColumns()
       .filter(col => col.getIsVisible())
       .reduce((sum, col) => {
         const meta = col.columnDef.meta as any;
@@ -1084,6 +1084,9 @@ export function DataTable<TData extends RowData>({
 
         return sum + col.getSize();
       }, 0);
+
+    console.log('[DEBUG] Total table width:', width);
+    return width;
   }, [table, columnSizing, columnVisibility]);
 
   // Track if any column is being resized (Phase 10.3)
@@ -1350,6 +1353,7 @@ export function DataTable<TData extends RowData>({
                 disabled={!enableColumnReordering || isAnyColumnResizing}
               >
               <tr className={styles.headerRow} style={{ width: `${totalTableWidth}px` }}>
+                {console.log(`[DEBUG] Header row width: ${totalTableWidth}px`)}
                 {headerGroup.headers.map((header) => {
                   // Find the original column definition by matching id or accessorKey
                   const columnDef = columns.find(
@@ -1412,11 +1416,13 @@ export function DataTable<TData extends RowData>({
                     header.column.getCanSort() ? styles.sortable : ''
                   } ${header.column.getIsSorted() ? styles.sorted : ''} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`;
 
+                  const headerWidth = isDragColumn ? 32 : (isExpandColumn ? 32 : (isSelectionColumn ? 48 : header.getSize()));
                   const headerStyle = {
                     cursor: header.column.getCanSort() && !isAnyColumnResizing ? 'pointer' : 'default',
-                    width: `${header.getSize()}px`,
+                    width: `${headerWidth}px`,
                     position: 'relative' as const,
                   };
+                  console.log(`[DEBUG] Header ${header.id}: width=${headerWidth}px, isDrag=${isDragColumn}, isSelect=${isSelectionColumn}, isExpand=${isExpandColumn}`);
 
                   // Prevent sorting when resizing is active
                   const handleHeaderClick = (e: React.MouseEvent) => {
@@ -1540,6 +1546,7 @@ export function DataTable<TData extends RowData>({
                                 const isSelectionColumn = (cell.column.columnDef.meta as any)?.isSelectionColumn;
                                 const isExpandColumn = (cell.column.columnDef.meta as any)?.isExpandColumn;
                                 const cellWidth = isDragColumn ? 32 : (isExpandColumn ? 32 : (isSelectionColumn ? 48 : cell.column.getSize()));
+                                console.log(`[DEBUG] Cell ${cell.column.id}: width=${cellWidth}px, isDrag=${isDragColumn}, isSelect=${isSelectionColumn}, isExpand=${isExpandColumn}`);
                                 return (
                                   <td
                                     key={cell.id}
@@ -1561,6 +1568,7 @@ export function DataTable<TData extends RowData>({
                                 const isSelectionColumn = (cell.column.columnDef.meta as any)?.isSelectionColumn;
                                 const isExpandColumn = (cell.column.columnDef.meta as any)?.isExpandColumn;
                                 const cellWidth = isDragColumn ? 32 : (isExpandColumn ? 32 : (isSelectionColumn ? 48 : cell.column.getSize()));
+                                console.log(`[DEBUG] Cell ${cell.column.id}: width=${cellWidth}px, isDrag=${isDragColumn}, isSelect=${isSelectionColumn}, isExpand=${isExpandColumn}`);
                                 return (
                                   <td
                                     key={cell.id}
@@ -1742,6 +1750,7 @@ export function DataTable<TData extends RowData>({
                 disabled={!enableColumnReordering || isAnyColumnResizing}
               >
               <tr className={styles.headerRow} style={{ width: `${totalTableWidth}px` }}>
+                {console.log(`[DEBUG] Header row width: ${totalTableWidth}px`)}
                 {headerGroup.headers.map((header) => {
                   // Find the original column definition by matching id or accessorKey
                   const columnDef = columns.find(
@@ -1804,11 +1813,13 @@ export function DataTable<TData extends RowData>({
                     header.column.getCanSort() ? styles.sortable : ''
                   } ${header.column.getIsSorted() ? styles.sorted : ''} ${isDragColumn ? styles.dragColumn : ''} ${isSelectionColumn ? styles.selectionColumn : ''} ${isExpandColumn ? styles.expandColumn : ''}`;
 
+                  const headerWidth = isDragColumn ? 32 : (isExpandColumn ? 32 : (isSelectionColumn ? 48 : header.getSize()));
                   const headerStyle = {
                     cursor: header.column.getCanSort() && !isAnyColumnResizing ? 'pointer' : 'default',
-                    width: `${header.getSize()}px`,
+                    width: `${headerWidth}px`,
                     position: 'relative' as const,
                   };
+                  console.log(`[DEBUG] Header ${header.id}: width=${headerWidth}px, isDrag=${isDragColumn}, isSelect=${isSelectionColumn}, isExpand=${isExpandColumn}`);
 
                   // Prevent sorting when resizing is active
                   const handleHeaderClick = (e: React.MouseEvent) => {
