@@ -1789,17 +1789,19 @@ Added two levels of modal customization to give developers complete control over
 - Row backgrounds and shadows now move with table content
 - **Git Commit:** 35e3fb6
 
-**Issue 2: Header/Data Text Alignment** ⏳ IN PROGRESS
-- Added comprehensive debug logging to diagnose:
-  - Total table width calculation
-  - Header column widths (th elements)
-  - Data cell widths (td elements)
-  - Row width comparison
-- Investigating potential causes:
-  - `.thContent` has `padding-right: 48px` for icons
-  - Special columns (drag, selection, expand) have custom widths
-  - Row width calculation differences between virtualization and pagination modes
-- **Git Commit:** f3d1456 (debug logging)
+**Issue 2: Header/Data Text Alignment** ✅ COMPLETE
+- Identified root cause: Double padding effect in editable cells
+  - Parent `td` has `padding: 12px 8px`
+  - Child containers (EditableTextCell, EditableNumberCell, etc.) had extra `padding: 6px 8px`
+  - Total: 18px vertical padding vs 12px in headers = 6px misalignment
+- **Solution:** Removed redundant padding from all editable cell containers:
+  - EditableTextCell: `.input` and `.viewContainer` padding → 0
+  - EditableNumberCell: `.input` and `.viewContainer` padding → 0
+  - EditableDateCell: `.input` and `.viewContainer` padding → 0
+  - EditableSelectCell: `.select` and `.viewContainer` padding → 0
+  - EditableCheckboxCell: `.container` padding → 0
+- Now all text aligns at the same horizontal position (td's 12px 8px padding)
+- **Git Commit:** da6160e
 
 **Technical Details:**
 
@@ -1821,10 +1823,12 @@ After:
   > pagination
 ```
 
-**Next Steps:**
-1. Review debug console output from user
-2. Identify width calculation mismatch
-3. Apply fix for text alignment
-4. Remove debug logging
-5. Final testing and commit
+**Shadow Fix:**
+Changed shadows from `position: absolute` to `position: fixed` so they stay pinned to viewport edges while table scrolls underneath. No longer move with scroll or disappear at the end.
+
+**Session Summary:**
+- ✅ All 4 issues resolved
+- ✅ Debug logging removed
+- ✅ Code committed and documented
+- Total commits: 4 (35e3fb6, f3d1456, a72dada, da6160e)
 
