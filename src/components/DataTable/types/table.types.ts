@@ -5,6 +5,7 @@
 import { SortingState } from '@tanstack/react-table';
 import { DataTableColumnDef } from './column.types';
 import { FilterState } from './filter.types';
+import type { TableSettingsStorage } from './settings.types';
 
 export enum TableMode {
   CLIENT = 'client', // All data loaded, client-side operations
@@ -61,10 +62,14 @@ export interface DataTableProps<TData extends RowData = RowData> {
   onSortChange?: (sorting: SortingState) => void;
   onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
 
-  // User preferences
+  // User preferences (Legacy - kept for backward compatibility)
   userId?: string; // For saving user-specific preferences
   onSavePreferences?: (preferences: TablePreferences) => Promise<void>;
   onLoadPreferences?: () => Promise<TablePreferences>;
+
+  // Enhancement 1: Configurable settings persistence
+  settingsStorage?: TableSettingsStorage; // Custom storage adapter (defaults to localStorage)
+  enableSettingsPersistence?: boolean; // Enable/disable automatic persistence (default: true)
 
   // Features
   enableSorting?: boolean;
