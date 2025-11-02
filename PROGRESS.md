@@ -1877,3 +1877,53 @@ Changed shadows from `position: absolute` to `position: fixed` so they stay pinn
 - Total commits: 5 (35e3fb6, f3d1456, a72dada, da6160e, a6d65be)
 - Status: ✅ ALL ISSUES RESOLVED
 
+---
+
+#### Session 15 Final Polish: Checkbox Alignment and Dynamic Icons
+- **Date:** 2025-11-02
+- **Action:** Fixed checkbox alignment and implemented dynamic icon visibility
+
+**Issues Fixed:**
+
+1. **Checkbox Alignment (Finally Fixed!)** ✅ COMPLETE
+   - Root cause: Header `th` had `font-weight: 600`, data `td` had normal weight
+   - This created different vertical baselines and inconsistent line heights
+   - Fixed:
+     - Added `font-weight: normal !important` to `.selectionColumn` and `.th.selectionColumn`
+     - Added `line-height: 1 !important` for consistent vertical spacing
+   - Header and data checkboxes now perfectly aligned vertically
+   - **Git Commit:** e98752e
+
+2. **Dynamic Icon Visibility on Hover** ✅ COMPLETE (NEW FEATURE)
+   - Problem: Icons always visible, wasted 48px padding, right-aligned numbers looked bad
+   - User's solution: Hide icons by default, show on hover, let text use full width
+   - Implementation:
+     - Icons hidden by default: `opacity: 0`, `visibility: hidden`
+     - Icons fade in smoothly on hover: 200ms transition
+     - Text uses full width when icons hidden: `padding-right: 0`
+     - Text compresses when icons appear: `padding-right: 48px`
+     - Icons stay visible for sorted columns (`.sorted` state)
+     - Smooth background color transitions
+   - Benefits:
+     - Cleaner, less cluttered header design
+     - Better space utilization for text
+     - Right-aligned numbers now look correct
+     - Progressive disclosure UX pattern
+     - Professional smooth animations
+   - **Git Commit:** e98752e
+
+**Technical Implementation:**
+- Used opacity + visibility for proper hiding/showing
+- Staggered transition delays (visibility delayed on hide, instant on show)
+- Background transitions from transparent to solid
+- Padding transitions synchronized with icon visibility
+- Reverted EditableNumberCell padding changes (no longer needed)
+
+**Session 15 Complete:**
+- Total issues fixed: 10
+- Batch 1: Page size, scroll structure, text alignment, checkbox alignment attempt
+- Batch 2: Shadows, right-aligned values, modal references, checkbox hover
+- Batch 3: Checkbox alignment (final fix), dynamic icon visibility
+- Total commits: 6 (35e3fb6, f3d1456, a72dada, da6160e, a6d65be, e98752e)
+- Status: ✅ ALL ISSUES FULLY RESOLVED
+
