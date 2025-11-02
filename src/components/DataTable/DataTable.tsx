@@ -190,7 +190,7 @@ export function DataTable<TData extends RowData>({
   // Pagination state (Phase 8.3 - Traditional pagination)
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 100,
+    pageSize: 10,
   });
 
   // Edit state (Phase 4) - track which cell is being edited
@@ -258,6 +258,7 @@ export function DataTable<TData extends RowData>({
   const [showLeftShadow, setShowLeftShadow] = useState(false);
   const [showRightShadow, setShowRightShadow] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const tableScrollRef = useRef<HTMLDivElement>(null); // Ref for table scroll container
 
   // DndKit sensors (Phase 6)
   const sensors = useSensors(
@@ -1140,11 +1141,11 @@ export function DataTable<TData extends RowData>({
 
   // Horizontal scroll shadow detection (Phase 10.2)
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const scrollContainer = tableScrollRef.current;
+    if (!scrollContainer) return;
 
     const handleHorizontalScroll = () => {
-      const { scrollLeft, scrollWidth, clientWidth } = container;
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainer;
 
       // Show left shadow if scrolled right
       setShowLeftShadow(scrollLeft > 0);
@@ -1157,11 +1158,11 @@ export function DataTable<TData extends RowData>({
     handleHorizontalScroll();
 
     // Listen for scroll and resize events
-    container.addEventListener('scroll', handleHorizontalScroll);
+    scrollContainer.addEventListener('scroll', handleHorizontalScroll);
     window.addEventListener('resize', handleHorizontalScroll);
 
     return () => {
-      container.removeEventListener('scroll', handleHorizontalScroll);
+      scrollContainer.removeEventListener('scroll', handleHorizontalScroll);
       window.removeEventListener('resize', handleHorizontalScroll);
     };
   }, [data, columnFilters, globalFilter]); // Re-check when data or filters change
@@ -1194,7 +1195,7 @@ export function DataTable<TData extends RowData>({
   return (
     <div
       ref={containerRef}
-      className={`${styles.tableContainer} ${className || ''} ${showLeftShadow ? styles.hasScrollShadowLeft : ''} ${showRightShadow ? styles.hasScrollShadowRight : ''}`}
+      className={`${styles.tableContainer} ${className || ''}`}
       onClick={handleContainerClick}
     >
       {/* Table toolbar - Phase 5 (Improved UX) */}
@@ -1317,6 +1318,10 @@ export function DataTable<TData extends RowData>({
           )}
         </div>
       ) : shouldUseVirtualization ? (
+        <div
+          ref={tableScrollRef}
+          className={`${styles.tableScrollContainer} ${showLeftShadow ? styles.hasScrollShadowLeft : ''} ${showRightShadow ? styles.hasScrollShadowRight : ''}`}
+        >
         <div ref={scrollContainerRef} className={`${styles.virtualizationContainer} ${isTraditionalPagination ? styles.paginationMode : ''} ${showLoadingOverlay ? styles.loadingOverlay : ''}`}>
           <DndContext
             sensors={sensors}
@@ -1703,7 +1708,12 @@ export function DataTable<TData extends RowData>({
         </DragOverlay>
       </DndContext>
         </div>
+        </div>
       ) : (
+        <div
+          ref={tableScrollRef}
+          className={`${styles.tableScrollContainer} ${showLeftShadow ? styles.hasScrollShadowLeft : ''} ${showRightShadow ? styles.hasScrollShadowRight : ''}`}
+        >
         <div className={showLoadingOverlay ? styles.loadingOverlay : ''}>
           <DndContext
             sensors={sensors}
@@ -1976,6 +1986,7 @@ export function DataTable<TData extends RowData>({
           })() : null}
         </DragOverlay>
       </DndContext>
+        </div>
         </div>
       )}
 

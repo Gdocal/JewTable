@@ -2,7 +2,6 @@
 
 .tableContainer {
   width: 100%;
-  overflow-x: auto;
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -10,9 +9,16 @@
   position: relative;
 }
 
+/* Wrapper for table that enables horizontal scroll - ONLY table scrolls */
+.tableScrollContainer {
+  width: 100%;
+  overflow-x: auto;
+  position: relative;
+}
+
 /* Horizontal scroll shadows - Phase 10.2 */
-.tableContainer.hasScrollShadowLeft::before,
-.tableContainer.hasScrollShadowRight::after {
+.tableScrollContainer.hasScrollShadowLeft::before,
+.tableScrollContainer.hasScrollShadowRight::after {
   content: '';
   position: absolute;
   top: 0;
@@ -22,13 +28,13 @@
   z-index: 5;
 }
 
-.tableContainer.hasScrollShadowLeft::before {
-  left: 16px;
+.tableScrollContainer.hasScrollShadowLeft::before {
+  left: 0;
   background: linear-gradient(to right, rgba(0, 0, 0, 0.1), transparent);
 }
 
-.tableContainer.hasScrollShadowRight::after {
-  right: 16px;
+.tableScrollContainer.hasScrollShadowRight::after {
+  right: 0;
   background: linear-gradient(to left, rgba(0, 0, 0, 0.1), transparent);
 }
 
