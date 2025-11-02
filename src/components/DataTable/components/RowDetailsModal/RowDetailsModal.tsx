@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellType } from '../../types/cell.types';
+import { ReferenceCell } from '../../cells/ReferenceCell';
 import styles from './RowDetailsModal.module.css';
 
 interface RowDetailsModalProps<TData> {
@@ -201,6 +202,10 @@ export function RowDetailsModal<TData extends Record<string, any>>({
           return `${value}%`;
         }
         return String(value);
+      case CellType.REFERENCE:
+        // Reference values will be handled by ReferenceCell component
+        // This is a fallback for any edge cases
+        return `ID: ${value}`;
       default:
         return String(value);
     }
@@ -258,6 +263,13 @@ export function RowDetailsModal<TData extends Record<string, any>>({
                           onChange={(e) => handleFieldChange(columnId, e.target.checked, column)}
                           className={styles.checkbox}
                         />
+                      ) : cellType === CellType.REFERENCE ? (
+                        <ReferenceCell
+                          type={column.cellOptions?.referenceType || ''}
+                          value={currentValue}
+                          onChange={(newValue) => handleFieldChange(columnId, newValue, column)}
+                          variant="minimal"
+                        />
                       ) : cellType === CellType.SELECT ? (
                         <select
                           value={currentValue || ''}
@@ -296,7 +308,19 @@ export function RowDetailsModal<TData extends Record<string, any>>({
                       {error && <div className={styles.errorMessage}>{error}</div>}
                     </div>
                   ) : (
-                    <div className={styles.fieldValue}>{formattedValue}</div>
+                    <div className={styles.fieldValue}>
+                      {cellType === CellType.REFERENCE ? (
+                        <ReferenceCell
+                          type={column.cellOptions?.referenceType || ''}
+                          value={currentValue}
+                          onChange={() => {}}
+                          disabled={true}
+                          variant="minimal"
+                        />
+                      ) : (
+                        formattedValue
+                      )}
+                    </div>
                   )}
                 </div>
               );
