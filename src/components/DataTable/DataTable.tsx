@@ -1675,6 +1675,7 @@ export function DataTable<TData extends RowData>({
           </SortableContext>
         </table>
           </DndContext>
+          </DndContext>
 
         {/* DragOverlay for smooth drag animations (Phase 6 - Fix snap-back) */}
         <DragOverlay
@@ -1735,7 +1736,6 @@ export function DataTable<TData extends RowData>({
             );
           })() : null}
         </DragOverlay>
-      </DndContext>
         </div>
         </div>
       ) : (
@@ -1744,6 +1744,12 @@ export function DataTable<TData extends RowData>({
           className={`${styles.tableScrollContainer} ${showLeftShadow ? styles.hasScrollShadowLeft : ''} ${showRightShadow ? styles.hasScrollShadowRight : ''}`}
         >
         <div className={showLoadingOverlay ? styles.loadingOverlay : ''}>
+          <DndContext
+            sensors={columnSensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleColumnDragEnd}
+            modifiers={[restrictToHorizontalAxis]}
+          >
           <DndContext
             sensors={rowSensors}
             collisionDetection={closestCenter}
@@ -1756,12 +1762,6 @@ export function DataTable<TData extends RowData>({
               className={`${styles.table} ${enableStickyFirstColumn ? styles.stickyFirstColumn : ''}`}
               style={{ width: `${totalTableWidth}px` }}
             >
-          <DndContext
-            sensors={columnSensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleColumnDragEnd}
-            modifiers={[restrictToHorizontalAxis]}
-          >
           <thead ref={theadRef} className={styles.thead}>
             {table.getHeaderGroups().map((headerGroup) => (
               <SortableContext
@@ -1956,6 +1956,7 @@ export function DataTable<TData extends RowData>({
           </SortableContext>
         </table>
           </DndContext>
+          </DndContext>
 
         {/* DragOverlay for smooth drag animations (Phase 6 - Fix snap-back) */}
         <DragOverlay
@@ -2016,7 +2017,6 @@ export function DataTable<TData extends RowData>({
             );
           })() : null}
         </DragOverlay>
-      </DndContext>
         </div>
         </div>
       )}
