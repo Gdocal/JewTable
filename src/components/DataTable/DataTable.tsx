@@ -1684,11 +1684,20 @@ export function DataTable<TData extends RowData>({
           {activeId ? (() => {
             // Check if this is a column drag or row drag
             const isColumnDrag = columnOrder.includes(activeId as string);
+            console.log(`[${new Date().toLocaleTimeString()}] [DRAG OVERLAY]`, {
+              activeId,
+              isColumnDrag,
+              columnOrder,
+              rowOrder
+            });
 
             if (isColumnDrag) {
               // Column drag overlay
               const activeHeader = table.getHeaderGroups()[0]?.headers.find((h) => h.id === activeId);
-              if (!activeHeader) return null;
+              if (!activeHeader) {
+                console.log('[DRAG OVERLAY] Column header not found');
+                return null;
+              }
 
               return (
                 <div style={{
@@ -1709,8 +1718,13 @@ export function DataTable<TData extends RowData>({
             }
 
             // Row drag overlay
+            console.log('[DRAG OVERLAY] Rendering row overlay');
             const activeRow = table.getRowModel().rows.find((row) => row.original.id === activeId);
-            if (!activeRow) return null;
+            if (!activeRow) {
+              console.log('[DRAG OVERLAY] Row not found for activeId:', activeId);
+              return null;
+            }
+            console.log('[DRAG OVERLAY] Found activeRow:', activeRow.original);
 
             const animationOrder = animatingRows.get(activeRow.original.id);
             const shouldAnimate = animationOrder !== undefined;
@@ -1985,11 +1999,20 @@ export function DataTable<TData extends RowData>({
           {activeId ? (() => {
             // Check if this is a column drag or row drag
             const isColumnDrag = columnOrder.includes(activeId as string);
+            console.log(`[${new Date().toLocaleTimeString()}] [DRAG OVERLAY]`, {
+              activeId,
+              isColumnDrag,
+              columnOrder,
+              rowOrder
+            });
 
             if (isColumnDrag) {
               // Column drag overlay
               const activeHeader = table.getHeaderGroups()[0]?.headers.find((h) => h.id === activeId);
-              if (!activeHeader) return null;
+              if (!activeHeader) {
+                console.log('[DRAG OVERLAY] Column header not found');
+                return null;
+              }
 
               return (
                 <div style={{
@@ -2010,8 +2033,13 @@ export function DataTable<TData extends RowData>({
             }
 
             // Row drag overlay
+            console.log('[DRAG OVERLAY] Rendering row overlay');
             const activeRow = table.getRowModel().rows.find((row) => row.original.id === activeId);
-            if (!activeRow) return null;
+            if (!activeRow) {
+              console.log('[DRAG OVERLAY] Row not found for activeId:', activeId);
+              return null;
+            }
+            console.log('[DRAG OVERLAY] Found activeRow:', activeRow.original);
 
             const animationOrder = animatingRows.get(activeRow.original.id);
             const shouldAnimate = animationOrder !== undefined;
