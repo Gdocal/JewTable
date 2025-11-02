@@ -3,9 +3,10 @@
  * Phase 10.9: Import/Export CSV
  */
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { exportToCSV, importFromCSV } from '../../utils/csvUtils';
+import { ImportPreviewModal } from './ImportPreviewModal';
 import styles from './ImportExportButtons.module.css';
 
 interface ImportExportButtonsProps<TData> {
@@ -22,6 +23,8 @@ export function ImportExportButtons<TData extends Record<string, any>>({
   onImport,
 }: ImportExportButtonsProps<TData>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewData, setPreviewData] = useState<TData[] | null>(null);
+  const [previewColumns, setPreviewColumns] = useState<string[]>([]);
 
   const handleExport = () => {
     const filename = `${tableId}_export_${new Date().toISOString().split('T')[0]}.csv`;
@@ -40,8 +43,19 @@ export function ImportExportButtons<TData extends Record<string, any>>({
       file,
       columns,
       (importedData) => {
-        onImport(importedData);
-        alert(`Successfully imported ${importedData.length} rows`);
+        // Extract column names from the first row
+        const dataColumns = columns.filter((col: any) => {
+          const meta = col.meta;
+          return !meta?.isDragColumn && !meta?.isSelectionColumn && !meta?.isExpandColumn && col.id !== 'actions' && col.id !== '_actions';
+        });
+        const columnNames = dataColumns.map((col: any) =>
+          typeof col.header === 'string' ? col.header : (col.id || col.accessorKey)
+        );
+
+        // Show preview modal
+        setPreviewData(importedData);
+        setPreviewColumns(columnNames);
+
         // Reset file input
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
@@ -55,6 +69,20 @@ export function ImportExportButtons<TData extends Record<string, any>>({
         }
       }
     );
+  };
+
+  const handleConfirmImport = () => {
+    if (previewData) {
+      onImport(previewData);
+      alert(`Successfully imported ${previewData.length} rows`);
+      setPreviewData(null);
+      setPreviewColumns([]);
+    }
+  };
+
+  const handleCancelImport = () => {
+    setPreviewData(null);
+    setPreviewColumns([]);
   };
 
   return (
@@ -92,6 +120,16 @@ export function ImportExportButtons<TData extends Record<string, any>>({
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />
+
+      {previewData && (
+        <ImportPreviewModal
+          data={previewData}
+          columns={previewColumns}
+          onConfirm={handleConfirmImport}
+          onCancel={handleCancelImport}
+          isOpen={!!previewData}
+        />
+      )}
     </div>
   );
 }
