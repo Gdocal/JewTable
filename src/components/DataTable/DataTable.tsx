@@ -56,7 +56,7 @@ import { EmptyState } from './components/EmptyState/EmptyState';
 import { RowActions } from './components/RowActions/RowActions';
 import { DraggableRow } from './components/DraggableRow/DraggableRow';
 import { DragHandleCell } from './components/DragHandleCell/DragHandleCell';
-import { ColumnDragHandle } from './components/ColumnDragHandle';
+import { SortableColumnHeader } from './components/SortableColumnHeader';
 import { PaginationControls } from './components/PaginationControls/PaginationControls';
 import { SelectionCell } from './cells/SelectionCell';
 import { ExpandIcon } from './components/ExpandIcon';
@@ -1397,13 +1397,6 @@ export function DataTable<TData extends RowData>({
 
                   const headerContent = (
                     <>
-                      {/* Column drag handle - Phase 10.6 */}
-                      {isReorderable && (
-                        <ColumnDragHandle
-                          columnId={header.id}
-                          disabled={isAnyColumnResizing}
-                        />
-                      )}
                       <div className={styles.thContent} title={headerText}>
                         {header.isPlaceholder
                           ? null
@@ -1461,7 +1454,18 @@ export function DataTable<TData extends RowData>({
                     if (handler) handler(e);
                   };
 
-                  return (
+                  return isReorderable ? (
+                    <SortableColumnHeader
+                      key={header.id}
+                      id={header.id}
+                      className={headerClassName}
+                      style={headerStyle}
+                      disabled={isAnyColumnResizing}
+                      onClick={handleHeaderClick}
+                    >
+                      {headerContent}
+                    </SortableColumnHeader>
+                  ) : (
                     <th
                       key={header.id}
                       className={headerClassName}
@@ -1807,13 +1811,6 @@ export function DataTable<TData extends RowData>({
 
                   const headerContent = (
                     <>
-                      {/* Column drag handle - Phase 10.6 */}
-                      {isReorderable && (
-                        <ColumnDragHandle
-                          columnId={header.id}
-                          disabled={isAnyColumnResizing}
-                        />
-                      )}
                       <div className={styles.thContent} title={headerText}>
                         {header.isPlaceholder
                           ? null
@@ -1871,7 +1868,18 @@ export function DataTable<TData extends RowData>({
                     if (handler) handler(e);
                   };
 
-                  return (
+                  return isReorderable ? (
+                    <SortableColumnHeader
+                      key={header.id}
+                      id={header.id}
+                      className={headerClassName}
+                      style={headerStyle}
+                      disabled={isAnyColumnResizing}
+                      onClick={handleHeaderClick}
+                    >
+                      {headerContent}
+                    </SortableColumnHeader>
+                  ) : (
                     <th
                       key={header.id}
                       className={headerClassName}
