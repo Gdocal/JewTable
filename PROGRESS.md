@@ -1927,3 +1927,47 @@ Changed shadows from `position: absolute` to `position: fixed` so they stay pinn
 - Total commits: 6 (35e3fb6, f3d1456, a72dada, da6160e, a6d65be, e98752e)
 - Status: ✅ ALL ISSUES FULLY RESOLVED
 
+---
+
+#### Session 15 Final Fixes: Checkbox Hover and Column Reordering
+- **Date:** 2025-11-02
+- **Action:** Fixed checkbox hover effect and enabled column reordering
+
+**Issues Fixed:**
+
+1. **Checkbox Hover Visual Problem** ✅ COMPLETE
+   - Problem: Hover effect on header checkbox changed opacity to 0.8
+   - This created visual confusion and apparent size/position changes
+   - Fix: Removed `.checkbox:hover` rule from SelectionCell.module.css
+   - Checkboxes now maintain consistent appearance without hover effects
+   - **Git Commit:** 486bd51
+
+2. **Column Reordering Not Working** ✅ COMPLETE (CRITICAL BUG FIX)
+   - Problem: Column drag-and-drop completely non-functional
+   - Root cause: Nested DndContext with shared sensors
+     * Row reordering DndContext (outer)
+     * Column reordering DndContext (nested inside)
+     * Both used same 'sensors' configuration
+     * Outer context intercepted pointer events before reaching inner context
+   - Fix: Created separate sensor configurations
+     * `rowSensors`: 10px activation distance for row dragging
+     * `columnSensors`: 5px activation distance for column dragging (better UX)
+     * Applied to all 4 DndContext instances (virtualized + non-virtualized)
+   - Column headers can now be dragged and reordered successfully
+   - **Git Commit:** 486bd51
+
+**Technical Implementation:**
+- Removed hover opacity change from selection checkboxes
+- Created two independent useSensors configurations
+- Updated both virtualized and non-virtualized table render paths
+- Shorter activation distance for columns improves drag responsiveness
+
+**Session 15 FINAL Summary:**
+- Total issues fixed: 12
+- Batch 1: Page size, scroll structure, text alignment, checkbox alignment
+- Batch 2: Shadows, right-aligned values, modal references, checkbox hover
+- Batch 3: Checkbox alignment (font-weight), dynamic icon visibility
+- Batch 4: Checkbox hover removal, column reordering fix
+- Total commits: 7 (35e3fb6, f3d1456, a72dada, da6160e, a6d65be, e98752e, 486bd51)
+- Status: ✅ ALL ISSUES FULLY RESOLVED
+
