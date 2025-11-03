@@ -123,3 +123,96 @@ export class TableController {
     }
   }
 }
+
+  // POST /api/tables/employees/rows/batch-create
+  static async batchCreate(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { rows } = req.body;
+      const organizationId = req.user!.organizationId;
+      const userId = req.user!.userId;
+
+      const data = await prisma.$transaction(
+        rows.map((row: any) =>
+          prisma.employee.create({
+            data: {
+              ...row,
+              organizationId,
+              createdBy: userId,
+            },
+          })
+        )
+      );
+
+      res.status(201).json({ success: true, data });
+    } catch (error) {
+      console.error('batchCreate error:', error);
+      res.status(500).json({ success: false, error: { message: 'Failed to batch create rows' } });
+    }
+  }
+
+  // POST /api/tables/employees/rows/batch-update
+  static async batchUpdate(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { updates } = req.body; // Array of { id, data, version }
+
+      const data = await prisma.$transaction(
+        updates.map((update: any) =>
+          prisma.employee.update({
+            where: { id: update.id },
+            data: {
+              ...update.data,
+              version: { increment: 1 },
+              updatedBy: req.user!.userId,
+            },
+          })
+        )
+      );
+
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error('batchUpdate error:', error);
+      res.status(500).json({ success: false, error: { message: 'Failed to batch update rows' } });
+    }
+  }
+
+  // DELETE /api/tables/employees/rows/batch-delete
+  static async batchDelete(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { ids } = req.body;
+
+      await prisma.employee.deleteMany({
+        where: {
+          id: { in: ids },
+          organizationId: req.user!.organizationId, // Security: only delete own org data
+        },
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('batchDelete error:', error);
+      res.status(500).json({ success: false, error: { message: 'Failed to batch delete rows' } });
+    }
+  }
+
+  // PUT /api/tables/employees/rows/reorder
+  static async reorderRows(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { rowIds } = req.body; // Array of IDs in new order
+
+      // Update sortOrder field for each row
+      const updates = rowIds.map((id: string, index: number) =>
+        prisma.employee.update({
+          where: { id },
+          data: { sortOrder: index },
+        })
+      );
+
+      await prisma.$transaction(updates);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('reorderRows error:', error);
+      res.status(500).json({ success: false, error: { message: 'Failed to reorder rows' } });
+    }
+  }
+}

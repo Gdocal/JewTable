@@ -66,6 +66,7 @@ model Employee {
   active         Boolean   @default(true)
   statusId       String?   @map("status_id")
   performance    Int?      @db.SmallInt
+  sortOrder      Int       @default(0) @map("sort_order") // For row reordering
   version        Int       @default(1) // For optimistic locking
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")

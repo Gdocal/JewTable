@@ -9,6 +9,8 @@ import { errorHandler } from './middleware/error';
 import { authenticate } from './middleware/auth';
 import { AuthService } from './services/auth.service';
 import { TableController } from './controllers/table.controller';
+import { ReferenceController } from './controllers/reference.controller';
+import { SettingsController } from './controllers/settings.controller';
 
 const app = express();
 
@@ -43,6 +45,28 @@ app.get(`${env.API_PREFIX}/tables/employees/data`, authenticate, TableController
 app.post(`${env.API_PREFIX}/tables/employees/rows`, authenticate, TableController.createRow);
 app.put(`${env.API_PREFIX}/tables/employees/rows/:id`, authenticate, TableController.updateRow);
 app.delete(`${env.API_PREFIX}/tables/employees/rows/:id`, authenticate, TableController.deleteRow);
+
+// Batch operations
+app.post(`${env.API_PREFIX}/tables/employees/rows/batch-create`, authenticate, TableController.batchCreate);
+app.post(`${env.API_PREFIX}/tables/employees/rows/batch-update`, authenticate, TableController.batchUpdate);
+app.delete(`${env.API_PREFIX}/tables/employees/rows/batch-delete`, authenticate, TableController.batchDelete);
+app.put(`${env.API_PREFIX}/tables/employees/rows/reorder`, authenticate, TableController.reorderRows);
+
+// Reference data routes
+app.get(`${env.API_PREFIX}/references/departments`, authenticate, ReferenceController.getDepartments);
+app.post(`${env.API_PREFIX}/references/departments`, authenticate, ReferenceController.createDepartment);
+app.put(`${env.API_PREFIX}/references/departments/:id`, authenticate, ReferenceController.updateDepartment);
+app.delete(`${env.API_PREFIX}/references/departments/:id`, authenticate, ReferenceController.deleteDepartment);
+
+app.get(`${env.API_PREFIX}/references/statuses`, authenticate, ReferenceController.getStatuses);
+app.post(`${env.API_PREFIX}/references/statuses`, authenticate, ReferenceController.createStatus);
+app.put(`${env.API_PREFIX}/references/statuses/:id`, authenticate, ReferenceController.updateStatus);
+app.delete(`${env.API_PREFIX}/references/statuses/:id`, authenticate, ReferenceController.deleteStatus);
+
+// User settings routes
+app.get(`${env.API_PREFIX}/users/me/settings/:tableId`, authenticate, SettingsController.getSettings);
+app.put(`${env.API_PREFIX}/users/me/settings/:tableId`, authenticate, SettingsController.saveSettings);
+app.delete(`${env.API_PREFIX}/users/me/settings/:tableId`, authenticate, SettingsController.deleteSettings);
 
 // Error handler (must be last)
 app.use(errorHandler);
