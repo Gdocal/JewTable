@@ -1,0 +1,113 @@
+/**
+ * BadgeCell styles
+ * Phase 10.4: Badge columns for status and command labels
+ */
+
+.badgeCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.icon {
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Badge variants - Bootstrap-inspired colors */
+
+.badgePrimary {
+  background: #e7f3ff;
+  color: #0d6efd;
+  border: 1px solid #b6d4fe;
+}
+
+.badgePrimary:hover {
+  background: #cfe2ff;
+}
+
+.badgeSecondary {
+  background: #e2e3e5;
+  color: #41464b;
+  border: 1px solid #c4c8cb;
+}
+
+.badgeSecondary:hover {
+  background: #d3d4d5;
+}
+
+.badgeSuccess {
+  background: #d1e7dd;
+  color: #0a3622;
+  border: 1px solid #a3cfbb;
+}
+
+.badgeSuccess:hover {
+  background: #badbcc;
+}
+
+.badgeDanger {
+  background: #f8d7da;
+  color: #58151c;
+  border: 1px solid #f1aeb5;
+}
+
+.badgeDanger:hover {
+  background: #f5c2c7;
+}
+
+.badgeWarning {
+  background: #fff3cd;
+  color: #664d03;
+  border: 1px solid #ffe69c;
+}
+
+.badgeWarning:hover {
+  background: #ffecb5;
+}
+
+.badgeInfo {
+  background: #cff4fc;
+  color: #055160;
+  border: 1px solid #9eeaf9;
+}
+
+.badgeInfo:hover {
+  background: #b6effb;
+}
+
+.badgeLight {
+  background: #f8f9fa;
+  color: #212529;
+  border: 1px solid #dee2e6;
+}
+
+.badgeLight:hover {
+  background: #e9ecef;
+}
+
+.badgeDark {
+  background: #212529;
+  color: #f8f9fa;
+  border: 1px solid #3c4044;
+}
+
+.badgeDark:hover {
+  background: #1c1f23;
+}

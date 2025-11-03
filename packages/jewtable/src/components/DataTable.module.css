@@ -1,0 +1,591 @@
+/* DataTable Styles */
+
+.tableContainer {
+  width: 100%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  position: relative;
+}
+
+/* Wrapper for table that enables horizontal scroll - ONLY table scrolls */
+.tableScrollContainer {
+  width: 100%;
+  overflow-x: auto;
+  position: relative;
+}
+
+/* Horizontal scroll shadows - Phase 10.2 */
+.tableScrollContainer.hasScrollShadowLeft::before,
+.tableScrollContainer.hasScrollShadowRight::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.tableScrollContainer.hasScrollShadowLeft::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.1), transparent);
+}
+
+.tableScrollContainer.hasScrollShadowRight::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.1), transparent);
+}
+
+.table {
+  width: max-content; /* Expand to fit all columns */
+  min-width: 100%; /* At minimum, fill the container */
+  border-collapse: collapse;
+  font-size: 14px;
+  table-layout: fixed; /* Required for column resizing to work properly */
+}
+
+/* Sticky first column - Phase 10.2 */
+.table.stickyFirstColumn th:first-child,
+.table.stickyFirstColumn td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: inherit;
+}
+
+.table.stickyFirstColumn thead th:first-child {
+  z-index: 11; /* Above other sticky headers */
+}
+
+/* Virtualization container (Phase 7) */
+.virtualizationContainer {
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  overflow-x: visible; /* Horizontal scroll handled by outer tableScrollContainer */
+  overflow-y: hidden;
+}
+
+/* When using traditional pagination, don't set max-height (no vertical scroll) */
+.virtualizationContainer.paginationMode {
+  overflow-x: visible; /* Horizontal scroll handled by outer tableScrollContainer */
+}
+
+.virtualizationContainer.paginationMode .tbody {
+  max-height: none;
+  overflow-y: visible;
+}
+
+.virtualizationContainer .table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.virtualizationContainer .thead {
+  display: table-header-group;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #f8f9fa;
+}
+
+.virtualizationContainer .tbody {
+  display: block;
+  position: relative;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: visible; /* Allow horizontal scroll to work */
+}
+
+/* Virtual scroll content wrapper - holds total height for proper scrollbar sizing */
+.virtualScrollContent {
+  position: relative;
+  width: 100%;
+}
+
+/* Make sure rows match the header width */
+.virtualizationContainer .thead tr,
+.virtualizationContainer .tbody tr {
+  display: table;
+  width: 100%; /* Fallback width */
+  table-layout: fixed;
+}
+
+/* Header */
+.thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.headerRow {
+  /* Header row specific styles */
+}
+
+.th {
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 1px solid #dee2e6;
+  white-space: nowrap;
+  user-select: none;
+  position: relative;
+  box-sizing: border-box; /* Ensure width includes padding and border */
+  overflow: hidden; /* Prevent icons from bleeding into next column */
+  /* Enable drag on touch devices */
+  touch-action: pan-y;
+  /* Ensure header can receive pointer events for dragging */
+  cursor: grab;
+}
+
+.thContent {
+  position: relative;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* Dynamic padding - only when icons are visible */
+  padding-right: 0;
+  transition: padding-right 200ms ease;
+  /* Don't use display:block as it interferes with table-layout:fixed width calculations */
+  /* Allow drag events to pass through to parent header */
+  pointer-events: none;
+}
+
+/* First column (checkbox) has no icons - keep no padding */
+.th:first-child .thContent {
+  padding-right: 0;
+}
+
+/* Add padding when hovering or when column is sorted */
+.th:hover .thContent,
+.sorted .thContent {
+  padding-right: 48px;
+}
+
+/* Override hover padding for selection column (checkbox) - must come after :hover */
+.th.selectionColumn:hover .thContent,
+.th.selectionColumn.sorted .thContent,
+.th:first-child:hover .thContent,
+.th:first-child.sorted .thContent {
+  padding-right: 0 !important;
+}
+
+/* Header icons positioned absolutely, hidden by default, visible on hover */
+.headerIcons {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  /* Hidden by default */
+  background: transparent;
+  padding: 4px;
+  z-index: 2; /* Ensure icons stay on top of text */
+  border-radius: 2px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms ease, visibility 0ms 200ms, background 200ms ease;
+  /* Re-enable pointer events for the icons themselves */
+  pointer-events: auto;
+}
+
+/* Show icons on hover or when sorted */
+.th:hover .headerIcons,
+.sorted .headerIcons {
+  opacity: 1;
+  visibility: visible;
+  background: #f8f9fa;
+  transition: opacity 200ms ease, visibility 0ms, background 200ms ease;
+}
+
+/* Update icon background on hover when already visible */
+.sortable:hover .headerIcons {
+  background: #f1f3f5;
+}
+
+.sortable {
+  transition: background-color 150ms ease;
+}
+
+.sortable:hover {
+  background-color: #f1f3f5;
+}
+
+.sorted {
+  background-color: #f8f9fa;
+  font-weight: 700;
+}
+
+/* Body */
+.tbody {
+  /* Body specific styles */
+}
+
+.row {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 150ms ease;
+  /* Optimize layout calculations for row expanding (Phase 10.5) */
+  contain: layout style;
+}
+
+.row:hover {
+  background-color: #f8f9fa;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.newRow {
+  animation: highlightNewRow ease-out;
+  animation-duration: var(--animation-duration, 2s);
+}
+
+@keyframes highlightNewRow {
+  0% {
+    background-color: #d4edda;
+    transform: scale(1.01);
+  }
+  50% {
+    background-color: #d4edda;
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+.newRow:hover {
+  background-color: #f8f9fa;
+}
+
+.td {
+  padding: 12px 8px;
+  color: #212529;
+  vertical-align: middle;
+  box-sizing: border-box; /* Ensure width includes padding and border */
+}
+
+/* Expand column - minimal padding (Phase 10.5) */
+.expandColumn {
+  padding: 12px 4px !important; /* Match vertical padding for alignment */
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Expand column button - ensure it's centered */
+.expandColumn button {
+  display: block;
+  margin: 0 auto;
+}
+
+/* Selection column - minimal padding (Phase 10.1) */
+.selectionColumn {
+  padding: 12px 8px !important; /* Match header padding for vertical alignment */
+  width: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  text-align: center;
+  vertical-align: middle;
+  /* Ensure checkbox is visible and not cut off */
+  overflow: visible !important;
+  font-weight: normal !important; /* Force normal weight to match data cells */
+  line-height: 1 !important; /* Consistent line height */
+}
+
+/* Selection column in header - ensure checkbox is centered and visible */
+.th.selectionColumn {
+  overflow: visible !important; /* Don't cut off checkbox */
+  display: table-cell; /* Ensure proper table layout */
+  font-weight: normal !important; /* Override bold header weight */
+  vertical-align: middle !important;
+  line-height: 1 !important;
+}
+
+/* Center checkbox input in selection column */
+.selectionColumn input[type="checkbox"] {
+  display: block;
+  margin: 0 auto; /* Center horizontally */
+  cursor: pointer;
+  pointer-events: auto; /* Re-enable clicks since .thContent has pointer-events: none */
+}
+
+/* Drag handle column - minimal padding (Phase 6) */
+.dragColumn {
+  padding: 12px 4px !important; /* Match vertical padding for alignment */
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* DragOverlay styles (Phase 6) */
+.dragOverlay {
+  cursor: grabbing;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: white;
+  border-radius: 4px;
+  opacity: 0.95;
+  max-width: 90vw; /* Constrain to viewport width */
+  overflow: hidden; /* Hide columns that overflow */
+}
+
+.dragOverlay table {
+  border-collapse: collapse;
+}
+
+.dragOverlay .row {
+  background: white;
+  border: 1px solid #dee2e6;
+}
+
+.dragOverlay .td {
+  border-right: 1px solid #e9ecef;
+}
+
+.dragOverlay .td:last-child {
+  border-right: none;
+}
+
+/* ===== Dynamic Toolbar Zone (Phase 10.1) ===== */
+/* Container to minimize table jumping when toolbars appear/disappear */
+.toolbarZone {
+  /* Smooth transitions when content changes */
+  transition: margin-bottom 150ms ease;
+  /* Prevent margin collapse */
+  display: block;
+}
+
+/* Add spacing only when toolbars are visible */
+.toolbarZone:has(> *) {
+  margin-bottom: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tableContainer {
+    padding: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Show scrollbar hint */
+    position: relative;
+  }
+
+  .tableContainer::after {
+    content: '← Scroll to see more →';
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    pointer-events: none;
+    opacity: 0.8;
+    white-space: nowrap;
+    z-index: 10;
+  }
+
+  .table {
+    /* Allow table to be wider than viewport */
+    table-layout: auto;
+    min-width: 800px;
+    width: max-content;
+  }
+
+  .th,
+  .td {
+    padding: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .th {
+    min-width: 100px;
+  }
+
+  .td {
+    min-width: 100px;
+  }
+
+  /* Drag handle stays compact on mobile */
+  .dragColumn {
+    min-width: 32px !important;
+    padding: 4px !important;
+  }
+
+  /* Hide drag handles on mobile - drag and drop disabled for better UX */
+  .dragColumn {
+    display: none !important;
+  }
+}
+
+/* Loading indicator (Phase 8) */
+.loadingIndicator {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: #6c757d;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Loading overlay (Phase 8.3 - Traditional pagination) */
+.loadingOverlay {
+  position: relative;
+  pointer-events: none; /* Prevent interaction during loading */
+}
+
+.loadingOverlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(2px);
+  pointer-events: auto; /* Re-enable on overlay itself */
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #dee2e6;
+  border-top-color: #0d6efd;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Skeleton loader for unloaded rows (Phase 8.2 - Server infinite scroll) */
+.skeleton {
+  height: 20px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Warning banner for virtualization cap (Phase 8.2) */
+.warningBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  color: #856404;
+}
+
+.warningIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.warningContent {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.warningContent strong {
+  font-weight: 600;
+}
+
+/* ===== Column Resizing (Phase 10.3) ===== */
+.resizeHandle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 5px;
+  background: transparent;
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+  z-index: 10; /* Higher than headerIcons (z-index: 2) and sortable headers to prevent interference */
+}
+
+.resizeHandle:hover {
+  background: rgba(0, 123, 255, 0.3);
+}
+
+.resizeHandle.isResizing {
+  background: rgba(0, 123, 255, 0.5);
+  width: 3px;
+}
+
+/* ===== Row Expanding (Phase 10.5) ===== */
+.expandedRow {
+  background-color: var(--color-expanded-bg, #f8f9fa);
+  border-top: none;
+  /* Optimize rendering performance */
+  contain: layout style paint;
+}
+
+.expandedContent {
+  padding: 16px;
+  animation: slideDown 0.15s ease-out;
+  /* Optimize rendering with GPU acceleration */
+  will-change: opacity, transform;
+}
+
+.expandedContent > * {
+  /* Isolate expanded content to reduce layout recalculation */
+  contain: layout style;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

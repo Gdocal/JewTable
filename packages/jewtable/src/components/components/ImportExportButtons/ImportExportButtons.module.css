@@ -1,0 +1,41 @@
+/**
+ * ImportExportButtons Styles
+ * Phase 10.9: Import/Export CSV
+ */
+
+.container {
+  display: flex;
+  gap: 8px;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  transition: all 150ms ease;
+}
+
+.button:hover {
+  background: #f8f9fa;
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+.button:hover .icon {
+  stroke: #0d6efd;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  stroke: #495057;
+  transition: stroke 150ms ease;
+}

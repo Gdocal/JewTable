@@ -1,0 +1,346 @@
+/**
+ * ReferenceCell Styles
+ * Phase 11: ERP Integration Features
+ */
+
+.referenceCell {
+  position: relative;
+  width: 100%;
+}
+
+/* Trigger button */
+.trigger {
+  width: 100%;
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.trigger:hover:not(:disabled) {
+  border-color: #adb5bd;
+}
+
+.trigger:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.1);
+}
+
+.trigger:disabled {
+  background: #f8f9fa;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.trigger.open {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.1);
+}
+
+.value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #495057;
+}
+
+.trigger:disabled .value {
+  color: #6c757d;
+}
+
+.arrow {
+  font-size: 10px;
+  color: #6c757d;
+  transition: transform 0.2s;
+}
+
+.trigger.open .arrow {
+  transform: rotate(180deg);
+}
+
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%; /* Match cell width as minimum */
+  width: max-content; /* Allow to grow for longer content */
+  max-width: 400px; /* Cap at reasonable width */
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Search container */
+.searchContainer {
+  padding: 8px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.searchInput:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.1);
+}
+
+.searchInput::placeholder {
+  color: #adb5bd;
+}
+
+/* Options list */
+.optionsList {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 240px;
+}
+
+.option {
+  width: 100%;
+  padding: 8px 12px;
+  background: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  text-align: left;
+  transition: background-color 0.15s;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.option:hover {
+  background: #f8f9fa;
+}
+
+.option.selected {
+  background: #e7f3ff;
+  color: #0d6efd;
+  font-weight: 500;
+}
+
+.checkmark {
+  font-size: 12px;
+  color: #0d6efd;
+}
+
+/* States */
+.loadingState,
+.errorState,
+.emptyState {
+  padding: 16px;
+  text-align: center;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.errorState {
+  color: #dc3545;
+}
+
+.spinner {
+  display: inline-block;
+}
+
+.spinner::after {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #dee2e6;
+  border-top-color: #0d6efd;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Footer */
+.footer {
+  padding: 8px;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.refreshButton,
+.createButton {
+  padding: 6px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+  flex: 1;
+}
+
+.refreshButton:hover:not(:disabled),
+.createButton:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.refreshButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.createButton {
+  background: #0d6efd;
+  color: white;
+  border-color: #0d6efd;
+  font-weight: 500;
+}
+
+.createButton:hover {
+  background: #0b5ed7;
+  border-color: #0b5ed7;
+}
+
+/* Scrollbar styling */
+.optionsList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.optionsList::-webkit-scrollbar-track {
+  background: #f8f9fa;
+}
+
+.optionsList::-webkit-scrollbar-thumb {
+  background: #dee2e6;
+  border-radius: 4px;
+}
+
+.optionsList::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
+
+/* Highlight styles for search matches */
+.option :global(mark.highlight) {
+  background: #fff3cd;
+  color: #212529;
+  font-weight: 500;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* ========== MINIMAL VARIANT STYLES ========== */
+
+/* Dropdown - more compact */
+.dropdownMinimal {
+  max-height: 280px; /* Slightly smaller */
+}
+
+/* Search container - inline with refresh button */
+.dropdownMinimal .searchContainer {
+  padding: 6px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.dropdownMinimal .searchInput {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+/* Refresh icon button in header */
+.refreshIconButton {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.refreshIconButton:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.refreshIconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Options list - more compact */
+.dropdownMinimal .optionsList {
+  max-height: 220px;
+}
+
+.dropdownMinimal .option {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+/* Create button at bottom of list - minimalist style */
+.createButtonMinimal {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-top: 1px solid #dee2e6;
+  background: #f8f9fa;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: center;
+  transition: all 0.15s;
+  color: #0d6efd;
+  font-weight: 500;
+  position: sticky;
+  bottom: 0;
+}
+
+.createButtonMinimal:hover {
+  background: #e7f3ff;
+  color: #0b5ed7;
+}
+
+/* Loading/Error/Empty states - more compact */
+.dropdownMinimal .loadingState,
+.dropdownMinimal .errorState,
+.dropdownMinimal .emptyState {
+  padding: 12px;
+  font-size: 13px;
+}

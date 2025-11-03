@@ -75,6 +75,22 @@ All phases completed. Project is production-ready and shipped to GitHub!
 
 **Progress**: 12/12 phases complete (100%) 🎊
 
+## Monorepo Structure
+
+This project uses **npm workspaces** for professional monorepo management:
+
+- **packages/jewtable** - NPM package `@gdocal/jewtable` (component library)
+- **packages/demo** - Demo application for development and testing
+- **backend** - REST API backend with PostgreSQL
+
+**Benefits:**
+- ✅ Single source of truth - no code duplication
+- ✅ Automatic symlinking - changes immediately visible
+- ✅ Easy NPM publishing - one command to build and publish
+- ✅ Professional structure - industry standard approach
+
+[→ Complete Monorepo Guide](./docs/MONOREPO_GUIDE.md) | [→ Migration Guide](./docs/MONOREPO_MIGRATION.md)
+
 ## Reference Data System (ERP Integration)
 
 Complete reference data management for enterprise applications:

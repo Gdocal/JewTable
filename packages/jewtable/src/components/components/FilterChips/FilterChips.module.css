@@ -1,0 +1,92 @@
+/* FilterChips Styles */
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px; /* Reduced - spacing now handled by toolbarZone */
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 16px;
+  font-size: 13px;
+  color: #495057;
+}
+
+.chipLabel {
+  line-height: 1;
+}
+
+.chipLabel strong {
+  color: #212529;
+}
+
+.chipRemove {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  background: #e9ecef;
+  border-radius: 50%;
+  color: #6c757d;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease;
+  line-height: 1;
+}
+
+.chipRemove:hover {
+  background: #dee2e6;
+  color: #495057;
+}
+
+.clearAllButton {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  color: #dc3545;
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+
+.clearAllButton:hover {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .clearAllButton {
+    width: 100%;
+  }
+}

@@ -1,0 +1,32 @@
+.indicator {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-left: 6px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.arrow {
+  font-size: 10px;
+  line-height: 1;
+  user-select: none;
+}
+
+.arrowUp {
+  /* Space handled by gap in parent */
+}
+
+.arrowDown {
+  /* Space handled by gap in parent */
+}
+
+.inactive {
+  color: #d1d5db;
+  opacity: 0.6;
+}
+
+.active {
+  color: #667eea;
+  font-weight: bold;
+}

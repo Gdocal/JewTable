@@ -31,3 +31,15 @@ coverage
 .env
 .env.local
 .env.production
+
+# Monorepo workspace artifacts
+packages/*/node_modules
+packages/*/dist
+packages/*/.turbo
+
+# Build outputs
+packages/jewtable/dist/
+packages/demo/dist/
+
+# TypeScript cache
+*.tsbuildinfo

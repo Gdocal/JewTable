@@ -1,0 +1,100 @@
+/* RowActions Styles */
+
+.container {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionButton {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dee2e6;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.actionButton:hover {
+  background: #f8f9fa;
+  border-color: #ced4da;
+  transform: scale(1.05);
+}
+
+.actionButton:active {
+  transform: scale(0.95);
+}
+
+.deleteButton:hover {
+  background: #fee;
+  border-color: #fcc;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  color: inherit;
+}
+
+/* Delete confirmation */
+.confirmContainer {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 8px;
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+}
+
+.confirmText {
+  font-size: 12px;
+  font-weight: 500;
+  color: #dc2626;
+  white-space: nowrap;
+}
+
+.confirmButton,
+.cancelButton {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 150ms ease;
+}
+
+.confirmButton {
+  background: #dc2626;
+  color: white;
+}
+
+.confirmButton:hover {
+  background: #b91c1c;
+}
+
+.cancelButton {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.cancelButton:hover {
+  background: #d1d5db;
+}
+
+.confirmButton:active,
+.cancelButton:active {
+  transform: scale(0.9);
+}
