@@ -1,7 +1,7 @@
 {
-  "name": "@yourorg/jewtable",
+  "name": "@gdocal/jewtable",
   "version": "1.0.0",
-  "description": "A powerful, production-ready data table component for React with advanced filtering, sorting, editing, and virtualization",
+  "description": "A powerful, production-ready data table component for React with advanced filtering, sorting, editing, and virtualization. Built with TanStack Table, TypeScript, and PostgreSQL.",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
@@ -23,17 +23,20 @@
     "pagination",
     "virtualization",
     "editable",
-    "reference-data"
+    "reference-data",
+    "postgresql",
+    "backend",
+    "full-stack"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourorg/jewtable.git"
+    "url": "https://github.com/Gdocal/JewTable.git"
   },
-  "homepage": "https://github.com/yourorg/jewtable#readme",
+  "homepage": "https://github.com/Gdocal/JewTable#readme",
   "bugs": {
-    "url": "https://github.com/yourorg/jewtable/issues"
+    "url": "https://github.com/Gdocal/JewTable/issues"
   },
-  "author": "Your Name <your@email.com>",
+  "author": "Gdocal <Gdocal@gmail.com>",
   "license": "MIT",
   "peerDependencies": {
     "react": "^18.0.0",

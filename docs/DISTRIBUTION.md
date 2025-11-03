@@ -35,7 +35,7 @@ cp -r ../src/api ./src/
 
 ```json
 {
-  "name": "@yourorg/jewtable",
+  "name": "@gdocal/jewtable",
   "version": "1.0.0",
   "description": "A powerful, production-ready data table component for React",
   "main": "dist/index.js",
@@ -128,14 +128,14 @@ npm publish --access public
 ### Installation for Users
 
 ```bash
-npm install @yourorg/jewtable
+npm install @gdocal/jewtable
 ```
 
 ### Usage
 
 ```typescript
-import { DataTable, CellType } from '@yourorg/jewtable';
-import '@yourorg/jewtable/dist/index.css';
+import { DataTable, CellType } from '@gdocal/jewtable';
+import '@gdocal/jewtable/dist/index.css';
 
 function App() {
   return (
