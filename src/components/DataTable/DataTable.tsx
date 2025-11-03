@@ -1110,6 +1110,36 @@ export function DataTable<TData extends RowData>({
   // isResizingColumn is false when not resizing, or a string (column ID) when resizing
   const isAnyColumnResizing = typeof columnSizingInfo.isResizingColumn === 'string';
 
+  // Track if we just finished resizing to prevent immediate sorting after resize
+  const justFinishedResizingRef = useRef(false);
+  const resizeTimeoutRef = useRef<number | null>(null);
+
+  // Monitor resize state changes to prevent sorting immediately after resize ends
+  useEffect(() => {
+    if (isAnyColumnResizing) {
+      // Clear any pending timeout when resizing starts
+      if (resizeTimeoutRef.current !== null) {
+        window.clearTimeout(resizeTimeoutRef.current);
+        resizeTimeoutRef.current = null;
+      }
+      justFinishedResizingRef.current = false;
+    } else if (justFinishedResizingRef.current === false && !isAnyColumnResizing) {
+      // When resizing ends, set flag and clear after a short delay
+      justFinishedResizingRef.current = true;
+      resizeTimeoutRef.current = window.setTimeout(() => {
+        justFinishedResizingRef.current = false;
+        resizeTimeoutRef.current = null;
+      }, 150); // 150ms delay to prevent click after resize
+    }
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (resizeTimeoutRef.current !== null) {
+        window.clearTimeout(resizeTimeoutRef.current);
+      }
+    };
+  }, [isAnyColumnResizing]);
+
   console.log(`[${new Date().toLocaleTimeString()}] [COLUMN REORDER DEBUG] State:`, {
     enableColumnReordering,
     isAnyColumnResizing,
@@ -1452,9 +1482,9 @@ export function DataTable<TData extends RowData>({
                     position: 'relative' as const,
                   };
 
-                  // Prevent sorting when resizing is active
+                  // Prevent sorting when resizing is active or just finished
                   const handleHeaderClick = (e: React.MouseEvent) => {
-                    if (isAnyColumnResizing) {
+                    if (isAnyColumnResizing || justFinishedResizingRef.current) {
                       e.stopPropagation();
                       return;
                     }
@@ -1898,9 +1928,9 @@ export function DataTable<TData extends RowData>({
                     position: 'relative' as const,
                   };
 
-                  // Prevent sorting when resizing is active
+                  // Prevent sorting when resizing is active or just finished
                   const handleHeaderClick = (e: React.MouseEvent) => {
-                    if (isAnyColumnResizing) {
+                    if (isAnyColumnResizing || justFinishedResizingRef.current) {
                       e.stopPropagation();
                       return;
                     }
