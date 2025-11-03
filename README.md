@@ -111,17 +111,32 @@ See [PROGRESS.md](./PROGRESS.md) for detailed development progress tracking.
 
 ## Documentation
 
+### 📚 Complete Documentation Hub
+- **[Documentation Index](./docs/README.md)** - Complete documentation overview
+
+### 🎓 Tutorials (NEW!)
+- **[Quick Start](./docs/TUTORIALS/01-quick-start.md)** - Get started in 5 minutes
+- **[Advanced Filtering](./docs/TUTORIALS/02-advanced-filtering.md)** - Master all 15+ filter operators
+- **[Reference Data](./docs/TUTORIALS/05-reference-data.md)** - API-backed dropdowns guide
+
+### 📖 API Reference (NEW!)
+- **[Component API](./docs/COMPONENTS.md)** - All 91 DataTable props documented
+- **[Cell Types](./docs/CELLS.md)** - Complete guide to all 12 cell types
+- **[Filter Types](./docs/FILTERS.md)** - All 15+ filter operators with examples
+
+### 🔧 Backend (NEW!)
+- **[Backend API Documentation](./backend/README.md)** - Production REST API complete guide
+- **[Advanced Query Builder](./backend/src/utils/queryBuilder.ts)** - Supports all filter operators
+
 ### Reference Data System
 - [Quick Start Guide](./docs/REFERENCE_QUICK_START.md) - Get started in 5 minutes
 - [Complete Documentation](./docs/REFERENCE_DATA_SYSTEM.md) - Comprehensive guide (900+ lines)
+- [Cache Behavior](./docs/REFERENCE_CACHE_BEHAVIOR.md) - TanStack Query caching deep dive
 - [Testing Guide](./docs/REFERENCE_TESTING_GUIDE.md) - Step-by-step testing instructions
 
 ### Architecture
 - [Architecture Documentation](./ARCHITECTURE.md) - System design and patterns
 - [Progress Tracking](./PROGRESS.md) - Detailed development progress
-
-### Additional Documentation
-Full table component documentation coming with Phase 12.
 
 ## License
 
