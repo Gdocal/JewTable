@@ -1,0 +1,71 @@
+{
+  "name": "@yourorg/jewtable",
+  "version": "1.0.0",
+  "description": "A powerful, production-ready data table component for React with advanced filtering, sorting, editing, and virtualization",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "react",
+    "table",
+    "datagrid",
+    "datatable",
+    "tanstack-table",
+    "tanstack-query",
+    "typescript",
+    "filtering",
+    "sorting",
+    "pagination",
+    "virtualization",
+    "editable",
+    "reference-data"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourorg/jewtable.git"
+  },
+  "homepage": "https://github.com/yourorg/jewtable#readme",
+  "bugs": {
+    "url": "https://github.com/yourorg/jewtable/issues"
+  },
+  "author": "Your Name <your@email.com>",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "@tanstack/react-table": "^8.0.0",
+    "@tanstack/react-query": "^5.0.0",
+    "@tanstack/react-virtual": "^3.0.0"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.1.0",
+    "@dnd-kit/sortable": "^8.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --sourcemap --external react --external react-dom --external @tanstack/react-table --external @tanstack/react-query --external @tanstack/react-virtual",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"No tests yet\"",
+    "type-check": "tsc --noEmit"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./styles.css": "./dist/index.css"
+  }
+}
