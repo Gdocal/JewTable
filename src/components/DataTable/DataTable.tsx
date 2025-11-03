@@ -1425,8 +1425,16 @@ export function DataTable<TData extends RowData>({
                       {/* Resize handle - Phase 10.3 */}
                       {enableColumnResizing && header.column.getCanResize() && (
                         <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault(); // Prevent drag from starting
+                            header.getResizeHandler()(e);
+                          }}
+                          onTouchStart={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault(); // Prevent drag from starting
+                            header.getResizeHandler()(e);
+                          }}
                           className={`${styles.resizeHandle} ${header.column.getIsResizing() ? styles.isResizing : ''}`}
                         />
                       )}
@@ -1672,13 +1680,16 @@ export function DataTable<TData extends RowData>({
             </tbody>
           </SortableContext>
         </table>
-          </DndContext>
 
         {/* DragOverlay for smooth drag animations (Phase 6 & 10.6) */}
         <DragOverlay
           dropAnimation={{
             duration: 200,
             easing: 'ease',
+          }}
+          style={{
+            zIndex: 9999,
+            pointerEvents: 'none'
           }}
         >
           {activeId ? (() => {
@@ -1753,6 +1764,12 @@ export function DataTable<TData extends RowData>({
                         const isSelectionColumn = (cell.column.columnDef.meta as any)?.isSelectionColumn;
                         const isExpandColumn = (cell.column.columnDef.meta as any)?.isExpandColumn;
                         const cellWidth = isDragColumn ? 32 : (isExpandColumn ? 32 : (isSelectionColumn ? 48 : cell.column.getSize()));
+
+                        // Render empty cells for drag handle, checkbox, and expand columns to avoid rendering issues
+                        const cellContent = isDragColumn || isSelectionColumn || isExpandColumn
+                          ? null
+                          : flexRender(cell.column.columnDef.cell, cell.getContext());
+
                         return (
                           <td
                             key={cell.id}
@@ -1763,7 +1780,7 @@ export function DataTable<TData extends RowData>({
                               maxWidth: `${cellWidth}px`,
                             }}
                           >
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            {cellContent}
                           </td>
                         );
                       })}
@@ -1774,6 +1791,7 @@ export function DataTable<TData extends RowData>({
             );
           })() : null}
         </DragOverlay>
+          </DndContext>
         </div>
         </div>
       ) : (
@@ -1853,8 +1871,16 @@ export function DataTable<TData extends RowData>({
                       {/* Resize handle - Phase 10.3 */}
                       {enableColumnResizing && header.column.getCanResize() && (
                         <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault(); // Prevent drag from starting
+                            header.getResizeHandler()(e);
+                          }}
+                          onTouchStart={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault(); // Prevent drag from starting
+                            header.getResizeHandler()(e);
+                          }}
                           className={`${styles.resizeHandle} ${header.column.getIsResizing() ? styles.isResizing : ''}`}
                         />
                       )}
@@ -1987,13 +2013,16 @@ export function DataTable<TData extends RowData>({
             </tbody>
           </SortableContext>
         </table>
-          </DndContext>
 
         {/* DragOverlay for smooth drag animations (Phase 6 & 10.6) */}
         <DragOverlay
           dropAnimation={{
             duration: 200,
             easing: 'ease',
+          }}
+          style={{
+            zIndex: 9999,
+            pointerEvents: 'none'
           }}
         >
           {activeId ? (() => {
@@ -2047,12 +2076,25 @@ export function DataTable<TData extends RowData>({
             const rowStyle = shouldAnimate ? { '--animation-duration': animationDuration } as React.CSSProperties : undefined;
 
             // Calculate total width for the overlay table
-            const totalWidth = activeRow.getVisibleCells().reduce((sum, cell) => {
+            const visibleCells = activeRow.getVisibleCells();
+            console.log('[DRAG OVERLAY] visibleCells count:', visibleCells.length);
+            console.log('[DRAG OVERLAY] visibleCells:', visibleCells.map(c => ({
+              id: c.id,
+              columnId: c.column.id,
+              value: c.getValue(),
+              isDrag: (c.column.columnDef.meta as any)?.isDragColumn,
+              isSelect: (c.column.columnDef.meta as any)?.isSelectionColumn,
+              isExpand: (c.column.columnDef.meta as any)?.isExpandColumn
+            })));
+
+            const totalWidth = visibleCells.reduce((sum, cell) => {
               const isDragCol = (cell.column.columnDef.meta as any)?.isDragColumn;
               const isExpandCol = (cell.column.columnDef.meta as any)?.isExpandColumn;
               const isSelectCol = (cell.column.columnDef.meta as any)?.isSelectionColumn;
               return sum + (isDragCol ? 32 : (isExpandCol ? 32 : (isSelectCol ? 48 : cell.column.getSize())));
             }, 0);
+
+            console.log('[DRAG OVERLAY] totalWidth:', totalWidth);
 
             return (
               <div className={styles.dragOverlay}>
@@ -2063,11 +2105,17 @@ export function DataTable<TData extends RowData>({
                 }}>
                   <tbody>
                     <tr className={`${styles.row} ${shouldAnimate ? styles.newRow : ''}`} style={rowStyle}>
-                      {activeRow.getVisibleCells().map((cell) => {
+                      {visibleCells.map((cell) => {
                         const isDragColumn = (cell.column.columnDef.meta as any)?.isDragColumn;
                         const isSelectionColumn = (cell.column.columnDef.meta as any)?.isSelectionColumn;
                         const isExpandColumn = (cell.column.columnDef.meta as any)?.isExpandColumn;
                         const cellWidth = isDragColumn ? 32 : (isExpandColumn ? 32 : (isSelectionColumn ? 48 : cell.column.getSize()));
+
+                        // Render empty cells for drag handle, checkbox, and expand columns to avoid rendering issues
+                        const cellContent = isDragColumn || isSelectionColumn || isExpandColumn
+                          ? null
+                          : flexRender(cell.column.columnDef.cell, cell.getContext());
+
                         return (
                           <td
                             key={cell.id}
@@ -2078,7 +2126,7 @@ export function DataTable<TData extends RowData>({
                               maxWidth: `${cellWidth}px`,
                             }}
                           >
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            {cellContent}
                           </td>
                         );
                       })}
@@ -2089,6 +2137,7 @@ export function DataTable<TData extends RowData>({
             );
           })() : null}
         </DragOverlay>
+          </DndContext>
         </div>
         </div>
       )}

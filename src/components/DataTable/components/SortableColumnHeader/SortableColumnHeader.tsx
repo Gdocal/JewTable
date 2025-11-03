@@ -57,13 +57,49 @@ export function SortableColumnHeader({
     }
   };
 
+  // Helper function to check if target is a resize handle
+  const isResizeHandle = (target: EventTarget | null): boolean => {
+    if (!target || !(target instanceof HTMLElement)) return false;
+
+    // Check if the target or any parent has the resize handle class
+    let element: HTMLElement | null = target;
+    while (element) {
+      if (element.className && typeof element.className === 'string' &&
+          element.className.includes('resizeHandle')) {
+        return true;
+      }
+      // Check parent, but stop at the th element
+      if (element.tagName === 'TH') break;
+      element = element.parentElement;
+    }
+    return false;
+  };
+
+  // Wrap listeners to prevent drag on resize handle
+  const wrappedListeners = React.useMemo(() => {
+    if (!listeners || disabled) return listeners;
+
+    const wrapped: any = {};
+    Object.keys(listeners).forEach((key) => {
+      wrapped[key] = (e: any) => {
+        // Check if this is a resize handle - if so, don't start drag
+        if (isResizeHandle(e.target)) {
+          return;
+        }
+        // Otherwise, call the original listener
+        listeners[key](e);
+      };
+    });
+    return wrapped;
+  }, [listeners, disabled]);
+
   return (
     <th
       ref={setNodeRef}
       className={className}
       style={headerStyle}
       {...attributes}
-      {...listeners}
+      {...wrappedListeners}
       onClick={handleClick}
     >
       {children}

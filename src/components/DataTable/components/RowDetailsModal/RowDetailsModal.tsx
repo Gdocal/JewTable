@@ -7,6 +7,9 @@ import React, { useEffect, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellType } from '../../types/cell.types';
 import { ReferenceCell } from '../../cells/ReferenceCell';
+import { useReferenceData } from '../../hooks/useReferenceData';
+import { getReferenceConfig } from '../../utils/referenceRegistry';
+import { getReferenceRegistry } from '../../cells/ReferenceCell/ReferenceCell';
 import styles from './RowDetailsModal.module.css';
 
 interface RowDetailsModalProps<TData> {
@@ -23,6 +26,31 @@ interface RowDetailsModalProps<TData> {
     onSave: (updates: Partial<TData>) => void,
     onCancel: () => void
   ) => React.ReactNode;
+}
+
+// Simple component to display reference value label
+function ReferenceValueDisplay({ type, value }: { type: string; value: any }) {
+  const globalRegistry = getReferenceRegistry();
+  const config = getReferenceConfig(globalRegistry, type);
+
+  // Fetch the reference data to get the label
+  const { data: options } = useReferenceData(config, {
+    enabled: !!value, // Only fetch if we have a value
+  });
+
+  // Find the item with matching ID
+  const selectedItem = React.useMemo(() => {
+    if (!value || !options) return null;
+    return options.find((item: any) => item[config.value as string] === value);
+  }, [value, options, config.value]);
+
+  // Get display value
+  const displayValue = React.useMemo(() => {
+    if (!selectedItem) return value ? `Loading...` : '—';
+    return selectedItem[config.label as string] || `ID: ${value}`;
+  }, [selectedItem, config.label, value]);
+
+  return <span>{displayValue}</span>;
 }
 
 export function RowDetailsModal<TData extends Record<string, any>>({
@@ -136,7 +164,8 @@ export function RowDetailsModal<TData extends Record<string, any>>({
     const validationErrors: Record<string, string> = {};
     dataColumns.forEach((column: any) => {
       const columnId = column.id || column.accessorKey;
-      const value = editedData.hasOwnProperty(columnId) ? editedData[columnId] : row[columnId];
+      const dataField = column.accessorKey || column.id;  // Use accessorKey for data lookup
+      const value = editedData.hasOwnProperty(dataField) ? editedData[dataField] : row[dataField];
       const error = validateField(columnId, value, column);
       if (error) {
         validationErrors[columnId] = error;
@@ -195,7 +224,12 @@ export function RowDetailsModal<TData extends Record<string, any>>({
       case CellType.BOOLEAN:
         return value ? 'Yes' : 'No';
       case CellType.SELECT:
+        return String(value);
       case CellType.BADGE:
+        // Handle badge values - check if it's an object with label
+        if (typeof value === 'object' && value !== null) {
+          return value.label || String(value);
+        }
         return String(value);
       case CellType.PROGRESS:
         if (typeof value === 'number') {
@@ -203,9 +237,12 @@ export function RowDetailsModal<TData extends Record<string, any>>({
         }
         return String(value);
       case CellType.REFERENCE:
-        // Reference values will be handled by ReferenceCell component
-        // This is a fallback for any edge cases
-        return `ID: ${value}`;
+        // Handle reference values - check if it's an object with label/name
+        if (typeof value === 'object' && value !== null) {
+          return value.label || value.name || JSON.stringify(value);
+        }
+        // Otherwise show the ID
+        return value ? `ID: ${value}` : '—';
       default:
         return String(value);
     }
@@ -241,8 +278,9 @@ export function RowDetailsModal<TData extends Record<string, any>>({
             <div className={styles.fieldList}>
               {dataColumns.map((column: any) => {
               const columnId = column.id || column.accessorKey;
+              const dataField = column.accessorKey || column.id;  // Use accessorKey for data lookup
               const columnName = typeof column.header === 'string' ? column.header : columnId;
-              const currentValue = editedData.hasOwnProperty(columnId) ? editedData[columnId] : row[columnId];
+              const currentValue = editedData.hasOwnProperty(dataField) ? editedData[dataField] : row[dataField];
               const formattedValue = formatValue(currentValue, column);
               const cellType = column.cellType || CellType.TEXT;
               const isEditable = column.editable !== false;
@@ -260,20 +298,20 @@ export function RowDetailsModal<TData extends Record<string, any>>({
                         <input
                           type="checkbox"
                           checked={currentValue || false}
-                          onChange={(e) => handleFieldChange(columnId, e.target.checked, column)}
+                          onChange={(e) => handleFieldChange(dataField, e.target.checked, column)}
                           className={styles.checkbox}
                         />
                       ) : cellType === CellType.REFERENCE ? (
                         <ReferenceCell
                           type={column.cellOptions?.referenceType || ''}
                           value={currentValue}
-                          onChange={(newValue) => handleFieldChange(columnId, newValue, column)}
+                          onChange={(newValue) => handleFieldChange(dataField, newValue, column)}
                           variant="minimal"
                         />
                       ) : cellType === CellType.SELECT ? (
                         <select
                           value={currentValue || ''}
-                          onChange={(e) => handleFieldChange(columnId, e.target.value, column)}
+                          onChange={(e) => handleFieldChange(dataField, e.target.value, column)}
                           className={styles.select}
                         >
                           <option value="">Select...</option>
@@ -287,21 +325,21 @@ export function RowDetailsModal<TData extends Record<string, any>>({
                         <input
                           type="date"
                           value={currentValue || ''}
-                          onChange={(e) => handleFieldChange(columnId, e.target.value, column)}
+                          onChange={(e) => handleFieldChange(dataField, e.target.value, column)}
                           className={styles.input}
                         />
                       ) : cellType === CellType.NUMBER || cellType === CellType.CURRENCY || cellType === CellType.PERCENT ? (
                         <input
                           type="number"
                           value={currentValue || ''}
-                          onChange={(e) => handleFieldChange(columnId, e.target.value, column)}
+                          onChange={(e) => handleFieldChange(dataField, e.target.value, column)}
                           className={styles.input}
                         />
                       ) : (
                         <input
                           type="text"
                           value={currentValue || ''}
-                          onChange={(e) => handleFieldChange(columnId, e.target.value, column)}
+                          onChange={(e) => handleFieldChange(dataField, e.target.value, column)}
                           className={styles.input}
                         />
                       )}
@@ -309,14 +347,15 @@ export function RowDetailsModal<TData extends Record<string, any>>({
                     </div>
                   ) : (
                     <div className={styles.fieldValue}>
-                      {cellType === CellType.REFERENCE ? (
-                        <ReferenceCell
-                          type={column.cellOptions?.referenceType || ''}
+                      {cellType === CellType.REFERENCE && column.cellOptions?.referenceType ? (
+                        // Use simple display component for reference values
+                        <ReferenceValueDisplay
+                          type={column.cellOptions.referenceType}
                           value={currentValue}
-                          onChange={() => {}}
-                          disabled={true}
-                          variant="minimal"
                         />
+                      ) : cellType === CellType.BADGE && currentValue && typeof currentValue === 'object' ? (
+                        // For badge fields with object values, display the label
+                        (currentValue as any).label || formattedValue
                       ) : (
                         formattedValue
                       )}

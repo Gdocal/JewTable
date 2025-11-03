@@ -65,13 +65,13 @@
   border-radius: 4px;
   display: flex;
   flex-direction: column;
-  overflow-x: auto; /* Allow horizontal scroll for wide tables */
+  overflow-x: visible; /* Horizontal scroll handled by outer tableScrollContainer */
   overflow-y: hidden;
 }
 
 /* When using traditional pagination, don't set max-height (no vertical scroll) */
 .virtualizationContainer.paginationMode {
-  overflow-x: auto;
+  overflow-x: visible; /* Horizontal scroll handled by outer tableScrollContainer */
 }
 
 .virtualizationContainer.paginationMode .tbody {
@@ -317,6 +317,7 @@
   display: block;
   margin: 0 auto; /* Center horizontally */
   cursor: pointer;
+  pointer-events: auto; /* Re-enable clicks since .thContent has pointer-events: none */
 }
 
 /* Drag handle column - minimal padding (Phase 6) */
@@ -336,6 +337,8 @@
   background: white;
   border-radius: 4px;
   opacity: 0.95;
+  max-width: 90vw; /* Constrain to viewport width */
+  overflow: hidden; /* Hide columns that overflow */
 }
 
 .dragOverlay table {
@@ -544,7 +547,7 @@
   cursor: col-resize;
   user-select: none;
   touch-action: none;
-  z-index: 3; /* Higher than headerIcons (z-index: 2) to be clickable */
+  z-index: 10; /* Higher than headerIcons (z-index: 2) and sortable headers to prevent interference */
 }
 
 .resizeHandle:hover {
