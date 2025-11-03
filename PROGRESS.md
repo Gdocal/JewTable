@@ -394,30 +394,33 @@
 
 ---
 
-### Phase 8: Server Integration ✅ COMPLETE
+### Phase 8: Server Integration ✅ ~95% COMPLETE
 **Estimated Time:** 3-4 hours
-**Actual Time:** ~4 hours
-**Status:** Complete
+**Actual Time:** ~5 hours
+**Status:** ~95% Complete (sorting + filtering РЕАЛІЗОВАНІ, обмеження json-server)
 **Started:** 2025-10-29
-**Completed:** 2025-10-29
+**Completed:** 2025-10-29 (основне), оновлено 2025-11-03
 **Git Commits:** 1c4d262, 3042915, d319f54, 2151909, 1dd506e, 6ce4934
 
 #### Tasks:
-- [x] 8.1: Mock API server & client
+- [x] 8.1: Mock API server & client ✅
   - [x] Set up json-server 1.0 with 5000 employee records
   - [x] Create utils/api.ts with retry logic and error handling
   - [x] fetchData endpoint with pagination params
   - [x] Fixed json-server 1.0 pagination (_start/_end instead of _page/_limit)
   - [x] Timeout handling (10s)
   - [x] npm script: `api:fast` for mock server
-- [x] 8.2: TanStack Query integration
+  - [x] fetchWithRetry (3 attempts, exponential backoff)
+  - [x] APIError class for structured error handling
+- [x] 8.2: TanStack Query integration ✅
   - [x] Installed @tanstack/react-query
   - [x] Created QueryClientProvider wrapper in main.tsx
   - [x] useInfiniteData hook for infinite scroll
   - [x] useData hook for traditional pagination
   - [x] useTotalCount hook for dynamic row count
   - [x] keepPreviousData (placeholderData) for smooth transitions
-- [x] 8.3: Hybrid pagination (Infinite + Traditional)
+  - [x] Background refetch and cache management
+- [x] 8.3: Hybrid pagination (Infinite + Traditional) ✅
   - [x] Client/Server mode toggle in App.tsx
   - [x] Infinite/Traditional pagination toggle in server mode
   - [x] Infinite scroll with useInfiniteQuery
@@ -430,12 +433,34 @@
   - [x] Fixed scrollbar overlapping header (scrollbar-gutter)
   - [x] Fixed active button hover visibility
   - [x] Fixed double-active state during fetch
-- [ ] 8.4: Server-side sorting/filtering (deferred to future)
-  - [ ] manualFiltering mode
-  - [ ] manualSorting mode
-  - [ ] Serialize filters to query params
-- [ ] 8.5: Save user table state (deferred to future)
-- [ ] 8.6: Optimistic updates & conflicts (deferred to future)
+  - [x] Auto-reset to page 1 on sort/filter change
+- [x] 8.4: Server-side sorting/filtering ✅ РЕАЛІЗОВАНО!
+  - [x] manualFiltering: true для server mode (DataTable.tsx:1036)
+  - [x] manualSorting: true для server mode (DataTable.tsx:1035)
+  - [x] onSortChange callback (DataTable.tsx:306-309)
+  - [x] onFilterChange callback (DataTable.tsx:312-327)
+  - [x] parseSortingParams - серіалізація в json-server format (api.ts:149-159)
+  - [x] parseFilterParams - серіалізація filters в query params (api.ts:181-226)
+  - [x] Підтримка asc/desc через prefix notation (_sort=field або _sort=-field)
+  - [x] Equality filtering (field=value) - повністю працює
+  - [x] Array filters (SelectFilter) - частково (перше значення)
+  - [x] Auto-conversion складних filter objects
+  - [x] Інтеграція в useInfiniteData та useData hooks
+  - ⚠️ **Обмеження json-server 1.x:**
+    - ✅ Equality filtering - працює
+    - ❌ Comparison operators (<, >, <=, >=, between) - client-side only
+    - ❌ NOT EQUALS - client-side only
+    - ⚠️ Single column sorting (json-server ліміт)
+    - 💡 Для production використовувати real backend
+- [ ] 8.5: Save user table state ❌ DEFERRED
+  - [ ] Column widths persistence
+  - [ ] Column order persistence
+  - [ ] Filter/sort preferences
+  - [ ] Storage strategy (localStorage або API)
+- [ ] 8.6: Optimistic updates & conflicts ❌ DEFERRED
+  - [ ] Optimistic UI updates
+  - [ ] Conflict resolution
+  - [ ] Rollback on error
 
 **Deliverable:** ✅ Full server integration with hybrid pagination modes
 
@@ -464,7 +489,21 @@
 - Loading overlay instead of empty states for better UX
 - Server-side virtualization with skeleton rows and 10k cap prevents browser crashes
 - Scrollbar accurately represents full dataset (5k rows), loads data just-in-time
-- Server-side sorting/filtering deferred to future phase
+- **Server-side sorting: ПОВНІСТЮ РЕАЛІЗОВАНО** ✅
+  - onSortChange callback передає sorting state в App
+  - parseSortingParams конвертує в json-server format (_sort=field або _sort=-field)
+  - Працює в обох режимах (infinite + traditional pagination)
+  - Обмеження: json-server підтримує тільки single column sort
+- **Server-side filtering: РЕАЛІЗОВАНО З ОБМЕЖЕННЯМИ** ⚠️
+  - onFilterChange callback передає filters в App
+  - parseFilterParams конвертує в query params
+  - ✅ Equality filtering (field=value) - повністю працює
+  - ✅ Text search (q parameter) - повністю працює
+  - ❌ Comparison operators (<, >, <=, >=, between) - client-side only (обмеження json-server)
+  - ❌ NOT EQUALS - client-side only
+  - 💡 Для production використовувати real REST/GraphQL backend з повною підтримкою
+- **CRUD operations:** createRecord, updateRecord, deleteRecord з retry logic ✅
+- **Error handling:** APIError class, fetchWithRetry (3 attempts), exponential backoff ✅
 
 ---
 
@@ -2100,6 +2139,94 @@ const handleHeaderClick = (e: React.MouseEvent) => {
 **Git Commit:** 5d4f798 - "fix: Prevent sorting from triggering when column resizing ends"
 
 **Status:** ✅ ISSUE RESOLVED - Resize and sort are now truly mutually exclusive
+
+---
+
+#### Session 18: Comprehensive Server Integration Analysis
+- **Date:** 2025-11-03
+- **Action:** Комплексна перевірка серверної частини - sorting, filtering, virtualization
+- **Duration:** ~1 hour
+
+**АНАЛІЗ СЕРВЕРНОЇ ЧАСТИНИ:**
+
+**✅ ЩО ПОВНІСТЮ РЕАЛІЗОВАНО І ПРАЦЮЄ:**
+
+1. **Server Mode (TableMode.SERVER)** ✅
+   - Повністю реалізовано з перемикачем Client/Server
+   - manualSorting: true + manualFiltering: true
+   - Callbacks для sync з API
+
+2. **Віртуалізація з серверними даними** ✅
+   - @tanstack/react-virtual інтеграція
+   - Skeleton rows з shimmer анімацією
+   - Accurate scrollbar для full dataset
+   - 10k row virtualization cap для 1M+ datasets
+   - Smart fetch detection (3 rows from boundary)
+
+3. **Server-side Pagination** ✅
+   - **Infinite Scroll:** useInfiniteQuery, auto-load on scroll
+   - **Traditional:** Previous/Next + page buttons з ellipsis
+   - keepPreviousData для smooth transitions
+   - Auto-reset to page 1 при sort/filter changes
+
+4. **Server-side Sorting** ✅ ПОВНІСТЮ ПРАЦЮЄ!
+   - onSortChange callback → App.tsx → useInfiniteData/useData
+   - parseSortingParams → json-server format (_sort=field або _sort=-field)
+   - Працює в обох режимах pagination
+   - **Файли:** DataTable.tsx:306-309, App.tsx:53-55,73,95, api.ts:149-159
+   - **Обмеження:** single column sort (json-server)
+
+5. **Server-side Filtering** ✅ ПРАЦЮЄ ЧАСТКОВО
+   - onFilterChange callback → App.tsx → hooks
+   - parseFilterParams → query params
+   - ✅ Equality filtering (field=value) - працює
+   - ✅ Text search (q parameter) - працює
+   - ⚠️ Comparison operators (<, >, <=, >=, between) - client-side only
+   - **Причина:** json-server 1.x обмеження
+   - **Рішення:** Real backend для production
+   - **Файли:** DataTable.tsx:312-327, App.tsx:57-59,74,96, api.ts:181-226
+
+6. **Server-side Search** ✅
+   - Full-text search через q parameter
+   - Debouncing (300ms)
+   - Min characters config
+   - ReferenceCell dropdown search
+
+7. **Data Fetching Infrastructure** ✅
+   - TanStack Query з QueryClientProvider
+   - fetchWithRetry (3 attempts, exponential backoff)
+   - fetchWithTimeout (10s)
+   - APIError class
+   - Cache management + background refetch
+
+8. **CRUD Operations** ✅
+   - createRecord, updateRecord, deleteRecord
+   - Retry logic для всіх операцій
+
+9. **Mock API Server** ✅
+   - json-server 1.0 на :3001
+   - 5000 employee records
+   - npm run api:fast
+
+**❌ ЩО НЕ РЕАЛІЗОВАНО (DEFERRED):**
+- Save user table state (8.5) - column widths/order persistence
+- Optimistic updates & conflicts (8.6) - optimistic UI + rollback
+
+**📊 ПІДСУМОК:**
+- **Серверна частина: ~95% ГОТОВА** ✅
+- Всі основні features працюють
+- Обмеження тільки через json-server (для demo)
+- Production-ready з real backend
+
+**ОНОВЛЕННЯ ДОКУМЕНТАЦІЇ:**
+- Phase 8 status оновлено: 8.4 помічено як РЕАЛІЗОВАНО
+- Додано детальні notes про sorting/filtering
+- Задокументовано обмеження json-server
+- Додано file references для всіх компонентів
+
+**Git Commit:** (pending) - "docs: Comprehensive server integration analysis and Phase 8 update"
+
+**Status:** ✅ АНАЛІЗ ЗАВЕРШЕНО - Серверна частина готова до production з real backend
 
 ---
 
