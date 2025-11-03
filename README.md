@@ -1,6 +1,14 @@
 # JewTable
 
-A feature-rich, performant React table component built with TanStack Table for complex data management needs.
+[![GitHub](https://img.shields.io/badge/GitHub-Gdocal%2FJewTable-blue?logo=github)](https://github.com/Gdocal/JewTable)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Gdocal/JewTable/pulls)
+
+A production-ready, feature-rich React data table component with full backend integration. Built with TanStack Table, TypeScript, and PostgreSQL for complex data management needs.
+
+**🔗 Repository:** https://github.com/Gdocal/JewTable
+
+**⭐ If you find this useful, please star the repo!**
 
 ## Features
 
@@ -80,37 +88,83 @@ Complete reference data management for enterprise applications:
 
 [→ Quick Start Guide](./docs/REFERENCE_QUICK_START.md) | [→ Full Documentation](./docs/REFERENCE_DATA_SYSTEM.md) | [→ Testing Guide](./docs/REFERENCE_TESTING_GUIDE.md)
 
-## Getting Started
+## 🚀 Getting Started for End Users
 
-### Installation
+### Option 1: Use as Template (Recommended)
 
+Create your own project based on JewTable:
+
+1. Click the **"Use this template"** button at the top of the repository
+2. Clone your new repository:
+```bash
+git clone https://github.com/YOUR_USERNAME/YOUR_PROJECT_NAME.git
+cd YOUR_PROJECT_NAME
+```
+
+3. Install dependencies:
 ```bash
 npm install
+cd backend && npm install && cd ..
 ```
 
-### Development
-
+4. Setup database:
 ```bash
+cd backend
+cp .env.example .env
+# Edit .env with your PostgreSQL credentials
+npx prisma migrate dev
+npx prisma db seed
+cd ..
+```
+
+5. Start development servers:
+```bash
+# Terminal 1 - Frontend (http://localhost:5173)
 npm run dev
+
+# Terminal 2 - Backend (http://localhost:3001)
+cd backend && npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) to view the development app.
+### Option 2: Docker Deployment (Fastest)
 
-**Try the demos:**
-- 📊 **DataTable Demo** - Full table features (sorting, filtering, editing, virtualization)
-- 📑 **Reference System Demo** - ERP reference data management (NEW!)
-
-### Build
+Deploy the entire stack with one command:
 
 ```bash
-npm run build
+git clone https://github.com/Gdocal/JewTable.git
+cd JewTable
+cp .env.docker .env
+# Edit .env with secure passwords
+docker-compose up -d
 ```
 
-### Test
+Access at: http://localhost
+
+### Option 3: Clone and Customize
 
 ```bash
-npm test
+git clone https://github.com/Gdocal/JewTable.git
+cd JewTable
+npm install
+cd backend && npm install && cd ..
+# Follow setup steps from Option 1
 ```
+
+## 📖 Complete Documentation
+
+- **[Quick Start Tutorial](./docs/TUTORIALS/01-quick-start.md)** - Get started in 5 minutes
+- **[Advanced Filtering](./docs/TUTORIALS/02-advanced-filtering.md)** - Master all 15+ filter operators
+- **[Reference Data Guide](./docs/TUTORIALS/05-reference-data.md)** - API-backed dropdowns
+- **[Backend API Docs](./backend/README.md)** - Complete REST API documentation
+- **[Deployment Guide](./DEPLOYMENT.md)** - Deploy to production
+- **[Distribution Guide](./docs/DISTRIBUTION.md)** - Package and ship to users
+
+## 🎮 Try the Demos
+
+After starting development servers:
+- 📊 **DataTable Demo** - http://localhost:5173
+- Full table features: sorting, filtering, editing, virtualization
+- Reference data management with API integration
 
 ## Architecture
 
