@@ -1929,6 +1929,180 @@ Changed shadows from `position: absolute` to `position: fixed` so they stay pinn
 
 ---
 
+#### Session 16: Multiple Bug Fixes - Drag Overlay, Modal, Shadows, and Resize/Reorder Conflicts
+- **Date:** 2025-11-03
+- **Action:** Fixed multiple interaction conflicts and display issues
+- **Duration:** ~4 hours
+
+**Issues Fixed:**
+
+1. **Row Drag Overlay Showing Full Width** ✅ COMPLETE
+   - Problem: Drag overlay showed complete row including off-screen columns
+   - Fixed: Added `max-width: 90vw` and `overflow: hidden` to .dragOverlay CSS
+   - Overlay now constrained to viewport width
+   - **Part of Commit:** 7d07c12
+
+2. **Modal Reference Fields Displaying IDs** ✅ COMPLETE
+   - Problem: Department/Status showed "ID: 1" instead of human-readable labels
+   - Root cause: Modal used column.id instead of column.accessorKey for data lookup
+   - Fixed:
+     - Changed data lookup to use `accessorKey || id` pattern
+     - Created ReferenceValueDisplay component to fetch and show labels
+     - Fixed BADGE type formatting to extract label from objects
+     - Updated formatValue() to handle reference and badge objects
+   - Reference fields now show "Engineering", "Active" instead of IDs
+   - **Part of Commit:** 7d07c12
+
+3. **Left Shadow Regression** ✅ COMPLETE
+   - Problem: Shadow appeared and moved with horizontal scroll
+   - Root cause: Inner .virtualizationContainer had `overflow-x: auto`
+   - This created double-scrolling (outer + inner containers)
+   - Fixed: Changed to `overflow-x: visible` so only outer container scrolls
+   - Shadows now stay fixed at viewport edges
+   - **Part of Commit:** 7d07c12
+
+4. **Column Resize/Reorder Interference** ✅ COMPLETE
+   - Problem: Both resizing and reordering started simultaneously
+   - Root causes:
+     - Resize handle nested inside SortableColumnHeader
+     - SortableColumnHeader listeners captured all mouse events
+     - stopPropagation() + preventDefault() weren't enough
+   - Fixed:
+     - Added event target checking in SortableColumnHeader
+     - Wrapped listeners to filter out resize handle events
+     - Created isResizeHandle() helper function
+     - Added stopPropagation() + preventDefault() to resize handlers
+     - Increased resize handle z-index from 3 to 10
+   - Features now mutually exclusive - resize OR reorder, not both
+   - **Part of Commit:** 7d07c12
+
+**Technical Implementation:**
+
+**ReferenceValueDisplay Component:**
+```typescript
+// Lightweight component that fetches reference data
+// and displays human-readable labels
+function ReferenceValueDisplay({ type, value }) {
+  const config = getReferenceConfig(globalRegistry, type);
+  const { data: options } = useReferenceData(config, {
+    enabled: !!value
+  });
+
+  const selectedItem = options.find(item =>
+    item[config.value] === value
+  );
+
+  return selectedItem?.[config.label] || 'Loading...';
+}
+```
+
+**SortableColumnHeader Event Filtering:**
+```typescript
+// Check if event target is resize handle
+const isResizeHandle = (target) => {
+  let element = target;
+  while (element && element.tagName !== 'TH') {
+    if (element.className?.includes('resizeHandle')) {
+      return true;
+    }
+    element = element.parentElement;
+  }
+  return false;
+};
+
+// Wrap listeners to prevent drag on resize handle
+const wrappedListeners = {
+  ...listeners,
+  onMouseDown: (e) => {
+    if (isResizeHandle(e.target)) return;
+    listeners.onMouseDown(e);
+  }
+};
+```
+
+**Files Updated:**
+- DataTable.module.css (drag overlay constraints, shadow overflow fixes)
+- DataTable.tsx (resize event handlers with stopPropagation/preventDefault)
+- RowDetailsModal.tsx (accessorKey lookup, ReferenceValueDisplay, BADGE formatting)
+- SortableColumnHeader.tsx (wrapped listeners, event filtering)
+
+**Git Commit:** 7d07c12 - "fix: Resolve multiple table interaction conflicts and modal display issues"
+
+**Status:** ✅ ALL ISSUES RESOLVED
+
+---
+
+#### Session 17: Fix Sorting Triggering After Column Resize
+- **Date:** 2025-11-03
+- **Action:** Fixed sorting from triggering when column resizing ends
+- **Duration:** ~30 minutes
+
+**Issue Fixed:**
+
+1. **Sorting Triggers When Resizing Ends** ✅ COMPLETE
+   - Problem: When users finished resizing a column, sorting would toggle unintentionally
+   - Root cause: Resize ends on mouseup (isAnyColumnResizing → false), then click event fires immediately
+   - The click handler saw isAnyColumnResizing as false and allowed sorting to proceed
+   - Fixed:
+     - Added `justFinishedResizingRef` to track when resizing just completed
+     - Added `resizeTimeoutRef` for timeout management
+     - Implemented useEffect to monitor resize state changes
+     - Set 150ms grace period after resize ends to prevent immediate sorting
+     - Updated both handleHeaderClick functions (virtualized + non-virtualized)
+     - Now checks: `isAnyColumnResizing || justFinishedResizingRef.current`
+   - Resize and sort now truly mutually exclusive
+   - **Git Commit:** 5d4f798
+
+**Technical Implementation:**
+
+**Resize Tracking with Grace Period:**
+```typescript
+// Track if we just finished resizing
+const justFinishedResizingRef = useRef(false);
+const resizeTimeoutRef = useRef<number | null>(null);
+
+// Monitor resize state changes
+useEffect(() => {
+  if (isAnyColumnResizing) {
+    // Clear flag when resizing starts
+    if (resizeTimeoutRef.current !== null) {
+      window.clearTimeout(resizeTimeoutRef.current);
+    }
+    justFinishedResizingRef.current = false;
+  } else if (!isAnyColumnResizing) {
+    // When resizing ends, set flag and clear after delay
+    justFinishedResizingRef.current = true;
+    resizeTimeoutRef.current = window.setTimeout(() => {
+      justFinishedResizingRef.current = false;
+    }, 150); // 150ms grace period
+  }
+}, [isAnyColumnResizing]);
+
+// Updated click handler
+const handleHeaderClick = (e: React.MouseEvent) => {
+  if (isAnyColumnResizing || justFinishedResizingRef.current) {
+    e.stopPropagation();
+    return;
+  }
+  // Handle sorting...
+};
+```
+
+**Testing:**
+1. Resize a column by dragging the resize handle
+2. Release mouse - sorting should NOT trigger
+3. After 150ms grace period, clicking header sorts normally
+
+**Files Updated:**
+- DataTable.tsx (lines 1113-1141: resize tracking refs and useEffect)
+- DataTable.tsx (lines 1486-1487, 1932-1933: updated handleHeaderClick functions)
+
+**Git Commit:** 5d4f798 - "fix: Prevent sorting from triggering when column resizing ends"
+
+**Status:** ✅ ISSUE RESOLVED - Resize and sort are now truly mutually exclusive
+
+---
+
 #### Session 15 Final Fixes: Checkbox Hover and Column Reordering
 - **Date:** 2025-11-02
 - **Action:** Fixed checkbox hover effect and enabled column reordering
